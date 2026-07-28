@@ -9,7 +9,9 @@ updated: 2026-07-28
 
 > The narrative layer above the backlog: how the build is sequenced. The
 > machine-readable version of this lives in `docs/engineering/backlog.json`
-> (epics E-0..E-15, stories S-01..S-36).
+> (epics E-0..E-15, stories S-01..S-36, some right-sized further into
+> lettered sub-stories — e.g. S-14a-c, S-36a-b — per `backlog.schema.json`'s
+> `S-[0-9]+[a-z]?` id pattern).
 
 ## Build phases
 
@@ -28,11 +30,11 @@ updated: 2026-07-28
 ## Sequencing notes
 
 The ledger (S-02), the canonicalization matcher (S-09), and `computeItemStats`
-(S-14) are the load-bearing pieces — every other screen is presentation over a
+(S-14a-c) are the load-bearing pieces — every other screen is presentation over a
 correct core, so they're built and tested before any screen beyond Review.
 
-**Critical path:** S-01 → S-02 → S-06 → S-09/S-10/S-11 → S-12 → S-13 → S-14 →
-S-18 (validation gate) → S-21 (Plan screen). Everything in E-10 through E-15
+**Critical path:** S-01 → S-02 → S-06 → S-09/S-10/S-11 → S-12 → S-13 →
+S-14a → S-14b → S-14c → S-18 (validation gate) → S-21 (Plan screen). Everything in E-10 through E-15
 can proceed in parallel once S-06 (capture pipeline) and S-21 (Plan screen)
 exist, since capture-format variants and downstream screens (Insights,
 Notifications, Settings) don't block each other.

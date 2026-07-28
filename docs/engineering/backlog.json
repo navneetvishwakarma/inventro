@@ -227,7 +227,11 @@
         "S-01"
       ],
       "gh_issue": 7,
-      "acceptance": "Migration applies cleanly; v_current_stock view returns correct sums against fixture movements."
+      "acceptance": "Migration applies cleanly; v_current_stock view returns correct sums against fixture movements.",
+      "verify": {
+        "ci": "pass",
+        "commit": "b3fa1a4"
+      }
     },
     {
       "id": "S-03",

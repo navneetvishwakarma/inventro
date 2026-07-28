@@ -1,6 +1,6 @@
 ---
 doc: Go-to-Market Strategy
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
@@ -12,7 +12,7 @@ updated: 2026-07-28
 
 ## Context
 
-PANTRY v1 is a private, single-household tool: no signup flow, no invites, no
+Inventro v1 is a private, single-household tool: no signup flow, no invites, no
 marketing surface, gated by a shared passcode rather than real authentication.
 "GTM" as a section exists in the standard doc set, so this records the decision
 rather than leaving it silently unaddressed.

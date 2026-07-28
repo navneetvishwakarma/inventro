@@ -1,6 +1,6 @@
 ---
 doc: Product Vision
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
@@ -22,7 +22,7 @@ every store, infer consumption, or predict a reorder date.
 
 ## Details
 
-PANTRY ingests whatever the household already produces when it shops — a photo
+Inventro ingests whatever the household already produces when it shops — a photo
 of a paper receipt, a screenshot of a q-commerce order, an order-confirmation
 PDF or email — and turns it into structured inventory in under 15 seconds. From
 there, a prediction engine learns *what* the household consumes, *how fast*,

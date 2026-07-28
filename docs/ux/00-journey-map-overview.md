@@ -1,11 +1,11 @@
 ---
 doc: UX Journey Map Overview
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
 
-# PANTRY — UX Journey Maps
+# Inventro — UX Journey Maps
 
 > User journeys only, no wireframes and no design system — that's a deliberate
 > scope decision for this pass. Screens referenced below (§9 of the working

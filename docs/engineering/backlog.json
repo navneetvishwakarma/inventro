@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "project": "PANTRY",
+  "project": "Inventro",
   "tagline": "Predicted, recurring grocery replenishment from a photographed receipt.",
   "tracker": "local",
   "prd": "docs/product/06-prd.md",

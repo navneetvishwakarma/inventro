@@ -1,6 +1,6 @@
 ---
 doc: Insights & Budget Journey
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
@@ -21,7 +21,7 @@ where the month's spend is going.
    would naturally think in (groceries, home care, personal care, etc.).
 2. **Checks the forward projection** — next month's committed recurring
    spend, derived directly from live cadences and prices. Feeling: this is
-   the moment PANTRY delivers something no other tool does — "here's roughly
+   the moment Inventro delivers something no other tool does — "here's roughly
    what next month costs before it happens," not just a look backward.
 3. **Scans top-10 spend items** and any price-change alerts (>15% vs.
    trailing average). Feeling: useful for spotting a merchant price hike

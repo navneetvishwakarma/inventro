@@ -1,6 +1,6 @@
 ---
 doc: Market Research
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---

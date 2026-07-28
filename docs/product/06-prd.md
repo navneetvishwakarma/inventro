@@ -1,11 +1,11 @@
 ---
 doc: prd
-project: PANTRY
+project: Inventro
 status: approved        # draft | approved  — must be `approved` before backlog seeding
 updated: 2026-07-28
 ---
 
-# PANTRY — Product Requirements
+# Inventro — Product Requirements
 
 > Approved. Every requirement below is vertically sliced and carries a stable
 > `REQ-xx` id referenced by `prd_ref` in `docs/engineering/backlog.json`. Full

@@ -18,7 +18,7 @@ build/
 # Vercel
 .vercel/
 
-# Supabase local dev
+# Supabase local dev / CLI link metadata (supabase/.gitignore covers supabase/.temp)
 .supabase/
 
 # Testing / coverage

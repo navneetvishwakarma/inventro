@@ -202,14 +202,18 @@
   "stories": [
     {
       "id": "S-01",
-      "title": "Repo, Next.js 15 + App Router wiring, Vercel deploy",
+      "title": "Repo, Next.js 16 + App Router wiring, Vercel deploy",
       "epic": "E-0",
       "prd_ref": "REQ-26",
       "status": "notstarted",
       "order": 1,
       "estimate": 0.15,
       "gh_issue": 6,
-      "acceptance": "Empty app deployed to a Vercel URL within the first hour of Day 1."
+      "acceptance": "Empty app deployed to a Vercel URL within the first hour of Day 1.",
+      "verify": {
+        "ci": "pass",
+        "commit": "a01e522"
+      }
     },
     {
       "id": "S-02",

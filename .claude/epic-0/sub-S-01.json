@@ -1,0 +1,25 @@
+{
+  "id": "S-01",
+  "title": "Repo, Next.js 15 + App Router wiring, Vercel deploy",
+  "goal": "Stand up the Next.js 15 App Router skeleton and get it deployed to a live Vercel URL, so every subsequent story in this epic (and every epic after it) has a real deploy target from hour one of the build.",
+  "in_scope": [
+    "Next.js 15 project init, App Router, TypeScript",
+    "Repo structure that matches the stack decisions: Server Actions for mutations, Route Handlers for webhooks/cron (ADR-0005, docs/architecture/02-tech-stack.md)",
+    "Vercel project linked and deployed on the free/hobby tier (ADR-0005)",
+    "Env var scaffolding documented (placeholders) for secrets later stories will wire up: Supabase service-role key, Gemini API key, Resend API key — none functional yet, just the contract for where they live",
+    "TanStack Query and Zod installed as base dependencies (docs/architecture/02-tech-stack.md) — not yet used by any feature"
+  ],
+  "out_of_scope": [
+    "Astryx vs shadcn/ui installation or theming — that's the separate Day-1 hour-1 spike decision (ADR-0002), made alongside this story but not part of it",
+    "Database schema or Supabase project provisioning (S-02)",
+    "Passcode gate middleware (S-03)",
+    "Any product screen or feature code"
+  ],
+  "acceptance": "Empty app deployed to a Vercel URL within the first hour of Day 1.",
+  "invariants": [
+    "No secret (Supabase service-role key, Gemini key, Resend key, or any future key) ever ships in the client bundle — this holds from the very first deploy, not just once S-02/S-03 add real integrations (ADR-0004, PRD REQ-26)",
+    "Single deploy target: Vercel (ADR-0005) — no parallel hosting experiments"
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": "docs/architecture/decisions/ADR-0005-platform-supabase-vercel.md"
+}

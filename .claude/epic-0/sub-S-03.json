@@ -1,0 +1,24 @@
+{
+  "id": "S-03",
+  "title": "Passcode gate middleware (signed HTTP-only cookie)",
+  "goal": "Gate every route except the passcode-entry route itself behind a shared passcode, closing the 'Vercel URLs are public by default' gap the working spec exists to close — while keeping this explicitly non-authentication, exactly as scoped in ADR-0004.",
+  "in_scope": [
+    "middleware.ts checking a shared passcode against an env var",
+    "Signed HTTP-only cookie set on successful passcode entry (working spec Sec2: ~40 lines)",
+    "401 response for any request without a valid gate cookie",
+    "A minimal passcode-entry route/form — unauthenticated users need some way to submit the passcode in the first place"
+  ],
+  "out_of_scope": [
+    "Real authentication: invites, roles, per-user identity, RLS enforcement — explicitly out of scope (ADR-0004, PRD non-goals)",
+    "Rate limiting / brute-force protection on the passcode gate — recommended but not yet a formal requirement per docs/architecture/06-security.md; do not add speculative mitigation here",
+    "Cookie signing-key rotation tooling — per docs/architecture/06-security.md this is a manual env-var change when needed, not build-time work"
+  ],
+  "acceptance": "Unauthenticated request without the gate cookie returns 401 (A26).",
+  "invariants": [
+    "This is explicitly not real authentication (ADR-0004) — nothing beyond grocery data should ever be gated by this mechanism alone",
+    "No anon Supabase key or service-role key exposure via this middleware layer — all DB access stays server-side (ADR-0004), this story doesn't touch the database directly at all",
+    "The passcode itself lives only in an env var, never in client-readable code or the bundle"
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": "docs/architecture/decisions/ADR-0004-single-household-tenancy-scaffold.md — see also docs/architecture/06-security.md for the residual-risk framing (passcode brute-force explicitly not mitigated by this story, noted there rather than invented here)"
+}

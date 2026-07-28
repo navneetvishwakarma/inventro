@@ -52,7 +52,7 @@ Resend (free tier, transactional email)
 |---|---|
 | Storage size limits | Client-side compression before upload: HEIC→JPEG, downscale to 2000px long edge, JPEG q85, target ≤1.5MB |
 | Long-term storage growth | Receipt files older than 12 months are purged; parsed data (`receipt_lines`, ledger entries) is retained indefinitely — only the original file goes |
-| `ingest_jobs.raw_response` (raw LLM output, retained on manual-entry fallback per REQ-24) accumulating on repeated bad parses | Not yet given a retention rule — same 12-month purge as receipt files is the natural default, but this needs an explicit decision, not silent indefinite growth |
+| `ingest_jobs.raw_response` (raw LLM output, retained on manual-entry fallback per REQ-24) accumulating on repeated bad parses | **Resolved:** same 12-month purge as receipt files, reusing the existing purge job/cadence — not kept indefinitely alongside `receipt_lines`, since this is debug exhaust from failures, not parsed user data |
 | Serverless function duration | Parse pipeline is async (`ingest_jobs` queue + worker), not a long-running synchronous request — upload returns immediately, parsing happens out of band |
 | LLM cost | Loop-bug guard: hard stop at 100 receipts/day, alert at 50; native-PDF-text fast path avoids a multimodal call whenever the source is a real text PDF |
 

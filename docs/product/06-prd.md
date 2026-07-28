@@ -74,7 +74,9 @@ data only, with the schema already shaped so enabling real auth + RLS later is
 additive, not a rewrite. Receipt images may incidentally contain address or
 payment-instrument fragments; storage is private with 60s-TTL signed URLs, and
 raw files are purged after 12 months (parsed data is retained) — see
-`docs/architecture/07-infrastructure.md`.
+`docs/architecture/07-infrastructure.md`. Full residual-risk picture
+(passcode brute-force, cookie-key rotation, leak blast radius) consolidated
+in `docs/architecture/06-security.md`.
 
 **Acceptance test numbering:** the table above cites acceptance tests by id
 (A1–A26); the full list is working spec §11. Ids A10, A14–A17, A19–A20, and

@@ -31,4 +31,12 @@ guard).
 
 ## Open questions
 
-- [ ] S3 is currently measured only against synthetic data (see `00b-validation.md`). Add a real-data S3 check once ~2 months of actual household history exists, and record whether it holds up.
+- [x] **Resolved:** S3 is currently measured only against synthetic data (see
+      `00b-validation.md`). Add a real-data S3 check once ~2 months of actual
+      household history exists. If real S3 comes in meaningfully below 70%,
+      the response is the same as the pre-launch synthetic gate: retune α,
+      the shrinkage constant, the MAD threshold, and the hysteresis margin
+      against the real data first. The algorithm shape (EWMA + shrinkage +
+      rate cross-check + reconciliation) is not up for revision from this
+      signal alone — escalate to a scope conversation only if retuning
+      against several weeks of real data still doesn't close the gap.

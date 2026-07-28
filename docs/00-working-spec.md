@@ -101,6 +101,20 @@ One-time wizard, gated by `households.onboarded_at`: household name/currency/bud
 
 Never auto-commits — every receipt lands in review. Duplicate protection via SHA-256 `content_hash`; soft warning on matching (merchant, date, total) from a different file.
 
+**Stuck-job recovery (decided post-consolidation):** the escalation ladder
+(Flash → Pro → manual fallback) only covers *LLM* failures. A worker that
+crashes or times out mid-run leaves its `ingest_jobs` row in `processing`
+with nothing to notice it. Recovery: the nightly 03:00 IST cron (no new cron
+trigger — Vercel's free/hobby tier caps cron frequency, so this rides the
+existing job rather than adding a minute-level one) also scans for rows
+stuck in `processing` past a timeout, increments `attempts`, and re-enqueues
+up to a cap (3); past the cap, the job is marked permanently failed and
+surfaces in the review queue as a manual-entry case — same failure UX as an
+exhausted LLM escalation. **Accepted trade-off:** worst case, a stuck job
+isn't detected for up to ~24h. If faster recovery is wanted later, it needs a
+different trigger (e.g. an opportunistic check on review-queue page load) —
+not decided here, flagged as a follow-up.
+
 ### F4 — Canonicalization
 
 Resolve each parsed line, in order:
@@ -141,7 +155,7 @@ Must not depend on the user logging anything, since they may or may not.
 
 1. **Explicit:** "Used it up" (zeroes stock), "Used some" (−25/50/75% or numeric), "Wasted/expired."
 2. **Implicit depletion:** stock is decremented *virtually* for display and prediction using `daily_rate_base`. This is a projection only — never a written ledger movement.
-3. **Repurchase reconciliation:** at each repurchase, compare projected stock against reality. If projected stock exceeded 40% of a pack size, `rate_correction ×= 0.85` (the model over-estimated consumption); if projected stock had already hit ≤0 for more than 20% of the interval, `rate_correction ×= 1.15`. Clamp cumulative correction to [0.5, 2.0].
+3. **Repurchase reconciliation:** at each repurchase, compare projected stock against reality. If projected stock exceeded 40% of a pack size, `rate_correction ×= 0.85` (the model over-estimated consumption); if projected stock had already hit ≤0 for more than 20% of the interval, `rate_correction ×= 1.15`. Clamp cumulative correction to [0.5, 2.0]. **Scope (decided post-consolidation):** this comparison only runs when the committed receipt is the chronologically latest purchase on record for that item. A backdated commit (REQ-22) updates interval/frequency stats only — it never triggers this correction step, since "projected vs. actual right now" is only meaningful at the most recent data point.
 
 **This closed loop is what makes the system work without user discipline** — the single most important mechanism in the product.
 
@@ -214,9 +228,17 @@ Seed `category_prior_days` per category (milk 2, bread 4, vegetables 5, rice 45,
 **6. Rate-based cross-check.** Where ≥70% of events have reliable qty/unit:
 
 ```
-daily_rate = Σ qty_base(trailing 120d) / days_elapsed(trailing 120d) × rate_correction
+daily_rate_base = Σ qty_base(trailing 120d) / days_elapsed(trailing 120d)
+daily_rate = daily_rate_base × rate_correction
 depletion_date = last_purchase_at + (current_stock_base / daily_rate)
 ```
+
+`daily_rate_base` is persisted to `item_stats` as the raw, uncorrected signal
+(recomputed fresh from purchase quantities each cycle, `rate_correction` never
+baked in); `daily_rate` is derived at read/prediction time, never stored. This
+keeps the raw purchase-pattern signal separable from how much reconciliation
+(step 3 above) has corrected it — useful for debugging a prediction that looks
+wrong.
 
 Blend by data quality `q` (fraction of events with reliable qty):
 
@@ -465,7 +487,7 @@ This turns "does the engine work" from a judgement call into a number, drives Da
 
 - p95 page load < 2.5s on 4G; parse round trip < 30s p95, async with visible progress state.
 - All secrets server-side. Storage private, signed URLs, 60s TTL.
-- Free-tier envelope: compress uploads client-side to ≤1.5 MB; purge receipt files older than 12 months (keep parsed data, not the original file).
+- Free-tier envelope: compress uploads client-side to ≤1.5 MB; purge receipt files older than 12 months (keep parsed data, not the original file); `ingest_jobs.raw_response` (raw LLM output retained on manual-entry fallback, §7) follows the same 12-month purge, not kept indefinitely.
 - Structured logging on the ingest pipeline keyed on `receipt_id`.
 - WCAG AA — Astryx components ship accessible; don't undo it with custom markup.
 - Loop-bug guard: hard stop at 100 receipts/day, alert at 50.

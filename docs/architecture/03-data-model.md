@@ -84,17 +84,12 @@ must select from this fixed enum — never invent a category.
 - [ ] None blocking v1. If multi-tenancy lands, confirm no table besides
       `households` itself needs a schema change beyond enabling RLS — current
       expectation (ADR-0004) is that it doesn't.
-- [ ] Reconciliation (REQ-15) runs "at each repurchase" (working spec §5/F9.3)
-      by comparing projected vs. actual stock. Neither the PRD nor the working
-      spec states whether reconciliation is skipped for a backdated commit
-      (REQ-22, dated before `stock_epoch` or before a chronologically later
-      purchase already on record) — a backdated repurchase risks correcting
-      `rate_correction` off a projection built from an interval window that
-      `v_current_stock` structurally excludes. Needs an explicit rule before
-      REQ-15/REQ-22 are both implemented, not discovered at that intersection.
-- [ ] `item_stats.daily_rate_base` is a named, stored field, but working spec
-      §5 step 6 only ever computes `daily_rate` (already multiplied by
-      `rate_correction`) — there's no formula for how `daily_rate_base` is
-      derived or stored separately from the correction. §5 is a fixed
-      contract per the working spec's own framing, so this needs resolving
-      there, not guessed at in implementation.
+- [x] **Resolved:** reconciliation (REQ-15) only runs when the committed
+      receipt is the chronologically latest purchase on record for that item.
+      A backdated commit (REQ-22) updates interval/frequency stats only and
+      never triggers `rate_correction` adjustment. See working spec §5/F9.3.
+- [x] **Resolved:** `daily_rate_base` is the raw, uncorrected consumption
+      rate (recomputed fresh from trailing-120d purchase quantities each
+      cycle); `daily_rate` is derived at read time as
+      `daily_rate_base × rate_correction` and is never persisted separately.
+      See working spec §5 step 6.

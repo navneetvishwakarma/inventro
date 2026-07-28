@@ -37,7 +37,7 @@ file) get validated before it touches the database.
 | Route | Trigger | Effect |
 |---|---|---|
 | `POST /api/ingest/process` | Enqueued by `createReceiptUpload`, invoked by the ingest worker | Runs the extraction pipeline (native-text fast path → Flash → Pro escalation → manual fallback) for one `ingest_jobs` row; writes `receipt_lines`, never writes `stock_movements` directly. On manual-entry fallback, the raw model response is retained in `ingest_jobs.raw_response` (REQ-24) for the "flag this parse as bad" affordance |
-| `POST /api/cron/recompute-stats` | Vercel Cron, nightly 03:00 IST | Recomputes `item_stats` for every item in the household |
+| `POST /api/cron/recompute-stats` | Vercel Cron, nightly 03:00 IST | Recomputes `item_stats` for every item in the household; also reaps `ingest_jobs` rows stuck in `processing` past a timeout (crashed/timed-out worker), re-enqueuing up to 3 attempts before marking permanently failed and surfacing in the review queue — piggybacked on this cron rather than a new trigger, since Vercel's free/hobby tier caps cron frequency (accepted trade-off: up to ~24h worst-case detection) |
 | `POST /api/cron/digest-daily` | Vercel Cron, daily 07:00 IST | Sends the "due within 3 days" email via Resend if anything is due |
 | `POST /api/cron/digest-weekly` | Vercel Cron, Sunday 18:00 IST | Sends the "next week's list ready" email |
 | `GET /api/export` | User-triggered from Settings | Streams CSV/JSON data export |

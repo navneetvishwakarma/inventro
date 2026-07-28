@@ -1,0 +1,30 @@
+{
+  "id": "S-02",
+  "title": "Full DB schema (incl. stock_epoch) + RLS written-but-disabled + seed data (categories, priors, ~300 items)",
+  "goal": "Apply the complete Postgres schema for every entity in the domain model, with household_id and stock_epoch semantics correct from the first migration, RLS policies written but disabled, and seed the category taxonomy plus a starter catalog of ~300 common items with cold-start priors — so every later story builds against real tables and real seed data instead of stubs.",
+  "in_scope": [
+    "All 12 tables from working spec Sec3 / docs/architecture/03-data-model.md: households, categories, catalog_items, item_aliases, receipts, receipt_lines, stock_movements, item_stats, item_stats_history, plan_entries, shopping_lists + shopping_list_items, price_history, ingest_jobs",
+    "household_id column on every table (ADR-0004) — schema-level only; wiring DEFAULT_HOUSEHOLD_ID into application queries happens in each later story that touches a table, not here",
+    "stock_epoch on households; v_current_stock as a plain (non-materialized) Postgres view per ADR-0001 — explicitly not MATERIALIZED VIEW, so a write is reflected on the very next read",
+    "ingest_jobs.raw_response column (jsonb) — retains the raw LLM response on manual-entry fallback per REQ-24; resolved in docs/architecture/07-infrastructure.md, same 12-month purge as receipt files (not part of this story, purge job is later)",
+    "RLS policies written into the migration file for every table, left DISABLED (ADR-0004)",
+    "pg_trgm extension enabled (needed by REQ-09 canonicalization, ADR-0005) — extension only, matcher logic is a later story",
+    "Seed data: 16 top-level categories + sub-categories (working spec Sec6), each leaf carrying default_base_unit + default_prior_days",
+    "Seed ~300 common catalog items (canonical_name, brand where relevant, category_id, base_unit, default_pack_size, perishability_days, is_staple) — content-curation work, not just DDL; get this reviewed for realistic Indian-household grocery/household-supply coverage since it seeds every cold-start prior the prediction engine leans on"
+  ],
+  "out_of_scope": [
+    "Enabling RLS — explicitly deferred to the multi-tenant phase (ADR-0004)",
+    "Wiring DEFAULT_HOUSEHOLD_ID into any Server Action or query — that happens per-story as each table is actually used",
+    "Any UI",
+    "The synthetic history seeder (pnpm seed:history, REQ-23) — that's E-6/S-17, a separate demo-data generator layered on top of this schema, not part of it"
+  ],
+  "acceptance": "Migration applies cleanly; v_current_stock view returns correct sums against fixture movements.",
+  "invariants": [
+    "v_current_stock is a plain view, never MATERIALIZED VIEW (ADR-0001) — A8 (\"used it up\" zeroes stock immediately) depends on this",
+    "Every table carries household_id, no exceptions (ADR-0004) — this convention must hold for every table added after v1 too, or the scaffold's value is lost piecemeal",
+    "RLS policies exist in the migration but are DISABLED — written and reviewable now, a flag flip later, not a design exercise then",
+    "Current stock = SUM(qty_base) over stock_movements where occurred_at >= household.stock_epoch (purchases/initial positive, consumption/waste negative) — the stock_epoch filter must be baked into v_current_stock itself, not left to every caller to remember"
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": "docs/architecture/decisions/ADR-0001-stock-ledger-derived-not-mutable.md, docs/architecture/decisions/ADR-0004-single-household-tenancy-scaffold.md"
+}

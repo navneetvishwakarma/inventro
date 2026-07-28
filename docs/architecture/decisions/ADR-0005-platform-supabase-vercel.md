@@ -24,9 +24,11 @@ private single-household tool with no revenue to fund infrastructure.
 
 Supabase (free tier) for Postgres 15 + `pg_trgm`, a private `receipts` Storage
 bucket with 60-second-TTL signed URLs, and Vercel Cron for the nightly
-recompute and digest jobs. Next.js 15 App Router on Vercel (free/hobby) for
+recompute and digest jobs. Next.js 16 App Router on Vercel (free/hobby) for
 hosting, Server Actions, and Route Handlers. Resend (free tier) for
-transactional email.
+transactional email. (Originally scoped as Next.js 15; bumped to 16 at S-01
+implementation time since that was current `latest` for a greenfield
+scaffold — no architectural rationale changes.)
 
 ## Options Considered
 

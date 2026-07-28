@@ -3,7 +3,7 @@
   "title": "Repo, Next.js 15 + App Router wiring, Vercel deploy",
   "goal": "Stand up the Next.js 15 App Router skeleton and get it deployed to a live Vercel URL, so every subsequent story in this epic (and every epic after it) has a real deploy target from hour one of the build.",
   "in_scope": [
-    "Next.js 15 project init, App Router, TypeScript",
+    "Next.js 16 project init, App Router, TypeScript",
     "Repo structure that matches the stack decisions: Server Actions for mutations, Route Handlers for webhooks/cron (ADR-0005, docs/architecture/02-tech-stack.md)",
     "Vercel project linked and deployed on the free/hobby tier (ADR-0005)",
     "Env var scaffolding documented (placeholders) for secrets later stories will wire up: Supabase service-role key, Gemini API key, Resend API key — none functional yet, just the contract for where they live",

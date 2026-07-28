@@ -19,7 +19,7 @@ so the stack doesn't need to be re-derived from `package.json` or guessed at.
 
 | Layer | Choice | Why (ADR) |
 |---|---|---|
-| Framework | Next.js 15, App Router, TypeScript | Server Actions for mutations, Route Handlers for webhooks/cron, one deploy target |
+| Framework | Next.js 16, App Router, TypeScript | Server Actions for mutations, Route Handlers for webhooks/cron, one deploy target |
 | Hosting | Vercel (free/hobby tier) | Native Next.js hosting + Cron trigger (ADR-0005) |
 | UI kit | Astryx (`@astryxdesign/core`), shadcn/ui fallback | Pre-built templates for table/detail/form pages; time-boxed spike decides (ADR-0002) |
 | Client data cache | TanStack Query | Standard client cache over Server Actions/Route Handlers |

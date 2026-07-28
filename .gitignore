@@ -38,3 +38,8 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# CodeGraph local index (regenerable via `codegraph init`; also has its own
+# nested .gitignore — this entry is belt-and-suspenders for visibility at
+# the root without opening the subfolder)
+.codegraph/

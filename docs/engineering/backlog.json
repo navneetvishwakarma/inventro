@@ -205,7 +205,7 @@
       "title": "Repo, Next.js 16 + App Router wiring, Vercel deploy",
       "epic": "E-0",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 1,
       "estimate": 0.15,
       "gh_issue": 6,
@@ -220,7 +220,7 @@
       "title": "Full DB schema (incl. stock_epoch) + RLS written-but-disabled + seed data (categories, priors, ~300 items)",
       "epic": "E-0",
       "prd_ref": "REQ-26",
-      "status": "blocked",
+      "status": "in_progress",
       "order": 2,
       "estimate": 0.35,
       "blocked_by": [
@@ -234,7 +234,7 @@
       "title": "Passcode gate middleware (signed HTTP-only cookie)",
       "epic": "E-0",
       "prd_ref": "REQ-26",
-      "status": "blocked",
+      "status": "in_progress",
       "order": 3,
       "estimate": 0.1,
       "blocked_by": [

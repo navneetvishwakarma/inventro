@@ -1,11 +1,11 @@
 ---
 doc: Working Spec
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
 
-# PANTRY — Home Inventory & Replenishment Intelligence
+# Inventro — Home Inventory & Replenishment Intelligence
 
 **Final Consolidated Product Requirement (build-ready)**
 *Private single-household tool, v1. Multi-tenant is a planned later phase (see §2, §15).*

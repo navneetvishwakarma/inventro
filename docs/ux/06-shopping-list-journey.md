@@ -1,6 +1,6 @@
 ---
 doc: Shopping List Journey
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
@@ -19,7 +19,7 @@ a concrete list rather than the full Plan view.
    they were just looking at in Plan, not a separate thing to configure.
 2. **Shares or exports it** as plain text/clipboard — e.g. pastes it straight
    into a family chat or a q-commerce app's search-and-add flow. Feeling: the
-   list needs to be genuinely useful outside the app, since PANTRY explicitly
+   list needs to be genuinely useful outside the app, since Inventro explicitly
    never places the order itself.
 3. **Shops**, either offline or via an app.
 4. **Checks items off** as they're bought. If checking one off without having

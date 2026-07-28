@@ -1,4 +1,4 @@
-# PANTRY — Agent Operating Manual
+# Inventro — Agent Operating Manual
 
 This is the cross-agent operating manual, read first by every coding agent
 (Claude, Cursor, Codex, Gemini, …). It is the machine-facing index of how this repo

@@ -1,11 +1,11 @@
 ---
 doc: Riskiest Assumption Validation
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
 
-# PANTRY — Riskiest Assumption Validation
+# Inventro — Riskiest Assumption Validation
 
 ## Assumption under test
 

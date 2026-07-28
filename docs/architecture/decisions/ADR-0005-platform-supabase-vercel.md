@@ -1,6 +1,6 @@
 ---
 doc: adr
-project: PANTRY
+project: Inventro
 status: accepted
 updated: 2026-07-28
 story: "S-01"

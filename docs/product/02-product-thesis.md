@@ -1,6 +1,6 @@
 ---
 doc: Product Thesis
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
@@ -14,7 +14,7 @@ updated: 2026-07-28
 Every "smart shopping list" idea lives or dies on one question: can the system
 know what a household has and needs *without* the household doing extra data
 entry? If the answer requires disciplined logging, adoption dies in week two.
-This document states the bet PANTRY is making and how it gets tested.
+This document states the bet Inventro is making and how it gets tested.
 
 ## Details
 

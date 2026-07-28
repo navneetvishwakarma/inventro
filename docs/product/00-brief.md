@@ -1,11 +1,11 @@
 ---
 doc: Product Brief
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
 
-# PANTRY — Product Brief
+# Inventro — Product Brief
 
 > One-page framing. Full detail lives in `docs/product/06-prd.md`.
 

@@ -1,11 +1,11 @@
 ---
 doc: tech-plan
-project: PANTRY
+project: Inventro
 status: approved
 updated: 2026-07-28
 ---
 
-# PANTRY — Technical Plan
+# Inventro — Technical Plan
 
 > The narrative layer above the backlog: how the build is sequenced. The
 > machine-readable version of this lives in `docs/engineering/backlog.json`
@@ -62,4 +62,4 @@ no-training-on-input guarantee, see ADR-0003).
 | Thin real purchase history at launch — S3 unmeasurable against real data | Medium | Synthetic validation harness (E-6) carries engine validation pre-launch; real-data S3 check added post-launch (see `docs/product/07-success-metrics.md`) |
 | Shared passcode is not real authentication | Medium | Explicitly scoped to grocery data only (REQ-26); RLS shipped disabled but ready for the multi-tenant phase |
 | 3-day scope creep | Medium | `docs/product/06-prd.md` non-goals + working-spec §15 deferred list are a contract, not a suggestion |
-| `backlog.json` story/epic `estimate` fields sum to ~11.15 / ~9.5 against the 3-day window, and the two totals don't reconcile with each other; `backlog.schema.json` (shared, project-agnostic) leaves the unit as "days or points" | Low | This narrative day-by-day plan and the D1/D2/D3 gates above are what's authoritative for sequencing and scope for PANTRY — do not treat a sum over the `estimate` field as a time budget until the unit is declared and the two totals reconciled |
+| `backlog.json` story/epic `estimate` fields sum to ~11.15 / ~9.5 against the 3-day window, and the two totals don't reconcile with each other; `backlog.schema.json` (shared, project-agnostic) leaves the unit as "days or points" | Low | This narrative day-by-day plan and the D1/D2/D3 gates above are what's authoritative for sequencing and scope for Inventro — do not treat a sum over the `estimate` field as a time budget until the unit is declared and the two totals reconciled |

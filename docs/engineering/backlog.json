@@ -284,7 +284,11 @@
         "S-02"
       ],
       "gh_issue": 15,
-      "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row."
+      "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row.",
+      "verify": {
+        "ci": "pass",
+        "commit": "1cdb593"
+      }
     },
     {
       "id": "S-06",
@@ -298,7 +302,11 @@
         "S-05"
       ],
       "gh_issue": 16,
-      "acceptance": "A photographed grocery bill extracts >=85% of lines correctly (A1); native-text PDFs take the cheap text-only path, verifiable via parse_path (A22)."
+      "acceptance": "A photographed grocery bill extracts >=85% of lines correctly (A1); native-text PDFs take the cheap text-only path, verifiable via parse_path (A22).",
+      "verify": {
+        "ci": "pass",
+        "commit": "cd7020c"
+      }
     },
     {
       "id": "S-07",
@@ -312,7 +320,11 @@
         "S-06"
       ],
       "gh_issue": 17,
-      "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11)."
+      "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11).",
+      "verify": {
+        "ci": "pass",
+        "commit": "a55147f"
+      }
     },
     {
       "id": "S-08",
@@ -326,7 +338,11 @@
         "S-06"
       ],
       "gh_issue": 18,
-      "acceptance": "Re-uploading the same file is blocked as duplicate (A2)."
+      "acceptance": "Re-uploading the same file is blocked as duplicate (A2).",
+      "verify": {
+        "ci": "pass",
+        "commit": "3bb1f70"
+      }
     },
     {
       "id": "S-09",

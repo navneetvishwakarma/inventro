@@ -220,7 +220,7 @@
       "title": "Full DB schema (incl. stock_epoch) + RLS written-but-disabled + seed data (categories, priors, ~300 items)",
       "epic": "E-0",
       "prd_ref": "REQ-26",
-      "status": "in_progress",
+      "status": "done",
       "order": 2,
       "estimate": 0.35,
       "blocked_by": [
@@ -238,7 +238,7 @@
       "title": "Passcode gate middleware (signed HTTP-only cookie)",
       "epic": "E-0",
       "prd_ref": "REQ-26",
-      "status": "in_progress",
+      "status": "done",
       "order": 3,
       "estimate": 0.1,
       "blocked_by": [
@@ -256,7 +256,7 @@
       "title": "Onboarding wizard: household config, shopping presets, optional stock tick-off",
       "epic": "E-1",
       "prd_ref": "REQ-01",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 4,
       "estimate": 0.5,
       "blocked_by": [
@@ -270,7 +270,7 @@
       "title": "Multi-format capture UI: camera / file-picker / drag-drop (PDF, JPG, PNG, WEBP, HEIC, HTML/MHTML)",
       "epic": "E-2",
       "prd_ref": "REQ-02",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 5,
       "estimate": 0.4,
       "blocked_by": [
@@ -389,7 +389,7 @@
       "title": "Interval estimation: EWMA, outlier rejection, shrinkage-to-category-prior",
       "epic": "E-5",
       "prd_ref": "REQ-16",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 14,
       "estimate": 0.3,
       "blocked_by": [
@@ -457,7 +457,7 @@
       "title": "Synthetic history seeder (7 cohorts, is_demo household only, ENABLE_SEED gate)",
       "epic": "E-6",
       "prd_ref": "REQ-23",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 17,
       "estimate": 0.4,
       "blocked_by": [
@@ -668,7 +668,7 @@
       "title": "Settings screen: household config, category management pointer, CSV/JSON export, demo-data wipe",
       "epic": "E-14",
       "prd_ref": "REQ-21",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 33,
       "estimate": 0.3,
       "blocked_by": [

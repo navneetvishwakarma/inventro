@@ -1,0 +1,23 @@
+{
+  "id": "S-07",
+  "title": "Escalation ladder (Pro retry on schema/total-mismatch failure) + manual-entry fallback retaining raw response",
+  "goal": "A malformed or low-confidence Flash extraction never crashes and never silently drops data — it retries once on Pro with the specific failure appended to the prompt, and if that also fails, the receipt is marked for manual entry with the raw response retained for inspection.",
+  "in_scope": [
+    "Escalation trigger conditions exactly per working spec Sec7: Zod schema validation fails, OR sum(line_total) deviates from stated order_total by >5%, OR mean line confidence < 0.5",
+    "Single retry on Gemini Pro (same LlmProvider interface, different model id), with the specific failure reason appended to the prompt so the retry isn't a blind repeat",
+    "If the Pro retry also fails the same checks: ingest_jobs.state='failed', receipts.status set to a manual-entry-needed state, ingest_jobs.raw_response stores the last (Pro) response verbatim for inspection",
+    "No crash path: every failure mode (LLM error, timeout, schema failure, total mismatch) is caught and results in one of {done, retried-then-done, failed-needs-manual} — never an unhandled exception that leaves ingest_jobs stuck in 'processing' with no trace"
+  ],
+  "out_of_scope": [
+    "The manual-entry UI itself and the 'flag this parse as bad' affordance (working spec Sec7) — both are Review-screen surfaces (E-4), not built yet; this story only guarantees the backend lands in a state E-4 can render against",
+    "Stuck-job recovery via nightly cron (same reasoning as S-06 — the recompute cron doesn't exist yet)"
+  ],
+  "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11).",
+  "invariants": [
+    "The escalation ladder only ever runs once per tier (Flash -> Pro, not Pro -> Pro) — per working spec Sec7's explicit 'retry once'",
+    "raw_response is retained on the manual-entry fallback path specifically (REQ-24) and follows the same 12-month purge as receipt files (07-infrastructure.md) — not this story's job to build the purge, just to write the column correctly so that job can find it later"
+  ],
+  "prd_ref": "REQ-24",
+  "adr_ref": "docs/architecture/decisions/ADR-0003-llm-provider-gemini-flash.md",
+  "blocked_on_credential": "GEMINI_API_KEY (inherited from S-06)"
+}

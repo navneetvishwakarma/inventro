@@ -1,0 +1,21 @@
+{
+  "id": "S-08",
+  "title": "Duplicate protection via SHA-256 content_hash + soft warning on near-duplicate",
+  "goal": "Re-uploading the exact same file is blocked outright; uploading a different file that looks like the same purchase (same merchant/date/total) gets a soft warning instead of silently double-counting inventory.",
+  "in_scope": [
+    "SHA-256 content_hash computed server-side from the uploaded file bytes at upload time (extends S-05's Server Action, before the Storage write) and stored on receipts.content_hash",
+    "Exact-duplicate check: if content_hash matches an existing receipts row for this household, reject the upload with a clear 'already uploaded' message instead of creating a new receipt/ingest_jobs row",
+    "Near-duplicate soft warning: once a receipt finishes parsing (S-06/S-07's completion, since merchant/date/total only exist after extraction), check for another receipt with matching (merchant, purchased_at, total_amount) from a different content_hash; if found, flag it (a warning field/state the not-yet-built Review screen can surface) rather than blocking anything"
+  ],
+  "out_of_scope": [
+    "The Review-screen UI that displays the near-duplicate warning (E-4) — this story only needs the flag computed and stored correctly",
+    "Fuzzy/approximate matching beyond exact (merchant, purchased_at, total_amount) equality — no similarity scoring, per working spec Sec3's plain description of this check"
+  ],
+  "acceptance": "Re-uploading the same file is blocked as duplicate (A2).",
+  "invariants": [
+    "The exact-duplicate check runs before any Storage write or DB insert — a rejected duplicate must not leave orphaned Storage objects or partial rows",
+    "content_hash is computed from the bytes as received by the server (post S-05 client-side preprocessing, e.g. HEIC->JPEG) — dedup is therefore exact-match on the uploaded artifact, not the original camera-roll file; re-uploading the same already-uploaded file (the common case: picking the same photo/PDF twice) still hashes identically since preprocessing is deterministic for a given input"
+  ],
+  "prd_ref": "REQ-08",
+  "adr_ref": null
+}

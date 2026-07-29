@@ -1,0 +1,31 @@
+{
+  "id": "S-05",
+  "title": "Multi-format capture UI: camera / file-picker / drag-drop (PDF, JPG, PNG, WEBP, HEIC, HTML/MHTML)",
+  "goal": "An Add screen that gets a receipt file (from camera, file picker, or drag-drop, single or multiple) into private Storage and a receipts row, fast enough that capture never feels slower than the alternative of just remembering to buy the item next time.",
+  "in_scope": [
+    "app/add/page.tsx: file input (camera via capture=\"environment\" attribute — same input element as file-picker, no separate camera code path), multi-select file picker, HTML5 drag-drop zone. Accepts PDF, JPG, JPEG, PNG, WEBP, HEIC, HTML, MHTML — validated by extension primarily (MIME reporting for HEIC/MHTML is inconsistent across browsers/OS), reported MIME as a secondary signal only",
+    "Client-side preprocessing (images only — PDF/HTML/MHTML pass through untouched, nothing to downscale): HEIC->JPEG via heic2any, then canvas downscale to 2000px long edge + JPEG re-encode at q85, targeting <=1.5MB (working spec F2/07-infrastructure.md)",
+    "Upload path: client sends file bytes to a Server Action (multipart FormData), which uses the service-role Supabase client to write to the private 'receipts' bucket at a per-file path, then INSERTs a receipts row (storage_paths=[path], mime, status='pending', merchant/purchased_at/total_amount/content_hash/parse_* all null — nothing is parsed yet, that's S-06). No direct browser-to-Storage upload (ADR-0004: no Supabase client, no anon key, in the browser)",
+    "next.config.ts serverActions.bodySizeLimit raised from the ~1MB Next.js default to accommodate PDFs/HTML that aren't client-compressed the way images are",
+    "Multi-file selection: N files selected -> N independent receipts rows (each its own Storage upload), no grouping logic (multi-image-as-one-order is REQ-03, owned by E-10, explicitly not this story)",
+    "Immediate 'got it, processing' UI feedback on upload start (working spec Journey 2 step 3) — upload returns fast, no synchronous wait on anything not yet built (parsing is S-06)",
+    "Verification: fetch a signed URL (60s TTL) for an uploaded file's storage_paths entry and confirm it resolves — proves the bucket is genuinely private and signed-URL-only, not just that a row got written"
+  ],
+  "out_of_scope": [
+    "Multi-image-as-one-order grouping toggle (REQ-03, E-10)",
+    "Clipboard paste (REQ-04, E-10)",
+    "Paste-text order-confirmation flow (part of F2, but has no receiving parse logic until S-06 exists — deferred alongside it)",
+    "Manual entry / typeahead (separate flow, later epic)",
+    "ingest_jobs row creation, any LLM extraction, review queue (S-06/E-4)",
+    "Sequential '3 of 12' review-queue counter UI (E-4 — this story only needs N receipts rows to exist, not a queue UI to work through them)",
+    "PWA share target (explicitly time-boxed / skippable per working spec F2)"
+  ],
+  "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row.",
+  "invariants": [
+    "Storage bucket 'receipts' stays private — access only via signed URLs generated server-side, never a public bucket URL (ADR-0005, 06-security.md)",
+    "No Supabase client or key of any kind reaches the browser bundle for this upload path — the Server Action does the Storage write server-side (ADR-0004)",
+    "household_id set on every receipts row from DEFAULT_HOUSEHOLD_ID, consistent with every table since S-02"
+  ],
+  "prd_ref": "REQ-02",
+  "adr_ref": "docs/architecture/decisions/ADR-0004-single-household-tenancy-scaffold.md, docs/architecture/07-infrastructure.md"
+}

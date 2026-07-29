@@ -55,6 +55,7 @@
       ],
       "order": 2,
       "estimate": 1,
+      "gh_issue": 14,
       "acceptance": "A photographed receipt becomes a reviewable ingest job (A1)."
     },
     {
@@ -282,6 +283,7 @@
       "blocked_by": [
         "S-02"
       ],
+      "gh_issue": 15,
       "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row."
     },
     {
@@ -295,6 +297,7 @@
       "blocked_by": [
         "S-05"
       ],
+      "gh_issue": 16,
       "acceptance": "A photographed grocery bill extracts >=85% of lines correctly (A1); native-text PDFs take the cheap text-only path, verifiable via parse_path (A22)."
     },
     {
@@ -308,6 +311,7 @@
       "blocked_by": [
         "S-06"
       ],
+      "gh_issue": 17,
       "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11)."
     },
     {
@@ -321,6 +325,7 @@
       "blocked_by": [
         "S-06"
       ],
+      "gh_issue": 18,
       "acceptance": "Re-uploading the same file is blocked as duplicate (A2)."
     },
     {

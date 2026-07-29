@@ -338,7 +338,11 @@
         "S-06"
       ],
       "gh_issue": 18,
-      "acceptance": "Re-uploading the same file is blocked as duplicate (A2)."
+      "acceptance": "Re-uploading the same file is blocked as duplicate (A2).",
+      "verify": {
+        "ci": "pass",
+        "commit": "3bb1f70"
+      }
     },
     {
       "id": "S-09",

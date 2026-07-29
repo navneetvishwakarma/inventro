@@ -265,7 +265,11 @@
         "S-03"
       ],
       "gh_issue": 12,
-      "acceptance": "Tick-off creates initial stock movements and sets stock_epoch = now(); cold-start household shows a non-broken Today screen (A13)."
+      "acceptance": "Tick-off creates initial stock movements and sets stock_epoch = now(); cold-start household shows a non-broken Today screen (A13).",
+      "verify": {
+        "ci": "pass",
+        "commit": "257560b"
+      }
     },
     {
       "id": "S-05",

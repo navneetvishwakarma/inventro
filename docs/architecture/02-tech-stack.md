@@ -21,7 +21,7 @@ so the stack doesn't need to be re-derived from `package.json` or guessed at.
 |---|---|---|
 | Framework | Next.js 16, App Router, TypeScript | Server Actions for mutations, Route Handlers for webhooks/cron, one deploy target |
 | Hosting | Vercel (free/hobby tier) | Native Next.js hosting + Cron trigger (ADR-0005) |
-| UI kit | Astryx (`@astryxdesign/core`), shadcn/ui fallback | Pre-built templates for table/detail/form pages; time-boxed spike decides (ADR-0002) |
+| UI kit | shadcn/ui + Tailwind CSS | Astryx spike failed (deprecated Next.js/StyleX plugin, `@/` alias incompatible) — shadcn/ui is final, not fallback (ADR-0002) |
 | Client data cache | TanStack Query | Standard client cache over Server Actions/Route Handlers |
 | Validation | Zod, at every boundary | LLM response schema, form inputs, API payloads all validated the same way |
 | Database | Supabase Postgres 15 + `pg_trgm` | Trigram similarity for canonicalization (REQ-09); managed, free tier (ADR-0005) |
@@ -52,6 +52,5 @@ formatting throughout.
 
 ## Open questions
 
-- [ ] If Astryx's Day-1 spike fails (ADR-0002), this doc's "UI kit" row should
-      be updated to reflect shadcn/ui as final, not just fallback — this is a
-      known follow-up, not an open design question.
+- [x] **Resolved:** Astryx's spike failed at S-04 (ADR-0002) — this doc's
+      "UI kit" row now reflects shadcn/ui as final.

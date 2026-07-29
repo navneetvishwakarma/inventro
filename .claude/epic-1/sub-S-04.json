@@ -1,0 +1,31 @@
+{
+  "id": "S-04",
+  "title": "Onboarding wizard: household config, shopping presets, optional stock tick-off",
+  "goal": "One-time wizard (household name/budget -> 3-8 how-you-shop presets -> optional 60s stock tick-off) that gets a cold-start household to a non-broken Today screen, with stock_epoch set correctly whether or not the tick-off happens.",
+  "in_scope": [
+    "Supabase server client (lib/supabase/server.ts) using the service-role key, server-only (ADR-0004) — first story to actually query the DB from app code",
+    "DEFAULT_HOUSEHOLD_ID env constant wired into app code for the first time (ADR-0004/REQ-26) — points at the nil-UUID placeholder household seeded in S-02",
+    "app/onboarding/page.tsx: 3-step wizard (household info -> presets -> tick-off), gated so an already-onboarded household (households.onboarded_at is not null) redirects to /",
+    "Step 1: household name (text, required) + monthly budget (optional number). Currency (INR) and timezone (Asia/Kolkata) are fixed system defaults for v1 (tech-stack.md locale defaults), not editable fields — matches the UX doc's 'three taps, not five text fields'",
+    "Step 2: 6 'how you shop' presets (weekly grocery run, daily milk & dairy, monthly bulk staples, household & personal care restock, snacks & beverages top-ups, baby & health essentials), each mapped to top-level category slugs seeded in S-02. Selecting a preset sets catalog_items.is_staple = true for every catalog_item in its mapped categories (household-scoped UPDATE, no household_id wiring needed elsewhere since S-02 already scoped every item to DEFAULT_HOUSEHOLD_ID). Zero presets selected is valid, not blocking",
+    "Step 3: optional tick-off list of the ~40-46 catalog_items already flagged is_staple = true (from S-02's base seed plus whatever step 2 added) — 'we have this' single-tap per item, skippable entirely",
+    "Completion (regardless of whether tick-off ran or was skipped): for each ticked item, INSERT stock_movements(type='initial', qty_base=default_pack_size, occurred_at=now()); UPDATE households SET stock_epoch = now(), onboarded_at = now() WHERE id = DEFAULT_HOUSEHOLD_ID (UPDATE in place per S-02's ledger note, never INSERT a new household row)",
+    "app/page.tsx (Today, default landing): Server Component, redirects to /onboarding if household.onboarded_at is null; otherwise renders a cold-start-safe empty state (household name, 'nothing due yet' — no dead links to unbuilt Add/Plan/Inventory screens)"
+  ],
+  "out_of_scope": [
+    "The full Today screen (due soon / quick actions / low stock) — those read from item_stats/plan_entries, which don't exist until E-5 (prediction engine) and E-8 (cadence planner). S-04's Today is a cold-start-only placeholder, not the final screen",
+    "Bottom tab nav / side nav shell (working spec Sec9) — every other screen it would link to (Inventory, Add, Plan, Insights) doesn't exist yet; adding nav now means dead links",
+    "Any capture/receipt flow (E-2)",
+    "Numeric adjustment of default_prior_days by preset — presets only flip is_staple in this story; if the prediction engine (E-5) later needs a numeric per-household prior adjustment, that's scoped there, not invented here without a concrete consumer",
+    "Editable currency/timezone fields — fixed to INR/Asia/Kolkata per tech-stack.md locale defaults; making these editable is unscoped multi-region work not asked for anywhere in the PRD"
+  ],
+  "acceptance": "Tick-off creates initial stock movements and sets stock_epoch = now(); cold-start household shows a non-broken Today screen (A13).",
+  "invariants": [
+    "stock_epoch is set to now() at wizard completion whether or not the tick-off ran (working spec F1, ADR-0001) — the very first real receipt captured afterward must be unambiguously current stock, not backdated history",
+    "Zero presets selected must not block wizard completion (working spec, onboarding journey edge cases) — falls back to categories' existing default_prior_days",
+    "All Supabase access stays server-side (ADR-0004) — Server Actions for the household/preset/tick-off mutations, Server Components for reads; no Supabase client or service-role key ever reaches the browser bundle",
+    "households row is UPDATEd in place at the nil UUID (DEFAULT_HOUSEHOLD_ID), never INSERTed — S-02's seeded catalog_items already point at that id"
+  ],
+  "prd_ref": "REQ-01",
+  "adr_ref": "docs/architecture/decisions/ADR-0001-stock-ledger-derived-not-mutable.md, docs/architecture/decisions/ADR-0004-single-household-tenancy-scaffold.md, docs/architecture/decisions/ADR-0002-ui-kit-astryx-vs-shadcn.md"
+}

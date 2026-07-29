@@ -1,16 +1,26 @@
 ---
 doc: adr
 project: Inventro
-status: proposed
-updated: 2026-07-28
-story: "S-01"
+status: accepted
+updated: 2026-07-29
+story: "S-04"
 ---
 
-# ADR-0002: UI kit — Astryx with a time-boxed shadcn/ui fallback
+# ADR-0002: UI kit — shadcn/ui (Astryx spike failed)
 
 ## Status
 
-Proposed — decision point falls in the first two hours of Day 1, not before.
+Accepted. Astryx spike run at S-04 (first UI-touching story), not Day-1
+hour-1 as originally planned — E-0 (S-01-S-03) was pure infra/scaffolding
+with no screens. Failed before a component was even written: `npm view`
+showed `@stylexjs/nextjs-plugin` is **deprecated** ("no longer supported"),
+its setup requires a `.babelrc.js` which conflicts with Turbopack (this
+project's bundler since Next.js 16 defaults to it), and its own README
+states `@/` import aliases are unsupported — which is this project's
+alias convention from S-01. This is worse friction than the ADR
+anticipated; no code-level trial needed to confirm the fallback triggers.
+shadcn/ui adopted as final, not fallback (closes the open question in
+`docs/architecture/02-tech-stack.md`).
 
 ## Context
 
@@ -71,9 +81,11 @@ lost and a same-day pivot to a known-safe option.
 - Whichever kit is chosen, WCAG AA compliance rides on not undoing the kit's
   accessible defaults with custom markup ([working spec](../../00-working-spec.md) §13) — applies to
   either option.
-- If the fallback triggers, no downstream architecture changes — this is a
-  presentation-layer decision only, isolated from data model, API design, and
-  the prediction engine.
+- The fallback triggered, but as anticipated: no downstream architecture
+  changes — this was a presentation-layer decision only, isolated from data
+  model, API design, and the prediction engine.
+- Tailwind CSS is now a required dependency (shadcn/ui's styling layer) —
+  S-01 scaffolded without it (`--no-tailwind`), added at S-04.
 
 ## Alternatives considered
 

@@ -41,6 +41,7 @@
       "prd_ref": "REQ-01",
       "order": 1,
       "estimate": 0.5,
+      "gh_issue": 11,
       "acceptance": "New household reaches a non-broken Today screen (A13)."
     },
     {
@@ -263,6 +264,7 @@
         "S-02",
         "S-03"
       ],
+      "gh_issue": 12,
       "acceptance": "Tick-off creates initial stock movements and sets stock_epoch = now(); cold-start household shows a non-broken Today screen (A13)."
     },
     {

@@ -1,11 +1,12 @@
 import 'server-only';
+import { NoObjectGeneratedError } from 'ai';
 import { createServiceClient } from '@/lib/supabase/server';
 import { geminiProvider } from '@/lib/llm/gemini-provider';
-import { buildReceiptExtractionSchema } from '@/lib/llm/schema';
+import { buildReceiptExtractionSchema, type ReceiptExtraction } from '@/lib/llm/schema';
 import { extractPdfText, looksLikeRealDocument } from '@/lib/llm/pdf-text';
 import { extractHtmlText } from '@/lib/llm/html-text';
 import { estimateCostUsd } from '@/lib/llm/cost';
-import type { LlmContentPart } from '@/lib/llm/provider';
+import type { LlmContentPart, LlmExtractionResult } from '@/lib/llm/provider';
 
 const EXTRACTION_PROMPT = `You are extracting structured data from a grocery/household purchase receipt or order confirmation.
 
@@ -71,8 +72,26 @@ function checkExtractionQuality(lines: Array<{ line_total: number | null; confid
   return problems;
 }
 
-// Flash-only. Escalation to Pro on these same failure conditions is S-07 —
-// this function stops at "failed", S-07 wraps it with a retry.
+type Attempt = { ok: true; result: LlmExtractionResult<ReceiptExtraction> } | { ok: false; problems: string[]; rawText?: string };
+
+// Schema validation failure (NoObjectGeneratedError) is caught here and
+// folded into the same "problems" shape as a total-mismatch or low-confidence
+// result, so the escalation ladder below treats all three trigger conditions
+// from working spec Sec7 identically.
+async function attemptExtraction(parts: LlmContentPart[], schema: ReturnType<typeof buildReceiptExtractionSchema>, tier: 'primary' | 'escalation', correctionNote?: string): Promise<Attempt> {
+  try {
+    const result = await geminiProvider.extractStructured({ parts, schema, tier, correctionNote });
+    const problems = checkExtractionQuality(result.object.lines, result.object.order_total);
+    if (problems.length > 0) return { ok: false, problems, rawText: result.rawText };
+    return { ok: true, result };
+  } catch (err) {
+    if (NoObjectGeneratedError.isInstance(err)) {
+      return { ok: false, problems: [`schema validation failed: ${err.message}`], rawText: err.text };
+    }
+    throw err;
+  }
+}
+
 export async function runExtraction(receiptId: string): Promise<void> {
   const supabase = createServiceClient();
 
@@ -94,21 +113,40 @@ export async function runExtraction(receiptId: string): Promise<void> {
     const { parts, parsePath } = await routeExtraction(bytes, receipt.mime, storagePath);
     const schema = buildReceiptExtractionSchema(categorySlugs);
 
-    const result = await geminiProvider.extractStructured({ parts, schema, tier: 'primary' });
-    const problems = checkExtractionQuality(result.object.lines, result.object.order_total);
+    // Escalation ladder (working spec Sec7): retry once on Pro with the
+    // specific failure appended to the prompt; still failing -> manual-entry
+    // fallback with the last raw response retained (REQ-24).
+    let attempt = await attemptExtraction(parts, schema, 'primary');
+    let tier: 'primary' | 'escalation' = 'primary';
+    let totalTokens = 0;
+    let totalCost = 0;
 
-    if (problems.length > 0) {
+    if (!attempt.ok) {
+      tier = 'escalation';
+      const primaryProblems = attempt.problems;
+      attempt = await attemptExtraction(parts, schema, 'escalation', primaryProblems.join('; '));
+    }
+
+    if (attempt.ok) {
+      totalTokens += attempt.result.usage.totalTokens;
+      totalCost += estimateCostUsd(tier, attempt.result.usage.inputTokens, attempt.result.usage.outputTokens);
+    }
+
+    if (!attempt.ok) {
       await supabase
         .from('ingest_jobs')
         .update({
           state: 'failed',
-          error: problems.join('; '),
-          raw_response: { text: result.rawText, object: result.object },
+          error: attempt.problems.join('; '),
+          raw_response: { text: attempt.rawText ?? null },
+          attempts: 2,
           updated_at: new Date().toISOString(),
         })
         .eq('receipt_id', receiptId);
       return;
     }
+
+    const result = attempt.result;
 
     const lines = result.object.lines.map((line, index) => ({
       household_id: receipt.household_id,
@@ -133,24 +171,22 @@ export async function runExtraction(receiptId: string): Promise<void> {
       if (linesError) throw linesError;
     }
 
-    const cost = estimateCostUsd('primary', result.usage.inputTokens, result.usage.outputTokens);
-
     const { error: receiptUpdateError } = await supabase
       .from('receipts')
       .update({
         merchant: result.object.merchant,
         purchased_at: result.object.purchased_at,
         total_amount: result.object.order_total,
-        parse_model: 'gemini-flash-latest',
+        parse_model: tier === 'primary' ? 'gemini-flash-latest' : 'gemini-pro-latest',
         parse_path: parsePath,
-        parse_tokens: result.usage.totalTokens,
-        parse_cost: cost,
+        parse_tokens: totalTokens,
+        parse_cost: totalCost,
         status: 'parsed',
       })
       .eq('id', receiptId);
     if (receiptUpdateError) throw receiptUpdateError;
 
-    await supabase.from('ingest_jobs').update({ state: 'done', updated_at: new Date().toISOString() }).eq('receipt_id', receiptId);
+    await supabase.from('ingest_jobs').update({ state: 'done', attempts: tier === 'primary' ? 1 : 2, updated_at: new Date().toISOString() }).eq('receipt_id', receiptId);
   } catch (err) {
     await supabase
       .from('ingest_jobs')

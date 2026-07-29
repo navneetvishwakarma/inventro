@@ -277,7 +277,7 @@
       "title": "Multi-format capture UI: camera / file-picker / drag-drop (PDF, JPG, PNG, WEBP, HEIC, HTML/MHTML)",
       "epic": "E-2",
       "prd_ref": "REQ-02",
-      "status": "notstarted",
+      "status": "done",
       "order": 5,
       "estimate": 0.4,
       "blocked_by": [
@@ -295,7 +295,7 @@
       "title": "Upload -> Storage -> ingest_jobs -> LLM extraction pipeline (Gemini Flash primary, native-PDF-text fast path)",
       "epic": "E-2",
       "prd_ref": "REQ-08",
-      "status": "blocked",
+      "status": "done",
       "order": 6,
       "estimate": 0.6,
       "blocked_by": [
@@ -313,7 +313,7 @@
       "title": "Escalation ladder (Pro retry on schema/total-mismatch failure) + manual-entry fallback retaining raw response",
       "epic": "E-2",
       "prd_ref": "REQ-24",
-      "status": "blocked",
+      "status": "done",
       "order": 7,
       "estimate": 0.3,
       "blocked_by": [
@@ -331,7 +331,7 @@
       "title": "Duplicate protection via SHA-256 content_hash + soft warning on near-duplicate",
       "epic": "E-2",
       "prd_ref": "REQ-08",
-      "status": "blocked",
+      "status": "done",
       "order": 8,
       "estimate": 0.15,
       "blocked_by": [
@@ -349,7 +349,7 @@
       "title": "Canonicalization: exact alias hit -> pg_trgm similarity -> LLM new-item proposal",
       "epic": "E-3",
       "prd_ref": "REQ-09",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 9,
       "estimate": 0.4,
       "blocked_by": [
@@ -362,7 +362,7 @@
       "title": "Unit normalization to base units (g/ml/piece) at write time",
       "epic": "E-3",
       "prd_ref": "REQ-10",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 10,
       "estimate": 0.25,
       "blocked_by": [
@@ -375,7 +375,7 @@
       "title": "Categorization against fixed seeded taxonomy + non-inventory row flagging",
       "epic": "E-3",
       "prd_ref": "REQ-11",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 11,
       "estimate": 0.2,
       "blocked_by": [
@@ -591,7 +591,7 @@
       "title": "Multi-image-as-one-order grouping toggle (2-3 screenshots -> one multimodal call)",
       "epic": "E-10",
       "prd_ref": "REQ-03",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 25,
       "estimate": 0.3,
       "blocked_by": [
@@ -604,7 +604,7 @@
       "title": "Clipboard paste (Cmd/Ctrl+V) capture entry point",
       "epic": "E-10",
       "prd_ref": "REQ-04",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 26,
       "estimate": 0.15,
       "blocked_by": [
@@ -630,7 +630,7 @@
       "title": "Paste-text capture routed to a cheaper text-only LLM call",
       "epic": "E-10",
       "prd_ref": "REQ-06",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 28,
       "estimate": 0.2,
       "blocked_by": [
@@ -708,7 +708,7 @@
       "title": "Cost meter + loop-bug guard (100 receipts/day hard stop, alert at 50, per-receipt token/cost accounting)",
       "epic": "E-14",
       "prd_ref": "REQ-25",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 34,
       "estimate": 0.25,
       "blocked_by": [
@@ -721,7 +721,7 @@
       "title": "PWA manifest + installability (Android Web Share Target)",
       "epic": "E-15",
       "prd_ref": "REQ-27",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 35,
       "estimate": 0.2,
       "blocked_by": [

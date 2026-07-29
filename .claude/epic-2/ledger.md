@@ -1,2 +1,3 @@
 | story | scope | files | tests | commit | status | risks |
 |-------|-------|-------|-------|--------|--------|-------|
+| S-05 | Capture UI (camera/picker/drag-drop), client preprocessing (HEIC->JPEG, downscale), Server Action upload, private Storage bucket | app/add/*, lib/receipts/*, supabase/migrations/20260729020232_receipts_storage_bucket.sql, next.config.ts | `npm run build` -> pass; full Playwright E2E (file-picker PDF+HTML, drag-drop JPEG, rejected .exe) -> pass, 0 console errors; signed URL resolves 200, public-path URL 400 (private bucket confirmed) | 1cdb593 | done | HEIC decode (heic2any) specifically untested — no real HEIC fixture available; the downscale/canvas path it feeds into is independently verified via the JPEG case |

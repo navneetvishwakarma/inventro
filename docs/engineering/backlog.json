@@ -284,7 +284,11 @@
         "S-02"
       ],
       "gh_issue": 15,
-      "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row."
+      "acceptance": "Each supported format uploads and lands in Storage with a signed-URL-backed receipt row.",
+      "verify": {
+        "ci": "pass",
+        "commit": "1cdb593"
+      }
     },
     {
       "id": "S-06",

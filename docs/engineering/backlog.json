@@ -320,7 +320,11 @@
         "S-06"
       ],
       "gh_issue": 17,
-      "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11)."
+      "acceptance": "Malformed LLM JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11).",
+      "verify": {
+        "ci": "pass",
+        "commit": "a55147f"
+      }
     },
     {
       "id": "S-08",

@@ -302,7 +302,11 @@
         "S-05"
       ],
       "gh_issue": 16,
-      "acceptance": "A photographed grocery bill extracts >=85% of lines correctly (A1); native-text PDFs take the cheap text-only path, verifiable via parse_path (A22)."
+      "acceptance": "A photographed grocery bill extracts >=85% of lines correctly (A1); native-text PDFs take the cheap text-only path, verifiable via parse_path (A22).",
+      "verify": {
+        "ci": "pass",
+        "commit": "cd7020c"
+      }
     },
     {
       "id": "S-07",

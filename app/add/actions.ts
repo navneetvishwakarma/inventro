@@ -5,6 +5,7 @@ import { uploadReceiptFile } from '@/lib/receipts/storage';
 import { extensionOf, isAcceptedExtension } from '@/lib/receipts/formats';
 import { createIngestJob } from '@/lib/receipts/ingest';
 import { runExtraction } from '@/lib/llm/extract';
+import { hashFileBytes, findDuplicateReceipt } from '@/lib/receipts/dedup';
 
 export type UploadResult = { fileName: string; ok: true; receiptId: string } | { fileName: string; ok: false; error: string };
 
@@ -32,7 +33,15 @@ export async function uploadReceiptsAction(formData: FormData): Promise<UploadRe
 
     try {
       const bytes = await file.arrayBuffer();
-      const { id } = await uploadReceiptFile(bytes, ext);
+      const contentHash = hashFileBytes(bytes);
+
+      const duplicateId = await findDuplicateReceipt(contentHash);
+      if (duplicateId) {
+        results.push({ fileName: file.name, ok: false, error: 'Already uploaded (duplicate)' });
+        continue;
+      }
+
+      const { id } = await uploadReceiptFile(bytes, ext, contentHash);
       await createIngestJob(id);
       after(() => runExtraction(id));
       results.push({ fileName: file.name, ok: true, receiptId: id });

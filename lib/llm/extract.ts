@@ -6,6 +6,7 @@ import { buildReceiptExtractionSchema, type ReceiptExtraction } from '@/lib/llm/
 import { extractPdfText, looksLikeRealDocument } from '@/lib/llm/pdf-text';
 import { extractHtmlText } from '@/lib/llm/html-text';
 import { estimateCostUsd } from '@/lib/llm/cost';
+import { flagNearDuplicateIfAny } from '@/lib/receipts/dedup';
 import type { LlmContentPart, LlmExtractionResult } from '@/lib/llm/provider';
 
 const EXTRACTION_PROMPT = `You are extracting structured data from a grocery/household purchase receipt or order confirmation.
@@ -187,6 +188,14 @@ export async function runExtraction(receiptId: string): Promise<void> {
     if (receiptUpdateError) throw receiptUpdateError;
 
     await supabase.from('ingest_jobs').update({ state: 'done', attempts: tier === 'primary' ? 1 : 2, updated_at: new Date().toISOString() }).eq('receipt_id', receiptId);
+
+    // Near-duplicate check (S-08) — only possible now that merchant/date/
+    // total exist. Flags, never blocks; failure here shouldn't undo an
+    // otherwise-successful parse, so it's deliberately outside the main
+    // try's failure semantics for the parse itself.
+    await flagNearDuplicateIfAny(receiptId, result.object.merchant, result.object.purchased_at, result.object.order_total).catch((err) => {
+      console.error('[flagNearDuplicateIfAny] failed for receipt', receiptId, err);
+    });
   } catch (err) {
     await supabase
       .from('ingest_jobs')

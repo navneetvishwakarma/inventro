@@ -6,7 +6,7 @@ import { contentTypeFor, type AcceptedExtension } from '@/lib/receipts/formats';
 
 const BUCKET = 'receipts';
 
-export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtension): Promise<{ id: string; storagePath: string }> {
+export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtension, contentHash: string): Promise<{ id: string; storagePath: string }> {
   const supabase = createServiceClient();
   const householdId = getDefaultHouseholdId();
   const storagePath = `${householdId}/${randomUUID()}.${ext}`;
@@ -24,6 +24,7 @@ export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtensi
       storage_paths: [storagePath],
       mime: contentTypeFor(ext),
       status: 'pending',
+      content_hash: contentHash,
     })
     .select('id')
     .single();

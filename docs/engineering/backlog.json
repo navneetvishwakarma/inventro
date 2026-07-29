@@ -257,7 +257,7 @@
       "title": "Onboarding wizard: household config, shopping presets, optional stock tick-off",
       "epic": "E-1",
       "prd_ref": "REQ-01",
-      "status": "notstarted",
+      "status": "done",
       "order": 4,
       "estimate": 0.5,
       "blocked_by": [

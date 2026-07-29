@@ -227,7 +227,11 @@
         "S-01"
       ],
       "gh_issue": 7,
-      "acceptance": "Migration applies cleanly; v_current_stock view returns correct sums against fixture movements."
+      "acceptance": "Migration applies cleanly; v_current_stock view returns correct sums against fixture movements.",
+      "verify": {
+        "ci": "pass",
+        "commit": "b3fa1a4"
+      }
     },
     {
       "id": "S-03",
@@ -241,7 +245,11 @@
         "S-01"
       ],
       "gh_issue": 8,
-      "acceptance": "Unauthenticated request without the gate cookie returns 401 (A26)."
+      "acceptance": "Unauthenticated request without the gate cookie returns 401 (A26).",
+      "verify": {
+        "ci": "pass",
+        "commit": "a82a1c1"
+      }
     },
     {
       "id": "S-04",

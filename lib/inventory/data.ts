@@ -29,6 +29,17 @@ export type InventoryItem = {
   isStaple: boolean;
   perishabilityDays: number | null;
   aliases: string[];
+  // Whether v_current_stock returned a row at all for this item (i.e. >=1
+  // post-stock_epoch movement of ANY type exists) -- distinct from
+  // rawStockBase, which defaults to 0 for "no row" and "row sums to 0"
+  // alike. getItemsNeedingAttention needs this distinction: an item whose
+  // only history is an onboarding 'initial' tick-off has no item_stats row
+  // (recomputeOneItem never ran for it, no purchase events) but DOES get a
+  // v_current_stock row the moment a consumption action writes a movement
+  // against it -- that is the majority real-world case this app launches
+  // into, not an edge case (advisor review before S-20 implementation
+  // caught this exact gap in an earlier lastPurchasedAt-only draft).
+  hasStockRow: boolean;
   rawStockBase: number;
   virtualStockBase: number;
   dailyRateBase: number | null;
@@ -97,6 +108,7 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
 
   return (itemsRes.data ?? []).map((item) => {
     const stats = statsByItem.get(item.id as string);
+    const hasStockRow = stockByItem.has(item.id as string);
     const rawStockBase = stockByItem.get(item.id as string) ?? 0;
     const dailyRateBase = (stats?.daily_rate_base ?? null) as number | null;
     const rateCorrection = (stats?.rate_correction ?? 1) as number;
@@ -130,6 +142,7 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
       isStaple: item.is_staple as boolean,
       perishabilityDays: item.perishability_days as number | null,
       aliases: aliasesByItem.get(item.id as string) ?? [],
+      hasStockRow,
       rawStockBase,
       virtualStockBase,
       dailyRateBase,
@@ -192,7 +205,23 @@ export async function getInventoryItem(catalogItemId: string): Promise<ItemDetai
 // than a leaner bespoke query: this repo's household scale (a few hundred
 // items) makes the extra joins cheap, and a second, drifting definition of
 // "current stock" is a worse tradeoff than one extra query cost.
+//
+// Gate is (hasStockRow OR lastPurchasedAt !== null), not lastPurchasedAt
+// alone -- lastPurchasedAt only exists once item_stats has been computed,
+// which only happens once a PURCHASE movement exists (recomputeOneItem
+// no-ops on zero purchase events). An onboarding-only item (one 'initial'
+// movement, no item_stats row at all) still gets a v_current_stock row the
+// moment a real consumption action writes a movement against it -- that IS
+// the majority real-world case this app launches into (confirmed via a
+// live query against the real household: 22 items with positive raw stock,
+// all onboarding-only, zero item_stats rows). A lastPurchasedAt-only gate
+// would silently exclude every one of them from "Needs attention" after
+// "Used it up" -- caught by advisor review before this function shipped.
+// The remaining exclusion (no stock row AND no purchase history) is exactly
+// "never touched this catalog item at all," which correctly stays out.
 export async function getItemsNeedingAttention(): Promise<Pick<InventoryItem, 'id' | 'canonicalName' | 'brand'>[]> {
   const items = await getInventoryItems();
-  return items.filter((i) => i.virtualStockBase <= 0 && i.lastPurchasedAt !== null).map((i) => ({ id: i.id, canonicalName: i.canonicalName, brand: i.brand }));
+  return items
+    .filter((i) => (i.hasStockRow || i.lastPurchasedAt !== null) && i.virtualStockBase <= 0)
+    .map((i) => ({ id: i.id, canonicalName: i.canonicalName, brand: i.brand }));
 }

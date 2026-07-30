@@ -4,6 +4,7 @@ import { getHousehold } from '@/lib/onboarding/data';
 import { getInventoryItem } from '@/lib/inventory/data';
 import { formatBaseQty, formatDaysRemaining, formatCadenceBucket, buildPredictionExplanation } from '@/lib/inventory/format';
 import { Sparkline } from '../sparkline';
+import { ConsumeActions } from './consume-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <p>{explanation}</p>
+          <ConsumeActions catalogItemId={item.id} baseUnit={item.baseUnit} />
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <div className="text-muted-foreground">Current stock</div>

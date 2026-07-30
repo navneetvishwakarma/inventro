@@ -168,11 +168,58 @@ function blendNextPurchase(
   return new Date(blendedMs).toISOString();
 }
 
-export function computeItemStats(
-  rawEvents: PurchaseEvent[],
-  config: ComputeItemStatsConfig,
-  _previous: PreviousBucketState,
-): ItemStats {
+// Step 8: confidence. n is the same post-rejection usable-interval count as
+// step 5's shrinkage weight (not purchase_count) -- this reading is what
+// makes A7 (1 usable interval -> confidence ~0.25, "Learning") hold; the
+// working spec's own "confidence High" claim for A5 (3 usable intervals)
+// does not hold under this same, literal n/(n+3) formula (0.5, "Medium") --
+// an internal contradiction in the doc's worked examples the epic resolved
+// in favor of the formula (algorithm detail) over the prose label. See
+// .claude/epic-5/ledger.md.
+function computeConfidence(n: number, med: number | null, mad: number | null): number {
+  if (n === 0) return 0;
+  // med === 0 (every usable interval identical) means perfect consistency,
+  // cv = 0 -- not a division-by-zero case to special-case away from 0.
+  const cv = med === 0 ? 0 : ((mad as number) * MAD_NORMAL_CONSISTENCY) / (med as number);
+  const raw = (n / (n + CONFIDENCE_N_CONSTANT)) * (1 - Math.min(cv, 1));
+  return Math.min(1, Math.max(0, raw));
+}
+
+// Step 9: bucket by interval_est, or force 'unpredictable' below the
+// confidence floor -- this is the raw candidate, before step 10's hysteresis.
+function thresholdBucket(intervalEstDays: number): CadenceBucket {
+  for (let i = 0; i < CADENCE_BOUNDARIES_DAYS.length; i++) {
+    if (intervalEstDays <= CADENCE_BOUNDARIES_DAYS[i]) return CADENCE_ORDER[i];
+  }
+  return 'unpredictable';
+}
+
+function candidateBucket(intervalEstDays: number, confidence: number): CadenceBucket {
+  return confidence < CONFIDENCE_UNPREDICTABLE_THRESHOLD ? 'unpredictable' : thresholdBucket(intervalEstDays);
+}
+
+// Step 10: hysteresis -- only accept a bucket change if interval_est has
+// crossed the boundary adjacent to the PREVIOUS bucket by more than 15%.
+// Deliberate scope cut: transitions into/out of 'unpredictable' are not
+// hysteresised -- it has two independent triggers (interval>500 OR
+// confidence<0.35) with no single numeric boundary a >15%-crossing test
+// can apply to (see sub-S-14c.json).
+function applyHysteresis(candidate: CadenceBucket, intervalEstDays: number, previous: PreviousBucketState): CadenceBucket {
+  if (previous.cadenceBucket === null || previous.intervalEstDays === null) return candidate;
+  if (candidate === previous.cadenceBucket) return previous.cadenceBucket;
+  if (candidate === 'unpredictable' || previous.cadenceBucket === 'unpredictable') return candidate;
+
+  const prevIdx = CADENCE_ORDER.indexOf(previous.cadenceBucket);
+  const candIdx = CADENCE_ORDER.indexOf(candidate);
+  if (prevIdx === -1 || candIdx === -1) return candidate;
+
+  const movingUp = candIdx > prevIdx;
+  const boundary = movingUp ? CADENCE_BOUNDARIES_DAYS[prevIdx] : CADENCE_BOUNDARIES_DAYS[candIdx];
+  const crossed = movingUp ? intervalEstDays > boundary * (1 + HYSTERESIS_MARGIN) : intervalEstDays < boundary * (1 - HYSTERESIS_MARGIN);
+  return crossed ? candidate : previous.cadenceBucket;
+}
+
+export function computeItemStats(rawEvents: PurchaseEvent[], config: ComputeItemStatsConfig, previous: PreviousBucketState): ItemStats {
   const events = gatherEvents(rawEvents, config.now);
   const rawIntervals = computeIntervals(events);
   const usableIntervals = rejectOutliers(rawIntervals);
@@ -182,18 +229,21 @@ export function computeItemStats(
   const med = n > 0 ? median(usableIntervals) : null;
   const mad = n > 0 ? medianAbsoluteDeviation(usableIntervals, med as number) : null;
   const intervalEst = shrinkToPrior(ewma, n, config.categoryPriorDays);
+  const confidence = computeConfidence(n, med, mad);
 
   const lastPurchasedAt = events.length > 0 ? events[events.length - 1].occurredAt : null;
 
   let dailyRateBase: number | null = null;
   let predictedDepletionAt: string | null = null;
   let predictedNextPurchaseAt: string | null = null;
+  let cadenceBucket: CadenceBucket | null = null;
 
   if (lastPurchasedAt !== null) {
     const rate = computeRateCrossCheck(events, config.now, config.rateCorrection, config.currentStockBase);
     dailyRateBase = rate.dailyRateBase;
     predictedDepletionAt = applyPerishabilityClamp(rate.depletionDate, lastPurchasedAt, config.perishabilityDays);
     predictedNextPurchaseAt = blendNextPurchase(rate.depletionDate, rate.q, lastPurchasedAt, intervalEst);
+    cadenceBucket = applyHysteresis(candidateBucket(intervalEst, confidence), intervalEst, previous);
   }
 
   return {
@@ -205,8 +255,8 @@ export function computeItemStats(
     lastPurchasedAt,
     predictedDepletionAt,
     predictedNextPurchaseAt,
-    cadenceBucket: null,
-    confidence: null,
+    cadenceBucket,
+    confidence: lastPurchasedAt !== null ? confidence : null,
   };
 }
 
@@ -220,6 +270,10 @@ export const _internal = {
   rejectOutliers,
   computeEwma,
   shrinkToPrior,
+  computeConfidence,
+  thresholdBucket,
+  candidateBucket,
+  applyHysteresis,
   EWMA_ALPHA,
   OUTLIER_MAD_MULTIPLIER,
   OUTLIER_REJECTION_MIN_N,

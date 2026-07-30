@@ -538,7 +538,7 @@
       "title": "Synthetic history seeder (7 cohorts, is_demo household only, ENABLE_SEED gate)",
       "epic": "E-6",
       "prd_ref": "REQ-23",
-      "status": "notstarted",
+      "status": "done",
       "order": 17,
       "estimate": 0.4,
       "blocked_by": [
@@ -556,7 +556,7 @@
       "title": "Validation scorecard (npm run validate:predictions) + tune alpha/shrinkage/MAD/hysteresis against S3",
       "epic": "E-6",
       "prd_ref": "REQ-23",
-      "status": "blocked",
+      "status": "done",
       "order": 18,
       "estimate": 0.4,
       "blocked_by": [

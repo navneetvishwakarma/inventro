@@ -17,3 +17,18 @@ export function toKolkataDateString(iso: string): string {
 export function kolkataDateStringToInstant(dateString: string): string {
   return `${dateString}T00:00:00+05:30`;
 }
+
+// S-31: [start, end) instants for the current Kolkata calendar month, used
+// by Insights' spend-by-category and waste-report windows. Derived from
+// today's Kolkata date (not a raw UTC month boundary, which can be off by
+// one Kolkata calendar day around midnight IST -- same class of bug
+// toKolkataDateString exists to avoid).
+export function currentKolkataMonthRange(nowIso: string = new Date().toISOString()): { start: string; end: string } {
+  const todayKolkata = toKolkataDateString(nowIso); // YYYY-MM-DD
+  const [year, month] = todayKolkata.split('-').map(Number);
+  const startDateString = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDateString = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  return { start: kolkataDateStringToInstant(startDateString), end: kolkataDateStringToInstant(endDateString) };
+}

@@ -64,6 +64,9 @@ export default async function TodayPage() {
           <Link href="/catalog" className="underline">
             Manage catalog
           </Link>
+          <Link href="/insights" className="underline">
+            View insights
+          </Link>
         </CardContent>
       </Card>
 

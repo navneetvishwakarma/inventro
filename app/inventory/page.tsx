@@ -73,6 +73,9 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
             {items.length} item{items.length === 1 ? '' : 's'} tracked.{' '}
             <Link href="/catalog" className="underline">
               Seeing a duplicate? Manage the catalog.
+            </Link>{' '}
+            <Link href="/insights" className="underline">
+              View budget &amp; insights.
             </Link>
           </CardDescription>
         </CardHeader>

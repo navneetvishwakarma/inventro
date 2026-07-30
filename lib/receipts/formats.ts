@@ -3,7 +3,11 @@
 // claim alone). MIME reporting for HEIC/MHTML is inconsistent across
 // browsers/OS, so extension is the primary signal, MIME secondary.
 
-export const ACCEPTED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'html', 'mhtml'] as const;
+// 'txt' (S-28) is not user-selectable via the file picker/drag-drop (no
+// document a user has locally is a .txt receipt) -- it exists purely as the
+// wrapper format for the paste-text textarea's submitted content, reusing
+// the exact same upload/dedup/ingest pipeline as every other accepted type.
+export const ACCEPTED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'html', 'mhtml', 'txt'] as const;
 
 export type AcceptedExtension = (typeof ACCEPTED_EXTENSIONS)[number];
 
@@ -16,6 +20,15 @@ export function isAcceptedExtension(ext: string | null): ext is AcceptedExtensio
   return ext !== null && (ACCEPTED_EXTENSIONS as readonly string[]).includes(ext);
 }
 
+// S-25: grouping (multi-image-as-one-order) is restricted to actual image
+// extensions -- PDF/HTML/MHTML don't need grouping, and mixing formats into
+// one multimodal call has no sane semantics.
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif']);
+
+export function isImageExtension(ext: string | null): boolean {
+  return ext !== null && IMAGE_EXTENSIONS.has(ext);
+}
+
 const CONTENT_TYPES: Record<AcceptedExtension, string> = {
   pdf: 'application/pdf',
   jpg: 'image/jpeg',
@@ -26,8 +39,24 @@ const CONTENT_TYPES: Record<AcceptedExtension, string> = {
   heif: 'image/heif',
   html: 'text/html',
   mhtml: 'multipart/related',
+  txt: 'text/plain',
 };
 
 export function contentTypeFor(ext: AcceptedExtension): string {
   return CONTENT_TYPES[ext];
+}
+
+// S-26: a pasted clipboard image blob has no filename at all, so
+// extensionOf(file.name) would return null and isAcceptedExtension would
+// silently reject it — synthesize one from the clipboard item's own MIME type.
+const EXTENSION_BY_MIME: Record<string, AcceptedExtension> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+};
+
+export function extensionForMimeType(mime: string): AcceptedExtension | null {
+  return EXTENSION_BY_MIME[mime] ?? null;
 }

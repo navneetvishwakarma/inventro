@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -211,24 +213,57 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
   );
 }
 
+// S-27: a pure UI navigation aid built from the `session` search param --
+// never trusted for anything but "what to render/link to next" (commit
+// validation still happens entirely server-side against the DB row).
+// advisor-caught bug: `allIds` must be the FULL session list, forwarded
+// unchanged on every navigation -- see the comment in page.tsx's
+// parseSession for why a sliced "remaining ids" subset breaks the counter.
+export type ReviewSession = { position: number; total: number; nextId: string | null; allIds: string[] };
+
+function SessionCounter({ session, nextHref }: { session: ReviewSession; nextHref: string | null }) {
+  return (
+    <p className="text-sm text-muted-foreground">
+      Reviewing {session.position} of {session.total}
+      {nextHref && (
+        <>
+          {' — '}
+          <Link href={nextHref} className="underline">
+            Skip to next
+          </Link>
+        </>
+      )}
+    </p>
+  );
+}
+
 export function ReviewDetail({
   receipt,
   lines,
   categories,
   stockEpoch,
-  docUrl,
+  docUrls,
+  previewText,
+  session,
 }: {
   receipt: ReceiptForReview;
   lines: ReceiptLineForReview[];
   categories: LeafCategory[];
   stockEpoch: string;
-  docUrl: string | null;
+  docUrls: string[];
+  previewText: string | null;
+  session: ReviewSession | null;
 }) {
+  const router = useRouter();
   const [dateInput, setDateInput] = useState(toDateInputValue(receipt.purchased_at));
   const [pastOrderOverride, setPastOrderOverride] = useState(false);
   const [pending, startTransition] = useTransition();
   const [dateError, setDateError] = useState<string | null>(null);
   const [commitError, setCommitError] = useState<string | null>(null);
+
+  // S-27: where "Next" goes after a successful commit -- the current
+  // receipt's own id is already consumed, so only the ids after it remain.
+  const nextHref = session?.nextId ? `/review/${session.nextId}?session=${session.allIds.join(',')}` : null;
 
   const excludedCount = useMemo(() => lines.filter((l) => l.review_state === 'excluded').length, [lines]);
   const matchedLines = useMemo(() => lines.filter((l) => l.review_state === 'matched'), [lines]);
@@ -260,6 +295,12 @@ export function ReviewDetail({
     startTransition(async () => {
       const result = await commitReceiptAction(receipt.id, pastOrderOverride);
       setCommitError(result.ok ? null : (result.error ?? 'Failed'));
+      // S-27: auto-advance through a multi-file review session after a
+      // successful commit; a session-less visit (the pre-E-10 entry point)
+      // stays on this page exactly as before.
+      if (result.ok && session) {
+        router.push(session.nextId ? `/review/${session.nextId}?session=${session.allIds.join(',')}` : '/review');
+      }
     });
   }
 
@@ -271,6 +312,23 @@ export function ReviewDetail({
             <CardTitle>Committed</CardTitle>
             <CardDescription>This receipt is already in inventory.</CardDescription>
           </CardHeader>
+          {/* S-27: a mid-session receipt that's already committed (e.g. a
+             stale back-button visit) must not strand the user on a dead-end
+             card -- the counter and forward navigation render here too. */}
+          {session && (
+            <CardContent className="flex flex-col gap-2">
+              <SessionCounter session={session} nextHref={null} />
+              {nextHref ? (
+                <Link href={nextHref} className="underline">
+                  Next ({session.position + 1} of {session.total})
+                </Link>
+              ) : (
+                <Link href="/review" className="underline">
+                  Back to review queue
+                </Link>
+              )}
+            </CardContent>
+          )}
         </Card>
       </main>
     );
@@ -284,14 +342,25 @@ export function ReviewDetail({
           <CardDescription>{receipt.merchant ?? 'Unknown merchant'}</CardDescription>
         </CardHeader>
         <CardContent>
-          {docUrl ? (
+          {/* S-28: raw pasted text has nothing to sign a URL for -- rendered
+             directly from the fetched content instead. */}
+          {previewText !== null ? (
+            <pre className="whitespace-pre-wrap text-sm">{previewText}</pre>
+          ) : docUrls.length > 0 ? (
             receipt.mime === 'application/pdf' ? (
-              <embed src={docUrl} type="application/pdf" style={{ width: '100%', height: '70vh' }} />
+              <embed src={docUrls[0]} type="application/pdf" style={{ width: '100%', height: '70vh' }} />
             ) : receipt.mime?.startsWith('image/') ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={docUrl} alt="Receipt" style={{ width: '100%', objectFit: 'contain' }} />
+              // S-25: a grouped receipt has 2-3 storage_paths -- every page
+              // renders, stacked, in upload order (a plain receipt has
+              // exactly one, unchanged from before this story).
+              <div className="flex flex-col gap-2">
+                {docUrls.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={url} alt={`Receipt page ${i + 1}`} style={{ width: '100%', objectFit: 'contain' }} />
+                ))}
+              </div>
             ) : (
-              <a href={docUrl} target="_blank" rel="noreferrer" className="underline">
+              <a href={docUrls[0]} target="_blank" rel="noreferrer" className="underline">
                 Open original document
               </a>
             )
@@ -305,6 +374,7 @@ export function ReviewDetail({
         <CardHeader>
           <CardTitle>Review lines</CardTitle>
           <CardDescription>{lines.length} line(s), {excludedCount} excluded.</CardDescription>
+          {session && <SessionCounter session={session} nextHref={nextHref} />}
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {receipt.near_duplicate_of && (

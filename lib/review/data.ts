@@ -57,6 +57,16 @@ export async function getDocumentPreviewUrl(storagePath: string): Promise<string
   return getSignedReceiptUrl(storagePath, 300);
 }
 
+// S-28: raw text has nothing useful to render via a signed URL + <img>/
+// <embed> -- fetched and decoded server-side, unlike every other mime, which
+// gets a signed URL instead.
+export async function getDocumentPreviewText(storagePath: string): Promise<string> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.storage.from('receipts').download(storagePath);
+  if (error || !data) throw error ?? new Error('download returned no data');
+  return Buffer.from(await data.arrayBuffer()).toString('utf-8');
+}
+
 type ReceiptLineRow = {
   id: string;
   line_no: number;

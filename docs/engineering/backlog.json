@@ -696,7 +696,11 @@
         "S-06"
       ],
       "gh_issue": 53,
-      "acceptance": "Three screenshots grouped as one order produce a single receipt with no triple-counted items (A24)."
+      "acceptance": "Three screenshots grouped as one order produce a single receipt with no triple-counted items (A24).",
+      "verify": {
+        "ci": "pass",
+        "commit": "895e38e"
+      }
     },
     {
       "id": "S-26",
@@ -710,7 +714,11 @@
         "S-05"
       ],
       "gh_issue": 54,
-      "acceptance": "Clipboard paste opens Add with the pasted image staged (A25)."
+      "acceptance": "Clipboard paste opens Add with the pasted image staged (A25).",
+      "verify": {
+        "ci": "pass",
+        "commit": "8f62d2e"
+      }
     },
     {
       "id": "S-27",
@@ -724,7 +732,11 @@
         "S-12"
       ],
       "gh_issue": 55,
-      "acceptance": "A backdated receipt (dated before stock_epoch) updates frequency stats but not current stock (A18)."
+      "acceptance": "A backdated receipt (dated before stock_epoch) updates frequency stats but not current stock (A18).",
+      "verify": {
+        "ci": "pass",
+        "commit": "1deab6b"
+      }
     },
     {
       "id": "S-28",
@@ -738,7 +750,11 @@
         "S-06"
       ],
       "gh_issue": 56,
-      "acceptance": "Pasted order-confirmation email body parses via the text-only path, not multimodal."
+      "acceptance": "Pasted order-confirmation email body parses via the text-only path, not multimodal.",
+      "verify": {
+        "ci": "pass",
+        "commit": "a605fb9"
+      }
     },
     {
       "id": "S-29",

@@ -7,6 +7,17 @@ export function hashFileBytes(bytes: ArrayBuffer): string {
   return createHash('sha256').update(Buffer.from(bytes)).digest('hex');
 }
 
+// S-25: one combined hash over an ORDERED set of files, for the grouped
+// (multi-image-as-one-order) upload path. Deliberately a single hash of the
+// concatenated bytes, not independent per-file hashes -- this only catches an
+// identical re-submission of the same grouping+order, not the same images
+// re-uploaded individually (documented limit, see S-25 spec).
+export function hashCombinedFileBytes(byteList: ArrayBuffer[]): string {
+  return createHash('sha256')
+    .update(Buffer.concat(byteList.map((b) => Buffer.from(b))))
+    .digest('hex');
+}
+
 // Runs before any Storage write or DB insert (invariant: a rejected
 // duplicate must not leave orphaned Storage objects or partial rows).
 export async function findDuplicateReceipt(contentHash: string): Promise<string | null> {

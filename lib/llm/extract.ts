@@ -8,7 +8,18 @@ import { extractHtmlText } from '@/lib/llm/html-text';
 import { estimateCostUsd } from '@/lib/llm/cost';
 import { flagNearDuplicateIfAny } from '@/lib/receipts/dedup';
 import { runCanonicalization } from '@/lib/receipts/canonicalize';
+import { extensionOf, isAcceptedExtension, contentTypeFor } from '@/lib/receipts/formats';
 import type { LlmContentPart, LlmExtractionResult } from '@/lib/llm/provider';
+
+// S-25 fix (advisor-caught): a grouped receipt's storage_paths can mix
+// extensions (e.g. one PNG + one JPEG screenshot) even though the receipt
+// row only has ONE mime column. Each page's own mediaType is derived from
+// its OWN storage path extension, never from the shared receipt-level mime
+// -- correct per-page, regardless of grouping.
+function mimeForStoragePath(storagePath: string, fallback: string): string {
+  const ext = extensionOf(storagePath);
+  return isAcceptedExtension(ext) ? contentTypeFor(ext) : fallback;
+}
 
 const EXTRACTION_PROMPT = `You are extracting structured data from a grocery/household purchase receipt or order confirmation.
 
@@ -21,8 +32,20 @@ Rules:
 
 type ExtractionRouting = { parts: LlmContentPart[]; parsePath: 'text' | 'multimodal' };
 
-async function routeExtraction(bytes: ArrayBuffer, mime: string, storagePath: string): Promise<ExtractionRouting> {
+// S-25: only the image branch ever receives more than one entry in
+// byteList (grouping is image-extension-only, enforced at the upload-action
+// layer) — the anti-double-count instruction is appended ONLY when there's
+// more than one page, so an ordinary single-screenshot parse's prompt is
+// byte-identical to before this story.
+const GROUPED_PAGES_INSTRUCTION =
+  '\n\nThese images are multiple pages/screenshots of the SAME single order — do not count an item more than once if it appears in more than one image due to scroll overlap.';
+
+type ExtractionPage = { bytes: ArrayBuffer; mime: string };
+
+async function routeExtraction(pages: ExtractionPage[], storagePath: string): Promise<ExtractionRouting> {
   const ext = storagePath.split('.').pop()?.toLowerCase();
+  const bytes = pages[0].bytes;
+  const mime = pages[0].mime;
 
   if (mime === 'application/pdf' || ext === 'pdf') {
     const text = await extractPdfText(bytes);
@@ -47,12 +70,19 @@ async function routeExtraction(bytes: ArrayBuffer, mime: string, storagePath: st
     return { parts: [{ type: 'text', text: `${EXTRACTION_PROMPT}\n\nPage text:\n${text}` }], parsePath: 'text' };
   }
 
+  // S-28: pasted plain text — already textual, no stripping needed.
+  if (mime === 'text/plain') {
+    const text = Buffer.from(bytes).toString('utf-8');
+    return { parts: [{ type: 'text', text: `${EXTRACTION_PROMPT}\n\nPasted text:\n${text}` }], parsePath: 'text' };
+  }
+
   // Images (jpg/png/webp — HEIC already converted client-side in S-05).
+  // S-25: pages.length > 1 means a grouped (multi-image-as-one-order)
+  // receipt — one image part per page, in order, EACH WITH ITS OWN mediaType
+  // (a grouped set can mix jpg/png), plus the anti-double-count instruction.
+  const promptText = pages.length > 1 ? `${EXTRACTION_PROMPT}${GROUPED_PAGES_INSTRUCTION}` : EXTRACTION_PROMPT;
   return {
-    parts: [
-      { type: 'text', text: EXTRACTION_PROMPT },
-      { type: 'image', data: Buffer.from(bytes), mediaType: mime },
-    ],
+    parts: [{ type: 'text', text: promptText }, ...pages.map((p) => ({ type: 'image' as const, data: Buffer.from(p.bytes), mediaType: p.mime }))],
     parsePath: 'multimodal',
   };
 }
@@ -103,16 +133,25 @@ export async function runExtraction(receiptId: string): Promise<void> {
   await supabase.from('ingest_jobs').update({ state: 'processing', updated_at: new Date().toISOString() }).eq('receipt_id', receiptId);
 
   try {
-    const storagePath = receipt.storage_paths[0];
-    const { data: fileData, error: downloadError } = await supabase.storage.from('receipts').download(storagePath);
-    if (downloadError || !fileData) throw downloadError ?? new Error('download returned no data');
-    const bytes = await fileData.arrayBuffer();
+    // S-25: every storage_paths entry is downloaded — a plain single-file
+    // receipt has exactly one, so this is a strict superset of the prior
+    // behavior with zero change for that case. Only a grouped (S-25) receipt
+    // ever has more than one. Each page's mediaType is derived from its OWN
+    // storage path extension, not the shared receipt.mime column, since a
+    // grouped set can mix extensions (e.g. one PNG + one JPEG screenshot).
+    const pages = await Promise.all(
+      receipt.storage_paths.map(async (storagePath: string) => {
+        const { data: fileData, error: downloadError } = await supabase.storage.from('receipts').download(storagePath);
+        if (downloadError || !fileData) throw downloadError ?? new Error('download returned no data');
+        return { bytes: await fileData.arrayBuffer(), mime: mimeForStoragePath(storagePath, receipt.mime) };
+      }),
+    );
 
     const { data: categories, error: categoriesError } = await supabase.from('categories').select('slug').not('parent_id', 'is', null);
     if (categoriesError || !categories || categories.length === 0) throw categoriesError ?? new Error('no leaf categories found');
     const categorySlugs = categories.map((c) => c.slug);
 
-    const { parts, parsePath } = await routeExtraction(bytes, receipt.mime, storagePath);
+    const { parts, parsePath } = await routeExtraction(pages, receipt.storage_paths[0]);
     const schema = buildReceiptExtractionSchema(categorySlugs);
 
     // Escalation ladder (working spec Sec7): retry once on Pro with the

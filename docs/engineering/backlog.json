@@ -125,7 +125,8 @@
       "prd_ref": "REQ-17",
       "order": 8,
       "estimate": 0.5,
-      "acceptance": "Manual override survives nightly recompute (A9)."
+      "acceptance": "Manual override survives nightly recompute (A9).",
+      "gh_issue": 44
     },
     {
       "id": "E-9",
@@ -620,7 +621,8 @@
         "S-18",
         "S-19"
       ],
-      "acceptance": "Manual cadence override survives nightly recompute; revert-to-auto restores computed value (A9)."
+      "acceptance": "Manual cadence override survives nightly recompute; revert-to-auto restores computed value (A9).",
+      "gh_issue": 45
     },
     {
       "id": "S-22",
@@ -633,7 +635,8 @@
       "blocked_by": [
         "S-21"
       ],
-      "acceptance": "Cold-start household with zero data shows a useful, non-broken Today screen (A13)."
+      "acceptance": "Cold-start household with zero data shows a useful, non-broken Today screen (A13).",
+      "gh_issue": 46
     },
     {
       "id": "S-23",

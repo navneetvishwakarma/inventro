@@ -1,0 +1,23 @@
+{
+  "id": "S-22",
+  "title": "Today view (everything due within 3 days across all buckets, default landing screen)",
+  "goal": "Extend app/page.tsx (the existing default landing route, already onboarding-gated and already carrying S-20's 'Needs attention' out-of-stock section) with F11's 'Today view': every planned item across all cadence buckets whose dueDate falls within 3 days, sourced from S-21's getPlanItems(). This is a second, distinct section from 'Needs attention' -- due-soon is a forward-looking prediction (dueDate <= now+3d), needs-attention is already-empty virtual stock (S-20); an item can be in one, both, or neither.",
+  "in_scope": [
+    "lib/plan/data.ts: getDueSoonItems(daysThreshold = 3) -- filters getPlanItems() to items whose effective plan state is active (not 'excluded', not currently-snoozed, not currently-skipped for this occurrence -- reuses S-21's same read-side auto-expiry logic, not a second copy of it) AND dueDate !== null AND dueDate <= now + daysThreshold days. Includes overdue items (dueDate in the past), not just the forward 3-day window, matching F14's existing 'due <= 3 days' digest semantics (docs/00-working-spec.md F14) rather than inventing a second due-window definition. Sorted by dueDate ascending (most overdue/soonest first).",
+    "app/page.tsx: a new 'Due soon' card between the header and 'Needs attention' (due-soon is the more actionable, forward-looking signal; needs-attention is already a fact, kept below since S-20 shipped it there and rewiring its position isn't in scope). Each row: item name, effective cadence bucket label (formatCadenceBucket), suggested qty (formatBaseQty), due date (formatted plain, e.g. 'Due today' / 'Due in 2 days' / 'Overdue by 1 day' -- add this small formatter to lib/inventory/format.ts, following formatDaysRemaining's existing pattern rather than inventing a parallel one), linking to /plan?bucket=<effectiveCadenceBucket> so a tap lands the user on the right tab to act on it.",
+    "Cold-start handling (A13): a household with zero item_stats rows (nothing ever purchased) has getDueSoonItems() return an empty array cleanly (getPlanItems() itself already returns [] when no item has a cadenceBucket) -- the existing header copy on app/page.tsx already branches on an empty-vs-nonempty needs-attention count; extend that same conditional to also account for due-soon count so a cold-start household sees the existing 'Add your first receipt...' onboarding nudge, not a broken or blank section.",
+    "A link from app/page.tsx's header area to /plan (View plan), alongside the existing /inventory and /review links -- the Plan screen has no other discovery path in this repo (no global nav exists, same gap S-20's ledger noted for /inventory)."
+  ],
+  "out_of_scope": [
+    "Any change to S-20's 'Needs attention' section's own query or definition -- this story adds a sibling section, does not touch or merge with it.",
+    "Notifications / the 07:00 IST daily digest email (F14, a later epic) -- this is the in-app Today view only.",
+    "Any bucket-tab UI -- that is S-21's app/plan/page.tsx; this story only reads S-21's data layer."
+  ],
+  "acceptance": "Cold-start household with zero data shows a useful, non-broken Today screen (A13).",
+  "invariants": [
+    "getDueSoonItems() and app/plan/page.tsx's bucket views must never disagree on whether a given item is currently suppressed (snoozed/skipped/excluded) -- both read through the same S-21 helper logic, not two independently-maintained filters.",
+    "A cold-start household (no purchases, no item_stats rows at all) never throws or renders an empty/broken card -- getPlanItems() returning [] is the expected, handled case, not an error path."
+  ],
+  "prd_ref": "REQ-17",
+  "adr_ref": null
+}

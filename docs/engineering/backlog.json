@@ -164,6 +164,7 @@
       ],
       "order": 11,
       "estimate": 0.5,
+      "gh_issue": 58,
       "acceptance": "Merging two catalog items consolidates movements and aliases (A12)."
     },
     {
@@ -767,6 +768,7 @@
       "blocked_by": [
         "S-09"
       ],
+      "gh_issue": 59,
       "acceptance": "Repeating a common purchase takes two taps."
     },
     {
@@ -780,6 +782,7 @@
       "blocked_by": [
         "S-09"
       ],
+      "gh_issue": 60,
       "acceptance": "Merging two catalog items reassigns aliases and movements to the survivor and recomputes stats correctly (A12)."
     },
     {

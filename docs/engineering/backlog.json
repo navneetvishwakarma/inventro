@@ -602,7 +602,11 @@
         "S-16"
       ],
       "gh_issue": 42,
-      "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement."
+      "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement.",
+      "verify": {
+        "ci": "pass",
+        "commit": "733ced9"
+      }
     },
     {
       "id": "S-21",

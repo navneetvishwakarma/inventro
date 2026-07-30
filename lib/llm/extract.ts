@@ -183,6 +183,11 @@ export async function runExtraction(receiptId: string): Promise<void> {
       .update({
         merchant: result.object.merchant,
         purchased_at: result.object.purchased_at,
+        // S-12: date_source distinguishes an extracted date from one a human
+        // typed in Review -- 'document' here, 'manual' set only by
+        // confirmPurchaseDateAction. Never guessed when the LLM returned null
+        // (working spec F7: "empty date blocks commit -- never guess").
+        date_source: result.object.purchased_at !== null ? 'document' : null,
         total_amount: result.object.order_total,
         parse_model: tier === 'primary' ? 'gemini-flash-latest' : 'gemini-pro-latest',
         parse_path: parsePath,

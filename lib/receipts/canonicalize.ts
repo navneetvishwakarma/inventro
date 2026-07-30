@@ -11,14 +11,17 @@ export function normalizeText(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-type MatchResult =
+export type MatchResult =
   | { matchedItemId: string; matchConfidence: number; state: 'matched' }
   | { matchedItemId: null; matchConfidence: number | null; state: 'needs_review' | 'new_item' };
 
 // S-09: exact alias hit -> pg_trgm similarity -> miss. similarity() of
 // identical strings is always 1.0, so find_best_alias_match's single query
-// covers both the exact-hit and fuzzy-match cases from F4.
-async function matchCatalogItem(supabase: ReturnType<typeof createServiceClient>, householdId: string, normalizedText: string): Promise<MatchResult> {
+// covers both the exact-hit and fuzzy-match cases from F4. Exported for
+// S-12's "Save & match" review action, which re-runs this once against a
+// human-edited line -- never called from S-13's commit path (see
+// commit_receipt's migration comment for why).
+export async function matchCatalogItem(supabase: ReturnType<typeof createServiceClient>, householdId: string, normalizedText: string): Promise<MatchResult> {
   const { data, error } = await supabase.rpc('find_best_alias_match', { p_household_id: householdId, p_normalized_text: normalizedText });
   if (error) throw error;
 
@@ -29,7 +32,7 @@ async function matchCatalogItem(supabase: ReturnType<typeof createServiceClient>
   return { matchedItemId: null, matchConfidence: best.score, state: 'new_item' };
 }
 
-type BaseUnit = 'g' | 'ml' | 'piece';
+export type BaseUnit = 'g' | 'ml' | 'piece';
 
 const WEIGHT_VOLUME_UNITS: Record<string, { base: 'g' | 'ml'; factor: number }> = {
   kg: { base: 'g', factor: 1000 },

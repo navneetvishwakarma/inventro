@@ -469,7 +469,11 @@
         "S-14a"
       ],
       "acceptance": "daily_rate_base computed from trailing-120d quantities; blended with interval_est by data-quality weight q into next_purchase; perishability_days caps depletion_date where set (working spec Sec5 steps 6-7).",
-      "gh_issue": 31
+      "gh_issue": 31,
+      "verify": {
+        "ci": "pass",
+        "commit": "44c450c"
+      }
     },
     {
       "id": "S-14c",

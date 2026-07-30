@@ -576,7 +576,7 @@
       "title": "Inventory screen (grouped, filterable, searchable) + item detail with plain-language prediction explanation",
       "epic": "E-7",
       "prd_ref": "REQ-13",
-      "status": "notstarted",
+      "status": "done",
       "order": 19,
       "estimate": 0.4,
       "blocked_by": [
@@ -595,7 +595,7 @@
       "title": "Consumption actions (used it up / used some / wasted) + implicit virtual depletion projection",
       "epic": "E-7",
       "prd_ref": "REQ-14",
-      "status": "notstarted",
+      "status": "done",
       "order": 20,
       "estimate": 0.3,
       "blocked_by": [
@@ -613,7 +613,7 @@
       "title": "Plan screen: cadence bucket tabs, suggested qty, snooze/skip/exclude/override with revert-to-auto",
       "epic": "E-8",
       "prd_ref": "REQ-17",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 21,
       "estimate": 0.4,
       "blocked_by": [

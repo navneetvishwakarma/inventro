@@ -584,7 +584,11 @@
         "S-16"
       ],
       "gh_issue": 41,
-      "acceptance": "Item card shows current stock, predicted days remaining, cadence badge, last purchased, avg price, trend sparkline."
+      "acceptance": "Item card shows current stock, predicted days remaining, cadence badge, last purchased, avg price, trend sparkline.",
+      "verify": {
+        "ci": "pass",
+        "commit": "8b15c11"
+      }
     },
     {
       "id": "S-20",
@@ -598,7 +602,11 @@
         "S-16"
       ],
       "gh_issue": 42,
-      "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement."
+      "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement.",
+      "verify": {
+        "ci": "pass",
+        "commit": "733ced9"
+      }
     },
     {
       "id": "S-21",

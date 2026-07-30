@@ -104,6 +104,70 @@ function shrinkToPrior(ewma: number | null, n: number, categoryPriorDays: number
   return w * ewma + (1 - w) * categoryPriorDays;
 }
 
+function addDays(iso: string, days: number): string {
+  return new Date(new Date(iso).getTime() + days * 86_400_000).toISOString();
+}
+
+function earlierIso(a: string, b: string): string {
+  return a <= b ? a : b;
+}
+
+// Step 6: quantity-based daily consumption rate, gated on data quality (q).
+// dailyRateBase is deliberately the raw, uncorrected signal -- rateCorrection
+// (S-15's output) is only applied when deriving the transient dailyRate used
+// for depletion-date math, never baked into the persisted value (working
+// spec Sec5 step 6 note).
+function computeRateCrossCheck(
+  events: PurchaseEvent[],
+  now: string,
+  rateCorrection: number,
+  currentStockBase: number | null,
+): { dailyRateBase: number | null; depletionDate: string | null; q: number } {
+  const q = events.length === 0 ? 0 : events.filter((e) => e.qtyBase !== null).length / events.length;
+  if (events.length === 0 || q < RATE_CROSS_CHECK_MIN_Q) return { dailyRateBase: null, depletionDate: null, q };
+
+  const windowStart = addDays(now, -RATE_WINDOW_DAYS);
+  const windowEvents = events.filter((e) => e.occurredAt >= windowStart);
+  if (windowEvents.length < 2) return { dailyRateBase: null, depletionDate: null, q };
+
+  const daysElapsed = daysBetween(windowEvents[0].occurredAt, now);
+  if (daysElapsed <= 0) return { dailyRateBase: null, depletionDate: null, q };
+
+  const sumQty = windowEvents.reduce((acc, e) => acc + (e.qtyBase ?? 0), 0);
+  const dailyRateBase = sumQty / daysElapsed;
+
+  const dailyRate = dailyRateBase * rateCorrection;
+  const lastPurchasedAt = events[events.length - 1].occurredAt;
+  const depletionDate =
+    dailyRate > 0 && currentStockBase !== null ? addDays(lastPurchasedAt, currentStockBase / dailyRate) : null;
+
+  return { dailyRateBase, depletionDate, q };
+}
+
+// Step 7: perishable items expire on schedule regardless of consumption rate
+// -- clamp (never extend) the depletion date.
+function applyPerishabilityClamp(
+  depletionDate: string | null,
+  lastPurchasedAt: string,
+  perishabilityDays: number | null,
+): string | null {
+  if (perishabilityDays === null) return depletionDate;
+  const perishDate = addDays(lastPurchasedAt, perishabilityDays);
+  return depletionDate === null ? perishDate : earlierIso(depletionDate, perishDate);
+}
+
+function blendNextPurchase(
+  depletionDate: string | null,
+  q: number,
+  lastPurchasedAt: string,
+  intervalEstDays: number,
+): string {
+  const intervalBased = addDays(lastPurchasedAt, intervalEstDays);
+  if (depletionDate === null) return intervalBased;
+  const blendedMs = q * new Date(depletionDate).getTime() + (1 - q) * new Date(intervalBased).getTime();
+  return new Date(blendedMs).toISOString();
+}
+
 export function computeItemStats(
   rawEvents: PurchaseEvent[],
   config: ComputeItemStatsConfig,
@@ -119,15 +183,28 @@ export function computeItemStats(
   const mad = n > 0 ? medianAbsoluteDeviation(usableIntervals, med as number) : null;
   const intervalEst = shrinkToPrior(ewma, n, config.categoryPriorDays);
 
+  const lastPurchasedAt = events.length > 0 ? events[events.length - 1].occurredAt : null;
+
+  let dailyRateBase: number | null = null;
+  let predictedDepletionAt: string | null = null;
+  let predictedNextPurchaseAt: string | null = null;
+
+  if (lastPurchasedAt !== null) {
+    const rate = computeRateCrossCheck(events, config.now, config.rateCorrection, config.currentStockBase);
+    dailyRateBase = rate.dailyRateBase;
+    predictedDepletionAt = applyPerishabilityClamp(rate.depletionDate, lastPurchasedAt, config.perishabilityDays);
+    predictedNextPurchaseAt = blendNextPurchase(rate.depletionDate, rate.q, lastPurchasedAt, intervalEst);
+  }
+
   return {
     purchaseCount: events.length,
     ewmaIntervalDays: ewma,
     intervalMad: mad,
     intervalEstDays: intervalEst,
-    dailyRateBase: null,
-    lastPurchasedAt: events.length > 0 ? events[events.length - 1].occurredAt : null,
-    predictedDepletionAt: null,
-    predictedNextPurchaseAt: null,
+    dailyRateBase,
+    lastPurchasedAt,
+    predictedDepletionAt,
+    predictedNextPurchaseAt,
     cadenceBucket: null,
     confidence: null,
   };

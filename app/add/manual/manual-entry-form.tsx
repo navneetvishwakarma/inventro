@@ -203,7 +203,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
               <p className="font-medium">{resultLabel(selected)}</p>
               <div className="flex items-center gap-2">
                 <Input type="number" min={0} step="any" value={qtyBase} onChange={(e) => setQtyBase(e.target.value)} placeholder={`Qty (${selected.baseUnit})`} />
-                <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Price (optional)" />
+                <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Total paid (optional)" />
               </div>
               <Input type="date" value={dateString} onChange={(e) => setDateString(e.target.value)} max={todayString()} />
               <Button type="button" onClick={handleLogExisting} disabled={isPending}>
@@ -230,7 +230,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
                 <Input value={newQtyDisplay} onChange={(e) => setNewQtyDisplay(e.target.value)} placeholder="Qty" />
                 <Input value={newUnitDisplay} onChange={(e) => setNewUnitDisplay(e.target.value)} placeholder="Unit (e.g. kg, piece)" />
               </div>
-              <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Price (optional)" />
+              <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Total paid (optional)" />
               <Input type="date" value={dateString} onChange={(e) => setDateString(e.target.value)} max={todayString()} />
               <Button type="button" onClick={handleCreateNew} disabled={isPending}>
                 Create item &amp; log purchase

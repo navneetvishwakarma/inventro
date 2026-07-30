@@ -50,6 +50,11 @@ export type ItemDef = {
     outlierMultiplier: number | null;
     // Fraction of events (beyond the first) that get qtyBase=null.
     qtyMissingFraction: number;
+    // S-31: when true, the single most recent purchase event's price gets a
+    // deliberate +28% jump (well past the 15% price-alert threshold) --
+    // the fixture getPriceAlerts() is verified against. Exactly 4 items are
+    // flagged across the whole plan (see generateItemDefs).
+    priceJumpOnLatest: boolean;
   };
 };
 
@@ -133,7 +138,7 @@ function buildCleanLike(
   jitterSigma: number,
   purchaseCount: number,
   rng: () => number,
-  opts: { outlierAtIntervalIndex?: number; outlierMultiplier?: number; qtyMissingFraction?: number } = {},
+  opts: { outlierAtIntervalIndex?: number; outlierMultiplier?: number; qtyMissingFraction?: number; priceJump?: boolean } = {},
 ): ItemDef {
   const slugs = BUCKET_CATEGORY_SLUGS[bucket];
   const categorySlug = slugs[slot % slugs.length];
@@ -159,6 +164,7 @@ function buildCleanLike(
       outlierAtIntervalIndex: opts.outlierAtIntervalIndex ?? null,
       outlierMultiplier: opts.outlierMultiplier ?? null,
       qtyMissingFraction: opts.qtyMissingFraction ?? 0,
+      priceJumpOnLatest: opts.priceJump ?? false,
     },
   };
 }
@@ -189,7 +195,12 @@ export function generateItemDefs(): ItemDef[] {
       // still get a shot at the S3 n>=4-training gate where mathematically
       // possible.
       const purchaseCount = Math.max(5, Math.min(40, Math.ceil((24 * 30.44) / targetInterval) + 1));
-      items.push(buildCleanLike('clean_periodic', bucket, slot, 0.15, purchaseCount, rng));
+      // S-31: exactly 2 clean_periodic items (first weekly slot, first
+      // monthly slot) get a deliberate price jump on their most recent
+      // purchase -- the getPriceAlerts() fixture, engineered rather than
+      // hoping the (tight, sigma=0.15) price jitter alone crosses 15%.
+      const priceJump = (bucket === 'weekly' || bucket === 'monthly') && slot === 0;
+      items.push(buildCleanLike('clean_periodic', bucket, slot, 0.15, purchaseCount, rng, { priceJump }));
     }
   }
 
@@ -198,7 +209,11 @@ export function generateItemDefs(): ItemDef[] {
   const hvCounts = [4, 3, 3];
   hvBuckets.forEach((bucket, i) => {
     for (let slot = 0; slot < hvCounts[i]; slot++) {
-      items.push(buildCleanLike('high_variance', bucket, slot, 0.4, 10, rng));
+      // S-31: 2 more price-jump fixtures, from a different cohort (high
+      // price jitter sigma=0.40) so getPriceAlerts() is also proven against
+      // noisier baseline data, not only the tight clean_periodic case.
+      const priceJump = bucket === 'weekly' && (slot === 0 || slot === 1);
+      items.push(buildCleanLike('high_variance', bucket, slot, 0.4, 10, rng, { priceJump }));
     }
   });
 
@@ -242,6 +257,7 @@ export function generateItemDefs(): ItemDef[] {
         outlierAtIntervalIndex: null,
         outlierMultiplier: null,
         qtyMissingFraction: 0,
+        priceJumpOnLatest: false,
       },
     });
   }
@@ -270,6 +286,7 @@ export function generateItemDefs(): ItemDef[] {
           outlierAtIntervalIndex: null,
           outlierMultiplier: null,
           qtyMissingFraction: 0,
+          priceJumpOnLatest: false,
         },
       });
     }
@@ -298,6 +315,7 @@ export function generateItemDefs(): ItemDef[] {
         outlierAtIntervalIndex: null,
         outlierMultiplier: null,
         qtyMissingFraction: 0,
+        priceJumpOnLatest: false,
       },
     });
   }
@@ -319,7 +337,15 @@ function nextNameNoIncrement(cohort: Cohort, label: string): string {
   return `SYN ${String(globalIndex).padStart(3, '0')} ${cohort} ${label}`;
 }
 
-export type PurchaseEventPlan = { occurredAt: string; qtyBase: number | null };
+export type PurchaseEventPlan = { occurredAt: string; qtyBase: number | null; pricePerBaseUnit: number };
+
+// S-31: a plausible base price per ONE base unit (gram/ml/piece), by
+// baseUnit -- piece items priced like discrete products (~5-200 INR/piece),
+// weight/volume items priced like commodities (~0.05-2 INR/gram-or-ml).
+// Deterministic per item (own rng draw), not tied to cohort/bucket.
+function basePricePerBaseUnitFor(baseUnit: 'g' | 'ml' | 'piece', rng: () => number): number {
+  return baseUnit === 'piece' ? 5 + rng() * 195 : 0.05 + rng() * 1.95;
+}
 
 // Walks backward from anchorNowIso generating purchaseCount events (most
 // recent last), applying lognormal jitter around the (possibly
@@ -357,7 +383,7 @@ export function generatePurchaseEvents(item: ItemDef, anchorNowIso: string): Pur
   // timestamp to produce ascending occurredAt values.
   const oldestFirstGaps = [...gaps].reverse();
   const totalDays = oldestFirstGaps.reduce((a, b) => a + b, 0);
-  const events: PurchaseEventPlan[] = [];
+  const events: Array<{ occurredAt: string; qtyBase: number | null }> = [];
   let cursorMs = anchorMs - totalDays * dayMs;
   events.push({ occurredAt: new Date(cursorMs).toISOString(), qtyBase: item.packSize });
   for (const gap of oldestFirstGaps) {
@@ -383,5 +409,32 @@ export function generatePurchaseEvents(item: ItemDef, anchorNowIso: string): Pur
     }
   }
 
-  return events;
+  // S-31: price generation uses a COMPLETELY INDEPENDENT rng stream (a
+  // different mulberry32 instance, different seed offset) so it never
+  // consumes a draw from the interval-jitter rng above -- that rng's
+  // sequence is load-bearing for S-18's validator, which re-derives the
+  // exact same interval/outlier/dropout structure from generateItemDefs()
+  // alone and must stay byte-identical to before this story.
+  const priceRng = mulberry32(PLAN_SEED + item.index * 104729 + 1);
+  const basePrice = basePricePerBaseUnitFor(item.baseUnit, priceRng);
+  // Tight sigma, deliberately: getPriceAlerts()'s >15% threshold must fire
+  // ONLY on the deliberately-jumped fixture items below, not on random
+  // jitter -- empirically confirmed via a live reseed that sigma=0.08
+  // produces >15% swings on random chance alone for a trailing average of
+  // only 3-8 prior observations (this cohort's typical n), well past what a
+  // real grocery price actually does purchase to purchase. 0.02 keeps
+  // essentially all random noise under ~6% even at n=3 while the +35%
+  // deliberate jump below stays unambiguous.
+  const PRICE_JITTER_SIGMA = 0.02;
+  const pricedEvents = events.map((event) => ({
+    ...event,
+    pricePerBaseUnit: basePrice * Math.exp(PRICE_JITTER_SIGMA * gaussian(priceRng)),
+  }));
+
+  if (item.groundTruth.priceJumpOnLatest && pricedEvents.length > 0) {
+    const latest = pricedEvents[pricedEvents.length - 1];
+    latest.pricePerBaseUnit *= 1.35; // well past the 15% price-alert threshold, well past jitter noise
+  }
+
+  return pricedEvents;
 }

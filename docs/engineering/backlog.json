@@ -689,7 +689,7 @@
       "title": "Multi-image-as-one-order grouping toggle (2-3 screenshots -> one multimodal call)",
       "epic": "E-10",
       "prd_ref": "REQ-03",
-      "status": "notstarted",
+      "status": "done",
       "order": 25,
       "estimate": 0.3,
       "blocked_by": [
@@ -707,7 +707,7 @@
       "title": "Clipboard paste (Cmd/Ctrl+V) capture entry point",
       "epic": "E-10",
       "prd_ref": "REQ-04",
-      "status": "notstarted",
+      "status": "done",
       "order": 26,
       "estimate": 0.15,
       "blocked_by": [
@@ -725,7 +725,7 @@
       "title": "Multi-file queue (N files -> N receipts, sequential review with counter) + backdating flow",
       "epic": "E-10",
       "prd_ref": "REQ-05",
-      "status": "notstarted",
+      "status": "done",
       "order": 27,
       "estimate": 0.35,
       "blocked_by": [
@@ -743,7 +743,7 @@
       "title": "Paste-text capture routed to a cheaper text-only LLM call",
       "epic": "E-10",
       "prd_ref": "REQ-06",
-      "status": "notstarted",
+      "status": "done",
       "order": 28,
       "estimate": 0.2,
       "blocked_by": [

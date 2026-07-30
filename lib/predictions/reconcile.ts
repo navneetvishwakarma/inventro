@@ -29,9 +29,31 @@ export async function reconcileRateCorrection(
   catalogItemId: string,
   thisPurchase: { occurredAt: string; receiptId: string },
 ): Promise<number> {
-  const [statsRes, itemRes, prevPurchaseRes] = await Promise.all([
+  const [statsRes, itemRes, consumptionSignalRes, prevPurchaseRes] = await Promise.all([
     supabase.from('item_stats').select('rate_correction, predicted_depletion_at, daily_rate_base').eq('catalog_item_id', catalogItemId).maybeSingle(),
     supabase.from('catalog_items').select('default_pack_size').eq('id', catalogItemId).single(),
+    // v_current_stock (and therefore predicted_depletion_at, which is
+    // anchored on it) is a raw ledger sum that only decreases via an
+    // explicit consumption/adjustment/waste movement (F9.1, E-7 -- not
+    // built yet). Absent any such movement, stock for a repeatedly-bought
+    // item accumulates without bound purchase over purchase, so
+    // predicted_depletion_at drifts further into the future every cycle
+    // and the >40%-of-pack branch below would fire on nearly every
+    // repurchase, walking rate_correction to the 0.5 floor on ordinary
+    // real data. Found by this story's own live-Supabase reproduction
+    // (6 sequential 30-day purchases, no consumption logged) after the
+    // advisor flagged that the first fix (baselining off item_stats
+    // instead of a fresh ledger sum) only moved the source of the
+    // monotonic growth, not removed it. Reconciliation is only meaningful
+    // once there's at least one real signal that stock actually goes
+    // down between purchases -- gate on that instead of guessing.
+    supabase
+      .from('stock_movements')
+      .select('id')
+      .eq('catalog_item_id', catalogItemId)
+      .not('type', 'in', '(purchase,initial)')
+      .limit(1)
+      .maybeSingle(),
     // Eligibility is always determined from stock_movements directly, never
     // item_stats.last_purchased_at -- commit_receipt() (S-13) has already
     // advanced that column to THIS purchase by the time this runs, so it
@@ -58,6 +80,7 @@ export async function reconcileRateCorrection(
   if (statsRes.error) throw statsRes.error;
   if (itemRes.error) throw itemRes.error;
   if (prevPurchaseRes.error) throw prevPurchaseRes.error;
+  if (consumptionSignalRes.error) throw consumptionSignalRes.error;
 
   const currentRateCorrection = statsRes.data?.rate_correction ?? 1;
   const previousPurchaseAt = prevPurchaseRes.data?.occurred_at ?? null;
@@ -65,6 +88,14 @@ export async function reconcileRateCorrection(
   // No prior purchase (first-ever) or a later purchase already exists on
   // record (this commit is backdated) -- nothing to reconcile against.
   if (previousPurchaseAt === null || previousPurchaseAt >= thisPurchase.occurredAt) {
+    return currentRateCorrection;
+  }
+
+  // No consumption/adjustment/waste movement has ever been recorded for
+  // this item -- the depletion baseline is provably untrustworthy (see
+  // note above), so leave rate_correction untouched rather than reconcile
+  // against a number known to be systematically inflated.
+  if (consumptionSignalRes.data === null) {
     return currentRateCorrection;
   }
 

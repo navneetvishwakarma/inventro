@@ -506,7 +506,7 @@
         "S-14c",
         "S-13"
       ],
-      "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only.",
+      "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only. Additionally gated on at least one recorded consumption/adjustment/waste movement existing for the item (see ledger) — without one, the depletion baseline predicted_depletion_at is anchored on an unboundedly-accumulating raw ledger sum (no F9.1/F9.2 consumption tracking exists until E-7) and reconciling against it walks rate_correction to the 0.5 floor on ordinary real usage; verified via live-Supabase reproduction before this guard was added.",
       "gh_issue": 33,
       "verify": {
         "ci": "pass",

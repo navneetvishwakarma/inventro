@@ -39,12 +39,17 @@ function daysBetween(a: string, b: string): number {
 // Step 1: sort ascending, filter to the last 24 months, merge same-Kolkata-day
 // events (summing qtyBase), then cap to the most recent 40 merged events.
 function gatherEvents(events: PurchaseEvent[], now: string): PurchaseEvent[] {
-  const sorted = [...events].sort((a, b) => a.occurredAt.localeCompare(b.occurredAt));
+  // Numeric comparison throughout, not string comparison -- two ISO instants
+  // that PostgREST and JS's toISOString() format slightly differently (e.g.
+  // "+00:00" vs "Z", or differing fractional-second digits) can sort wrong
+  // lexicographically at the exact second they'd tie numerically. Same class
+  // of bug as E-4's timezone issue.
+  const sorted = [...events].sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime());
 
   const cutoff = new Date(now);
   cutoff.setUTCMonth(cutoff.getUTCMonth() - 24);
-  const cutoffIso = cutoff.toISOString();
-  const windowed = sorted.filter((e) => e.occurredAt >= cutoffIso);
+  const cutoffMs = cutoff.getTime();
+  const windowed = sorted.filter((e) => new Date(e.occurredAt).getTime() >= cutoffMs);
 
   const merged: PurchaseEvent[] = [];
   for (const event of windowed) {
@@ -126,8 +131,8 @@ function computeRateCrossCheck(
   const q = events.length === 0 ? 0 : events.filter((e) => e.qtyBase !== null).length / events.length;
   if (events.length === 0 || q < RATE_CROSS_CHECK_MIN_Q) return { dailyRateBase: null, depletionDate: null, q };
 
-  const windowStart = addDays(now, -RATE_WINDOW_DAYS);
-  const windowEvents = events.filter((e) => e.occurredAt >= windowStart);
+  const windowStartMs = new Date(addDays(now, -RATE_WINDOW_DAYS)).getTime();
+  const windowEvents = events.filter((e) => new Date(e.occurredAt).getTime() >= windowStartMs);
   if (windowEvents.length < 2) return { dailyRateBase: null, depletionDate: null, q };
 
   const daysElapsed = daysBetween(windowEvents[0].occurredAt, now);

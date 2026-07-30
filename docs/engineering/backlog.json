@@ -762,7 +762,7 @@
       "title": "Manual entry: searchable typeahead over catalog, recency-ranked, last-quantity prefilled",
       "epic": "E-11",
       "prd_ref": "REQ-07",
-      "status": "notstarted",
+      "status": "done",
       "order": 29,
       "estimate": 0.25,
       "blocked_by": [
@@ -780,7 +780,7 @@
       "title": "Catalog manager (merge / archive / recategorize)",
       "epic": "E-11",
       "prd_ref": "REQ-09",
-      "status": "notstarted",
+      "status": "done",
       "order": 30,
       "estimate": 0.3,
       "blocked_by": [

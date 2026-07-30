@@ -27,10 +27,14 @@ export function AddCapture() {
   // S-26: a paste staged while elsewhere (module singleton delivers it on
   // this mount) or a live paste while already on /add both land here, and
   // flow through the exact same handleFiles() pipeline as file-picker/drop.
+  // Re-subscribes whenever `isGrouped` changes (advisor-caught bug: a `[]`
+  // dep array here would freeze the callback's closure on isGrouped's value
+  // at mount, so pasting with the toggle ON would silently upload ungrouped
+  // instead of showing the 2-3-images validation error).
   useEffect(() => {
     return subscribeStagedFile((file) => handleFiles([file]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isGrouped]);
 
   function handleFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList);

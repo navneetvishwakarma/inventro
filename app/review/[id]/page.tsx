@@ -9,6 +9,13 @@ export const dynamic = 'force-dynamic';
 // batch (app/add/capture.tsx) -- purely a UI navigation aid, never trusted
 // for anything but "what to render/link to next". Absent or malformed ->
 // null, and the page renders exactly as it did before this story.
+//
+// advisor-caught bug: the FULL id list must always be forwarded to the next
+// page's `session` param, never a sliced "remaining" subset -- slicing made
+// each hop recompute position/total against a shrinking list, so "1 of 3"
+// became "1 of 2" then "1 of 1" instead of "1 of 3" -> "2 of 3" -> "3 of 3".
+// `allIds` is forwarded unchanged on every link/redirect; `indexOf` here is
+// what derives this page's own position each time.
 function parseSession(sessionParam: string | undefined, currentId: string): ReviewSession | null {
   if (!sessionParam) return null;
   const ids = sessionParam.split(',').filter(Boolean);
@@ -18,7 +25,7 @@ function parseSession(sessionParam: string | undefined, currentId: string): Revi
     position: index + 1,
     total: ids.length,
     nextId: ids[index + 1] ?? null,
-    remainingIds: ids.slice(index + 1),
+    allIds: ids,
   };
 }
 

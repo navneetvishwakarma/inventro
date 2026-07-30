@@ -216,7 +216,10 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
 // S-27: a pure UI navigation aid built from the `session` search param --
 // never trusted for anything but "what to render/link to next" (commit
 // validation still happens entirely server-side against the DB row).
-export type ReviewSession = { position: number; total: number; nextId: string | null; remainingIds: string[] };
+// advisor-caught bug: `allIds` must be the FULL session list, forwarded
+// unchanged on every navigation -- see the comment in page.tsx's
+// parseSession for why a sliced "remaining ids" subset breaks the counter.
+export type ReviewSession = { position: number; total: number; nextId: string | null; allIds: string[] };
 
 function SessionCounter({ session, nextHref }: { session: ReviewSession; nextHref: string | null }) {
   return (
@@ -260,7 +263,7 @@ export function ReviewDetail({
 
   // S-27: where "Next" goes after a successful commit -- the current
   // receipt's own id is already consumed, so only the ids after it remain.
-  const nextHref = session?.nextId ? `/review/${session.nextId}?session=${session.remainingIds.join(',')}` : null;
+  const nextHref = session?.nextId ? `/review/${session.nextId}?session=${session.allIds.join(',')}` : null;
 
   const excludedCount = useMemo(() => lines.filter((l) => l.review_state === 'excluded').length, [lines]);
   const matchedLines = useMemo(() => lines.filter((l) => l.review_state === 'matched'), [lines]);
@@ -296,7 +299,7 @@ export function ReviewDetail({
       // successful commit; a session-less visit (the pre-E-10 entry point)
       // stays on this page exactly as before.
       if (result.ok && session) {
-        router.push(session.nextId ? `/review/${session.nextId}?session=${session.remainingIds.join(',')}` : '/review');
+        router.push(session.nextId ? `/review/${session.nextId}?session=${session.allIds.join(',')}` : '/review');
       }
     });
   }

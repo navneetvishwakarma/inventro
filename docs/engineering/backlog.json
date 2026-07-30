@@ -174,6 +174,7 @@
       "prd_ref": "REQ-19",
       "order": 12,
       "estimate": 0.5,
+      "gh_issue": 62,
       "acceptance": "Forward spend projection derives from live cadences and prices."
     },
     {
@@ -804,6 +805,7 @@
       "blocked_by": [
         "S-21"
       ],
+      "gh_issue": 63,
       "acceptance": "Forward projection of next month's committed recurring spend derives directly from live cadences and prices."
     },
     {

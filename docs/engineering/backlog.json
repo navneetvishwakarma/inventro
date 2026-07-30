@@ -414,7 +414,11 @@
         "S-11"
       ],
       "acceptance": "A document with no extractable date blocks commit; setting a date manually releases it (A21).",
-      "gh_issue": 26
+      "gh_issue": 26,
+      "verify": {
+        "ci": "pass",
+        "commit": "8c92035"
+      }
     },
     {
       "id": "S-13",
@@ -428,7 +432,11 @@
         "S-12"
       ],
       "acceptance": "Committed receipt's items appear in inventory in correct base-unit quantities (Day 1 gate, A1).",
-      "gh_issue": 27
+      "gh_issue": 27,
+      "verify": {
+        "ci": "pass",
+        "commit": "8c92035"
+      }
     },
     {
       "id": "S-14a",

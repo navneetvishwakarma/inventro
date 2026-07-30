@@ -507,7 +507,11 @@
         "S-13"
       ],
       "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only.",
-      "gh_issue": 33
+      "gh_issue": 33,
+      "verify": {
+        "ci": "pass",
+        "commit": "3c8327b"
+      }
     },
     {
       "id": "S-16",

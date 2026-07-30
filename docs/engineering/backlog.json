@@ -769,7 +769,11 @@
         "S-09"
       ],
       "gh_issue": 59,
-      "acceptance": "Repeating a common purchase takes two taps."
+      "acceptance": "Repeating a common purchase takes two taps.",
+      "verify": {
+        "ci": "pass",
+        "commit": "e964990"
+      }
     },
     {
       "id": "S-30",

@@ -1,0 +1,25 @@
+{
+  "id": "S-28",
+  "title": "Paste-text capture routed to a cheaper text-only LLM call",
+  "goal": "Let a pasted order-confirmation email body (no image at all) be captured and parsed via the existing text-only cost fast path (Sec7 -- same class as the PDF-native-text and HTML/MHTML paths, no image tokens sent), reusing the upload/dedup/ingest pipeline unchanged rather than building a parallel one.",
+  "in_scope": [
+    "lib/receipts/formats.ts: add 'txt' to ACCEPTED_EXTENSIONS and CONTENT_TYPES ('text/plain') -- confirmed before this change that the 'receipts' Storage bucket has no allowed_mime_types restriction and receipts.mime has no DB check constraint (read supabase/migrations/20260729020232_receipts_storage_bucket.sql and grepped full_schema.sql), so this is a pure code-level extension with no migration required.",
+    "app/add/paste-text.tsx ('use client', composed into capture.tsx as a sibling control, not a replacement): a 'Paste order text' disclosure button revealing a plain `<textarea>` (styled inline to match components/ui/input.tsx's existing classes -- no new shadcn primitive introduced for one textarea, per the no-abstractions-beyond-the-task rule) and a Submit button. On submit: builds `new File([new Blob([text], {type:'text/plain'})], 'pasted-${Date.now()}.txt', {type:'text/plain'})` and calls the SAME handleFiles()->uploadReceiptsAction() pipeline capture.tsx already exposes -- zero new server-side upload code.",
+    "lib/llm/extract.ts routeExtraction: new branch, `mime === 'text/plain'` -> decode the downloaded bytes as UTF-8 directly (no HTML-tag-stripping needed, it's already plain text) and return `{ parts: [{ type: 'text', text: `${EXTRACTION_PROMPT}\\n\\nPasted text:\\n${text}` }], parsePath: 'text' }` -- structurally identical in shape to the existing HTML/MHTML branch, minus the stripping step.",
+    "lib/review/data.ts: new getDocumentPreviewText(storagePath) -- server-side download + UTF-8 decode of a text/plain object (parallel to getDocumentPreviewUrl, but returns content, not a signed URL, since there's nothing useful to render inline via <img>/<embed> for raw text).",
+    "app/review/[id]/page.tsx + review-detail.tsx: when receipt.mime === 'text/plain', the left preview pane renders the fetched text in a `<pre>` block instead of the existing img/embed/'open original document' branches -- this is the one plain-text format worth inline-rendering (unlike S-12's explicit MHTML punt, which has no good inline-render story in a browser; raw text does)."
+  ],
+  "out_of_scope": [
+    "Any change to the Flash/Pro escalation ladder or estimateCostUsd's tier rates -- 'cheaper' here means 'no image tokens, same Flash-tier per-token pricing as the existing text fast paths,' not a new third pricing tier.",
+    "Client-side cleanup/normalization of the pasted text before sending -- sent to the LLM verbatim, same trust level the existing HTML-stripped text already gets (the LLM extraction prompt is already tolerant of imperfect input).",
+    "A dedicated 'Cmd/Ctrl+V pastes text' global capture path -- S-26's global paste listener is explicitly image-only; this story's entry point is the deliberate, explicit textarea, not a clipboard event handler."
+  ],
+  "acceptance": "Pasted order-confirmation email body parses via the text-only path, not multimodal (verified by parse_path='text' on the resulting receipt).",
+  "invariants": [
+    "The 'txt' extension reuses the existing upload/dedup/ingest_jobs/extraction pipeline completely unchanged in shape -- content_hash is computed over the pasted text's UTF-8 bytes exactly like any other accepted file, so pasting identical text twice is caught as a duplicate by the existing findDuplicateReceipt check, with zero new dedup logic.",
+    "preprocessFile (client-side) leaves .txt files untouched -- its HEIC/image-extension checks don't match 'txt', so it falls through to the existing passthrough branch unchanged (same as PDF/HTML today).",
+    "A text/plain receipt never takes the multimodal path -- routeExtraction's new branch returns parsePath: 'text' unconditionally, mirroring the existing HTML/MHTML and native-PDF-text branches."
+  ],
+  "prd_ref": "REQ-06",
+  "adr_ref": null
+}

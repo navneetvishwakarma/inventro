@@ -1,0 +1,24 @@
+{
+  "id": "S-26",
+  "title": "Clipboard paste (Cmd/Ctrl+V) capture entry point",
+  "goal": "Let Cmd/Ctrl+V anywhere in the app stage a pasted image straight into Add, reusing the exact existing upload pipeline (working spec F2: 'the fastest path on desktop'), without a new parallel upload code path and without hijacking ordinary text pasting elsewhere in the app.",
+  "in_scope": [
+    "lib/receipts/paste-staging.ts (plain client module, no 'server-only' -- imported by both a layout-level listener and app/add/capture.tsx): a tiny module-singleton with stageFile(file: File): void and a subscribe(cb: (file: File) => void): () => void. If a subscriber is currently registered (AddCapture is mounted, i.e. the user is already on /add), stageFile calls it directly. If no subscriber is registered, the file is held in a module-level 'pending' slot; the next subscribe() call synchronously delivers and clears it. This covers both cases in A25: pasting while already on /add, and pasting elsewhere before navigation completes.",
+    "app/paste-listener.tsx ('use client', mounted as a child of the server component app/layout.tsx -- the layout itself is NOT converted to a client component, only this one child is): a window 'paste' event listener. Guards, checked in order: (1) ignore if document.activeElement (or event.target) is an <input>, <textarea>, or an element with contenteditable -- this is load-bearing so an ordinary text paste into S-28's paste-text textarea, the review page's date input, etc. is never intercepted; (2) only proceed if event.clipboardData.items contains an item whose type starts with 'image/' -- a plain text-clipboard paste anywhere else in the app is left completely alone (this listener never calls preventDefault() unless an image item was actually found). On a match: extracts the image as a File via item.getAsFile(), synthesizes a filename since a clipboard image blob has none -- `pasted-${Date.now()}.${extensionFromMimeType(item.type)}` -- so extensionOf()/isAcceptedExtension() downstream don't silently reject it as 'Unsupported file type' (the concrete failure mode this guards against). Calls paste-staging's stageFile(file); if the current route (usePathname()) is not already '/add', router.push('/add').",
+    "app/add/capture.tsx: on mount, calls paste-staging's subscribe(), and on receiving a file, feeds it into the EXACT SAME handleFiles([file]) function already used by drag-drop and the file picker -- no new upload path, no special-cased single-file server action."
+  ],
+  "out_of_scope": [
+    "Pasting TEXT via Cmd/Ctrl+V -- S-28 owns a deliberately separate, explicit 'Paste order text' textarea; the global image-paste listener here never acts on text clipboard content, by the guard above.",
+    "A clipboard containing more than one image at once (multi-image-as-one-order is S-25's dedicated toggle; OS/browser clipboards practically only ever expose a single pasted image item, so this isn't a real case to design around).",
+    "Any visual 'staged, awaiting confirmation' preview step before upload -- matches the existing precedent that file-picker/drag-drop selection uploads immediately via handleFiles(); paste behaves identically for consistency, not a new two-step UX."
+  ],
+  "acceptance": "Clipboard paste opens Add with the pasted image staged (A25).",
+  "invariants": [
+    "The global paste listener never intercepts a paste whose target is a focused input/textarea/contenteditable element -- checked before clipboardData is even inspected, not after.",
+    "The listener never calls preventDefault()/stopPropagation() unless an image clipboard item was actually found and staged -- an ordinary text paste anywhere in the app (including outside any input, e.g. on a static page) is unaffected.",
+    "A staged file always flows through the identical handleFiles()->uploadReceiptsAction() path used by drag-drop and the file picker -- verified by construction (same function reference), not a parallel reimplementation.",
+    "app/layout.tsx remains a server component; only the new app/paste-listener.tsx child is 'use client'."
+  ],
+  "prd_ref": "REQ-04",
+  "adr_ref": null
+}

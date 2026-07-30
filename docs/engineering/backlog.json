@@ -151,6 +151,7 @@
       ],
       "order": 10,
       "estimate": 1,
+      "gh_issue": 52,
       "acceptance": "Three grouped screenshots produce one receipt, no triple-counting (A24)."
     },
     {
@@ -694,6 +695,7 @@
       "blocked_by": [
         "S-06"
       ],
+      "gh_issue": 53,
       "acceptance": "Three screenshots grouped as one order produce a single receipt with no triple-counted items (A24)."
     },
     {
@@ -707,6 +709,7 @@
       "blocked_by": [
         "S-05"
       ],
+      "gh_issue": 54,
       "acceptance": "Clipboard paste opens Add with the pasted image staged (A25)."
     },
     {
@@ -720,6 +723,7 @@
       "blocked_by": [
         "S-12"
       ],
+      "gh_issue": 55,
       "acceptance": "A backdated receipt (dated before stock_epoch) updates frequency stats but not current stock (A18)."
     },
     {
@@ -733,6 +737,7 @@
       "blocked_by": [
         "S-06"
       ],
+      "gh_issue": 56,
       "acceptance": "Pasted order-confirmation email body parses via the text-only path, not multimodal."
     },
     {

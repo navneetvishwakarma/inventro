@@ -1,0 +1,24 @@
+{
+  "id": "S-27",
+  "title": "Multi-file queue (N files -> N receipts, sequential review with counter) + backdating flow",
+  "goal": "N files selected in one Add action already become N separate receipts today (S-05/S-06, unchanged by this story); what's missing is walking a human through reviewing all N in order with a visible 'X of Y' counter, and confirming -- by tracing, not assuming -- that the backdating guarantee (A18: a receipt dated before stock_epoch updates frequency stats but not current stock) already holds for every receipt reached this way, since F16 states the multi-file queue IS the entire historical-catch-up flow (REQ-22).",
+  "in_scope": [
+    "app/add/capture.tsx: after an upload batch where more than one file succeeded (results.filter(r => r.ok).length > 1), render a 'Review N receipts' link to `/review/{firstOkId}?session={comma-separated ok receipt ids}`. A single-success upload keeps linking straight to `/review/{id}` with no session param (unchanged from current behavior).",
+    "app/review/[id]/page.tsx: reads an optional `session` search param (a comma-separated id list), and when the current id is present in that list, computes { position: 1-based index, total: list length, nextId: the following id or null } and passes it to ReviewDetail as a `session` prop. A missing/malformed session param (direct /review/[id] visits, today's only entry point) results in `session: null` passed down -- no counter rendered, page behaves exactly as it did before this story.",
+    "app/review/[id]/review-detail.tsx: when `session` is non-null, renders a 'Reviewing {position} of {total}' counter. Rendered in BOTH the normal editable view AND the early-return `receipt.status === 'committed'` branch (today that branch is a bare 'Committed' card with no way onward -- a session mid-queue landing on an already-committed receipt, e.g. from a back button or double-click, would otherwise strand the user there; this story adds a 'Next ({position+1} of {total})' link in that branch too, or 'Back to review queue' when nextId is null). After a successful commitReceiptAction, if session.nextId is set, client-side router.push(`/review/{nextId}?session={remaining ids from nextId onward}`); otherwise router.push('/review').",
+    "No backend or schema change for backdating itself -- traced (not assumed) that A18 already holds end-to-end via existing code: v_current_stock filters `occurred_at >= stock_epoch` (S-02), so a purchase movement dated before stock_epoch never counts toward current stock regardless of when it's committed; commit_receipt() (S-13) writes the purchase movement at exactly receipts.purchased_at; and lib/predictions/recompute.ts's stock_movements query feeding computeItemStats (both recomputeOneItem and recomputeAllItemsForHousehold) carries NO stock_epoch filter -- every type='purchase' movement contributes to interval/frequency stats regardless of date, bounded only by computeItemStats' own pre-existing 24-month lookback window (the same documented behavior already noted for half_yearly/yearly cohorts in S-17/S-18's ledger, not a new gap introduced here). This story's contribution to A18 is verification, wired end-to-end through the new sequential-review UI, not new logic."
+  ],
+  "out_of_scope": [
+    "Any change to commit_receipt(), computeItemStats(), the stock_epoch filter, or v_current_stock -- confirmed correct by tracing before this story started; touching any of them here would be scope creep into E-4/E-5's already-shipped and already-verified territory.",
+    "A 'back' / re-review-previous-receipt control in the sequential flow -- acceptance only requires forward sequential review with a counter, not a full pager.",
+    "Any UI distinction between 'this is a backdating session' and 'this is a same-day multi-receipt session' -- the counter and Next-navigation behave identically regardless of the dates involved; F16 is explicit that historical orders use the SAME capture flow as new ones, not a separate mode."
+  ],
+  "acceptance": "A backdated receipt (dated before stock_epoch) updates frequency stats but not current stock (A18). Sequential review shows a live 'X of Y' counter across a multi-file upload batch.",
+  "invariants": [
+    "The `session` query param is a pure UI navigation aid, never trusted input for any Server Action's authorization or commit validation -- commitReceiptAction still re-validates entirely against the DB row itself, exactly as before this story.",
+    "Reviewing a receipt without a session param (the pre-existing /review/[id] entry point from the review queue list) renders and behaves identically to before this story -- session is strictly additive.",
+    "The backdating guarantee (A18) is enforced by S-02/S-13/S-16's existing code paths, not by anything added in this story -- this story only verifies and wires sequential navigation on top of it."
+  ],
+  "prd_ref": "REQ-05",
+  "adr_ref": null
+}

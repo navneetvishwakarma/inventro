@@ -14,7 +14,6 @@ export type CatalogManagerItem = {
   isStaple: boolean;
   isArchived: boolean;
   aliasCount: number;
-  movementCount: number;
   lastPurchasedAt: string | null;
 };
 
@@ -22,26 +21,30 @@ export type CatalogManagerItem = {
 // which hard-filters is_archived=false -- this screen's entire unarchive
 // path requires archived rows to be visible, and it doesn't need
 // getInventoryItems()'s stock/prediction joins. A lean, separate query.
+//
+// Deliberately does NOT fetch stock_movements household-wide to derive a
+// per-item movement count the way an earlier draft did (advisor-caught,
+// epic gate review): PostgREST's default 1000-row cap makes that the exact
+// bug class lib/inventory/data.ts's price_history query already guards
+// against (S-18's live incident) -- a household with enough purchase
+// history would silently truncate and undercount. Movement counts are only
+// ever needed bounded to two items at a time (getMergePreview, below),
+// which the acceptance criteria actually require; the full list doesn't.
 export async function getCatalogManagerItems(): Promise<CatalogManagerItem[]> {
   const supabase = createServiceClient();
   const householdId = getDefaultHouseholdId();
 
-  const [itemsRes, aliasesRes, movementsRes, statsRes] = await Promise.all([
+  const [itemsRes, aliasesRes, statsRes] = await Promise.all([
     supabase.from('catalog_items').select('id, canonical_name, brand, category_id, base_unit, is_staple, is_archived, categories(name)').eq('household_id', householdId),
     supabase.from('item_aliases').select('catalog_item_id').eq('household_id', householdId),
-    supabase.from('stock_movements').select('catalog_item_id').eq('household_id', householdId),
     supabase.from('item_stats').select('catalog_item_id, last_purchased_at').eq('household_id', householdId),
   ]);
   if (itemsRes.error) throw itemsRes.error;
   if (aliasesRes.error) throw aliasesRes.error;
-  if (movementsRes.error) throw movementsRes.error;
   if (statsRes.error) throw statsRes.error;
 
   const aliasCountByItem = new Map<string, number>();
   for (const a of aliasesRes.data ?? []) aliasCountByItem.set(a.catalog_item_id as string, (aliasCountByItem.get(a.catalog_item_id as string) ?? 0) + 1);
-
-  const movementCountByItem = new Map<string, number>();
-  for (const m of movementsRes.data ?? []) movementCountByItem.set(m.catalog_item_id as string, (movementCountByItem.get(m.catalog_item_id as string) ?? 0) + 1);
 
   const lastPurchasedByItem = new Map((statsRes.data ?? []).map((s) => [s.catalog_item_id as string, s.last_purchased_at as string | null]));
 
@@ -58,7 +61,6 @@ export async function getCatalogManagerItems(): Promise<CatalogManagerItem[]> {
       isStaple: item.is_staple as boolean,
       isArchived: item.is_archived as boolean,
       aliasCount: aliasCountByItem.get(item.id as string) ?? 0,
-      movementCount: movementCountByItem.get(item.id as string) ?? 0,
       lastPurchasedAt: lastPurchasedByItem.get(item.id as string) ?? null,
     };
   });

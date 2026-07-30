@@ -28,7 +28,6 @@ function ItemRow({
   disabled: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [categorySlug, setCategorySlug] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   function handleArchiveToggle() {
@@ -38,8 +37,15 @@ function ItemRow({
     });
   }
 
+  // The <select> below is a stateless trigger, not a persisted "current
+  // selection" -- it always renders at the placeholder value (see its
+  // value="" below). item.categoryName (rendered above it) is the only
+  // thing that claims to show the item's actual category; a select that
+  // remembered its last-picked slug would keep showing a stale or even
+  // failed choice across an unrelated revalidation (advisor-caught at the
+  // epic gate: a failed recategorize would otherwise leave the dropdown
+  // still displaying the rejected target as if it had taken effect).
   function handleRecategorize(slug: string) {
-    setCategorySlug(slug);
     startTransition(async () => {
       const result = await recategorizeItemAction(item.id, slug);
       setError(result.ok ? null : result.error);
@@ -63,11 +69,10 @@ function ItemRow({
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>{item.categoryName}</span>
         <span>{item.aliasCount} alias{item.aliasCount === 1 ? '' : 'es'}</span>
-        <span>{item.movementCount} movement{item.movementCount === 1 ? '' : 's'}</span>
         {item.isStaple && <span>staple</span>}
       </div>
       {!item.isArchived && (
-        <select className="w-fit rounded border px-2 py-1 text-xs" value={categorySlug || ''} onChange={(e) => handleRecategorize(e.target.value)} disabled={isPending}>
+        <select className="w-fit rounded border px-2 py-1 text-xs" value="" onChange={(e) => handleRecategorize(e.target.value)} disabled={isPending}>
           <option value="" disabled>
             Recategorize...
           </option>
@@ -168,7 +173,16 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
     });
   }
 
-  const selectedItems = selectedIds.map((id) => items.find((i) => i.id === id)).filter((i): i is CatalogManagerItem => i !== undefined);
+  // Filtered to !isArchived, not just found-by-id: an item can be archived
+  // (via its own Archive button) while still sitting in selectedIds, since
+  // its checkbox disappears once archived and there's no path to actively
+  // deselect it. Without this filter, "Merge selected" would keep offering
+  // a merge that the RPC always rejects (advisor-caught at the epic gate) --
+  // filtering here makes the button disappear instead, and a later new
+  // selection naturally evicts the stale id from selectedIds on its own.
+  const selectedItems = selectedIds
+    .map((id) => items.find((i) => i.id === id))
+    .filter((i): i is CatalogManagerItem => i !== undefined && !i.isArchived);
 
   return (
     <main style={{ maxWidth: 640, margin: '8vh auto', padding: '0 1rem' }} className="flex flex-col gap-4">

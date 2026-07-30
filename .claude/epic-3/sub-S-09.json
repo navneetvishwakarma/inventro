@@ -1,0 +1,31 @@
+{
+  "id": "S-09",
+  "title": "Canonicalization: exact alias hit -> pg_trgm similarity -> LLM new-item proposal",
+  "goal": "Every inventory-bearing receipt line resolves to a match decision against the catalog — an existing item via alias or fuzzy text match, or a flagged 'new item' proposal when nothing matches — so the same real-world product bought under different wording always ends up on a single catalog_items row once a human confirms it.",
+  "in_scope": [
+    "Runs after S-11's non-inventory gate and uncategorized check, and before S-10's unit normalization (matching needs a resolved target item before its base_unit is known to convert into) — pipeline order is a dependency of the algorithm, not the backlog's display order",
+    "A one-time seed-data fix (new migration, since supabase/seed.sql's ~300 catalog_items from S-02 have zero item_aliases rows today): insert one item_aliases row per existing catalog_item (raw_text = normalized_text = canonical_name, source='seed', confidence=1.0), idempotent (insert ... where not exists). Without this, every seeded item is unreachable by the alias-only matching ladder below and gets silently duplicated on first real receipt",
+    "Text normalization of item_name (+ brand when present) into the same normalized_text form stored on item_aliases, household-scoped",
+    "Step 1 - exact alias hit: household-scoped lookup of item_aliases.normalized_text; sets matched_item_id + match_confidence=1.0",
+    "Step 2 - trigram similarity (pg_trgm) against item_aliases.normalized_text, household-scoped, using Postgres similarity(): score >= 0.62 auto-matches (matched_item_id + match_confidence=score); 0.40 <= score < 0.62 is ambiguous (matched_item_id stays null, match_confidence=score, review_state='needs_review' — F4's 'suggest top 3 in review' band; the top-3 list itself is not persisted, E-4's Review UI re-queries trigram similarity live to render alternatives)",
+    "Step 3 - miss (score < 0.40, or no aliases exist for this household): matched_item_id stays null, match_confidence=null (or the best sub-0.40 score, for Review's debugging visibility), review_state='new_item' — this is a legitimate, non-error outcome meaning 'no catalog item exists yet,' not an ambiguity",
+    "match_confidence and matched_item_id are the two receipt_lines columns this story writes to (schema already has both, from S-02); review_state is written per the epic-wide vocabulary defined in S-11's spec (now including 'new_item', see S-11)"
+  ],
+  "out_of_scope": [
+    "Creating catalog_items or item_aliases rows for a newly-proposed item — F4 ('every human confirmation writes a new item_alias') and F7 ('commit writes purchase movements, aliases, and price history') both place this at commit time, which is E-4, not built yet. The new-item proposal is already fully expressible from columns S-06 already populated (item_name, brand, pack_size, category_slug) — no new storage needed. Eagerly creating the row here would let an unconfirmed, possibly-garbage OCR read become a permanent, live trigram-match target before any human saw it, and would silently rewrite E-4's contract out from under it",
+    "The merge tool that consolidates two catalog items after the fact (S-30, E-11)",
+    "Persisting a top-3 candidate list for the ambiguous band — re-derived live by Review (E-4) instead, see in_scope",
+    "item_stats / purchase_count and any prediction-engine state (E-5) — counting purchases and computing cadence happens downstream, on receipt commit and nightly recompute, neither of which exists yet",
+    "The manual-entry capture path itself (E-11) — this story's matching logic is capture-path-agnostic (it works on whatever item_name/brand ends up on a receipt_lines-shaped row), but building manual entry's UI/Server Action is separate work",
+    "A real LLM call for new-item proposal beyond what S-06 already extracted"
+  ],
+  "acceptance": "Same product via receipt then manual entry under different raw text resolves to one catalog item, two aliases, purchase_count = 2 (A4) — this story delivers only the matching-ladder half: given an existing catalog_item + alias (seeded directly by the test, standing in for a prior confirmed commit), a second line with differently-worded but similar text correctly resolves matched_item_id to that same item via trigram similarity, without creating a duplicate. The alias-count and purchase_count clauses of A4 depend on E-4 (commit writes aliases) and E-5 (item_stats) respectively, neither built yet, and are explicitly not asserted by this story's tests rather than silently dropped.",
+  "invariants": [
+    "Never proposes or implies a second catalog_items row for text that already resolves via alias or >=0.62 trigram similarity — that's the whole point of the ladder",
+    "When a line matches an EXISTING catalog item, that item's category_id/base_unit are authoritative and are never overwritten by the current line's own category_slug/unit guess (sticky categorization and unit, F6) — the line's own extracted category_slug is only relevant if/when a human confirms a genuinely new item at commit (E-4)",
+    "All matching queries (alias lookup, trigram similarity) are scoped to the current household_id (ADR-0004) — must never cross households even though categories are global",
+    "No stock_movements, catalog_items, or item_aliases row is written by this story outside the one-time seed backfill migration — canonicalization only resolves identity for receipt_lines, it is not a purchase commit (ADR-0001)"
+  ],
+  "prd_ref": "REQ-09",
+  "adr_ref": null
+}

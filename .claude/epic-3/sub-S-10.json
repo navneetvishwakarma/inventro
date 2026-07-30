@@ -1,0 +1,25 @@
+{
+  "id": "S-10",
+  "title": "Unit normalization to base units (g/ml/piece) at write time",
+  "goal": "Every inventory-bearing receipt line whose matched catalog item is known gets a qty_base in that item's base unit, so quantities are comparable and summable regardless of how the receipt printed them.",
+  "in_scope": [
+    "Runs last in the E-3 pipeline, after S-09 — only lines with a resolved matched_item_id (S-09 review_state='matched') get a base_unit to convert into, since that's the only case where a real catalog_items.base_unit exists to target",
+    "Lines where S-09 left matched_item_id null (review_state='needs_review' from the ambiguous match band, or 'new_item') get qty_base=null — there is no target base_unit yet (a proposed-but-unconfirmed new item has no catalog_items row, per S-09's deferred-creation design; an ambiguous match hasn't picked a winner). qty_base is computed once E-4 resolves the item, not here. This story never guesses a base_unit from the line's own unit_display alone",
+    "Conversion function over (qty_display, unit_display, pack_size, target base_unit) per working spec F5: kg->g x1000, l->ml x1000, dozen->piece x12, 'pack of N'->piece xN, 'N x M<unit>' (e.g. '2 x 500ml')->base-unit N*M, unit_display already equal to the target base unit (or a recognized synonym: pc/pcs/unit/nos for piece) passes through as-is",
+    "Within that 'matched' set, an unrecognized/ambiguous unit string defaults to qty_base=1 (piece semantics) and demotes review_state from 'matched' to 'needs_review' (F5) — a clean item match with an unreadable unit still needs a human look",
+    "Both display values (qty_display, unit_display — already stored verbatim from extraction) and the computed base value (qty_base) coexist on the row, so the original receipt text is always recoverable"
+  ],
+  "out_of_scope": [
+    "Computing qty_base for 'needs_review' (ambiguous match) or 'new_item' lines — deferred to E-4, once a human confirms which catalog item (existing or newly created) the line belongs to",
+    "Changing an existing catalog item's base_unit — base_unit is fixed at catalog_items creation time (E-4, from category default) and is never re-derived per line",
+    "Unit conversion for non-inventory lines — excluded entirely by S-11's gate before this story ever sees them",
+    "Any UI for a human to correct an ambiguous unit (E-4 Review queue) — this story only computes and flags"
+  ],
+  "acceptance": "kg/l/dozen/pack-of-N/2x500ml all commit to correct base-unit quantities; ambiguous units default to piece/qty 1 and flag for review. (Scoped to lines S-09 already matched to an existing catalog item — see in_scope.)",
+  "invariants": [
+    "qty_base is either a non-negative number or null — null exclusively for lines with no resolved matched_item_id (nothing to convert against yet), never as a silent failure on an otherwise-matched line (those get the piece/1 default plus a flag instead)",
+    "Conversion is deterministic and pure (same inputs -> same qty_base) — no LLM call, this is arithmetic over already-extracted fields per F5's fixed rule table"
+  ],
+  "prd_ref": "REQ-10",
+  "adr_ref": null
+}

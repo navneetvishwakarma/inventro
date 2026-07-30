@@ -7,6 +7,7 @@ import { extractPdfText, looksLikeRealDocument } from '@/lib/llm/pdf-text';
 import { extractHtmlText } from '@/lib/llm/html-text';
 import { estimateCostUsd } from '@/lib/llm/cost';
 import { flagNearDuplicateIfAny } from '@/lib/receipts/dedup';
+import { runCanonicalization } from '@/lib/receipts/canonicalize';
 import type { LlmContentPart, LlmExtractionResult } from '@/lib/llm/provider';
 
 const EXTRACTION_PROMPT = `You are extracting structured data from a grocery/household purchase receipt or order confirmation.
@@ -170,6 +171,11 @@ export async function runExtraction(receiptId: string): Promise<void> {
     if (lines.length > 0) {
       const { error: linesError } = await supabase.from('receipt_lines').insert(lines);
       if (linesError) throw linesError;
+      // Canonicalization/normalization/categorization (E-3) — inside the main
+      // try, not best-effort like the near-duplicate check below: a receipt
+      // whose lines never got matched/normalized shouldn't land ingest_jobs
+      // 'done', since Review (E-4) depends on review_state being correct.
+      await runCanonicalization(receiptId);
     }
 
     const { error: receiptUpdateError } = await supabase

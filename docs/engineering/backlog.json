@@ -69,7 +69,8 @@
       ],
       "order": 3,
       "estimate": 0.5,
-      "acceptance": "Repeat purchases resolve to one catalog item (A4)."
+      "acceptance": "Repeat purchases resolve to one catalog item (A4).",
+      "gh_issue": 20
     },
     {
       "id": "E-4",
@@ -355,7 +356,12 @@
       "blocked_by": [
         "S-06"
       ],
-      "acceptance": "Same product via receipt then manual entry under different raw text resolves to one catalog item, two aliases, purchase_count = 2 (A4)."
+      "acceptance": "Same product via receipt then manual entry under different raw text resolves to one catalog item, two aliases, purchase_count = 2 (A4).",
+      "gh_issue": 22,
+      "verify": {
+        "ci": "pass",
+        "commit": "879cb1e"
+      }
     },
     {
       "id": "S-10",
@@ -368,7 +374,12 @@
       "blocked_by": [
         "S-06"
       ],
-      "acceptance": "kg/l/dozen/pack-of-N/2x500ml all commit to correct base-unit quantities; ambiguous units default to piece/qty 1 and flag for review."
+      "acceptance": "kg/l/dozen/pack-of-N/2x500ml all commit to correct base-unit quantities; ambiguous units default to piece/qty 1 and flag for review.",
+      "gh_issue": 23,
+      "verify": {
+        "ci": "pass",
+        "commit": "879cb1e"
+      }
     },
     {
       "id": "S-11",
@@ -381,7 +392,12 @@
       "blocked_by": [
         "S-06"
       ],
-      "acceptance": "20-line PDF order confirmation parses with delivery fee and GST excluded as non-inventory (A3)."
+      "acceptance": "20-line PDF order confirmation parses with delivery fee and GST excluded as non-inventory (A3).",
+      "gh_issue": 21,
+      "verify": {
+        "ci": "pass",
+        "commit": "879cb1e"
+      }
     },
     {
       "id": "S-12",

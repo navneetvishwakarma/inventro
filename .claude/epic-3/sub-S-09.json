@@ -3,7 +3,7 @@
   "title": "Canonicalization: exact alias hit -> pg_trgm similarity -> LLM new-item proposal",
   "goal": "Every inventory-bearing receipt line resolves to a match decision against the catalog — an existing item via alias or fuzzy text match, or a flagged 'new item' proposal when nothing matches — so the same real-world product bought under different wording always ends up on a single catalog_items row once a human confirms it.",
   "in_scope": [
-    "Runs after S-11's non-inventory gate and category resolution, and before S-10's unit normalization (matching needs a resolved target item before its base_unit is known to convert into) — pipeline order is a dependency of the algorithm, not the backlog's display order",
+    "Runs after S-11's non-inventory gate and uncategorized check, and before S-10's unit normalization (matching needs a resolved target item before its base_unit is known to convert into) — pipeline order is a dependency of the algorithm, not the backlog's display order",
     "A one-time seed-data fix (new migration, since supabase/seed.sql's ~300 catalog_items from S-02 have zero item_aliases rows today): insert one item_aliases row per existing catalog_item (raw_text = normalized_text = canonical_name, source='seed', confidence=1.0), idempotent (insert ... where not exists). Without this, every seeded item is unreachable by the alias-only matching ladder below and gets silently duplicated on first real receipt",
     "Text normalization of item_name (+ brand when present) into the same normalized_text form stored on item_aliases, household-scoped",
     "Step 1 - exact alias hit: household-scoped lookup of item_aliases.normalized_text; sets matched_item_id + match_confidence=1.0",

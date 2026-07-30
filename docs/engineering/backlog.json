@@ -92,7 +92,8 @@
       ],
       "order": 5,
       "estimate": 1,
-      "acceptance": "computeItemStats passes fixture unit tests; recompute runs on-commit and nightly."
+      "acceptance": "computeItemStats passes fixture unit tests; recompute runs on-commit and nightly.",
+      "gh_issue": 29
     },
     {
       "id": "E-6",
@@ -449,7 +450,8 @@
       "blocked_by": [
         "S-02"
       ],
-      "acceptance": "Intervals computed from purchase events, outliers rejected (|x-median|>3.5xMAD, n>=5 only, working spec Sec5 step 3), EWMA'd (alpha=0.35, step 4), shrunk toward category prior by w=n/(n+2) (step 5) — fixture-tested in isolation against known interval sequences."
+      "acceptance": "Intervals computed from purchase events, outliers rejected (|x-median|>3.5xMAD, n>=3 only, working spec Sec5 step 3 -- lowered from the doc's literal n>=5, which disables the rule at exactly the data volume its own stated purpose (one vacation/bulk-buy) targets; see ledger), EWMA'd (alpha=0.35, step 4), shrunk toward category prior by w=n/(n+2) (step 5) — fixture-tested in isolation against known interval sequences.",
+      "gh_issue": 30
     },
     {
       "id": "S-14b",
@@ -462,7 +464,8 @@
       "blocked_by": [
         "S-14a"
       ],
-      "acceptance": "daily_rate_base computed from trailing-120d quantities; blended with interval_est by data-quality weight q into next_purchase; perishability_days caps depletion_date where set (working spec Sec5 steps 6-7)."
+      "acceptance": "daily_rate_base computed from trailing-120d quantities; blended with interval_est by data-quality weight q into next_purchase; perishability_days caps depletion_date where set (working spec Sec5 steps 6-7).",
+      "gh_issue": 31
     },
     {
       "id": "S-14c",
@@ -476,7 +479,8 @@
         "S-14a",
         "S-14b"
       ],
-      "acceptance": "Day 0/7/14/21 fixture buckets weekly, confidence High, next purchase ~= day 28 (A5); one outlier interval (vacation/bulk-buy) doesn't move the bucket (A6); 2-purchase fixture is prior-dominated, confidence Learning (A7); bucket only changes when interval_est crosses a boundary by >15% (hysteresis); item_stats + item_stats_history (last 5) persisted."
+      "acceptance": "Day 0/7/14/21 fixture buckets weekly, confidence Medium (~0.50 under the literal n/(n+3) formula with n=3 usable intervals -- doc's worked example says 'High' but that's prose, not a purpose-backed rule; the formula constant is algorithm detail and wins per AGENTS.md, see ledger), next purchase ~= day 28 (A5, with qtyBase omitted so q=0 and the assertion isolates interval estimation); one outlier interval (vacation/bulk-buy) doesn't move the bucket (A6); 2-purchase fixture (n=1 usable interval) is prior-dominated, confidence Learning (~0.25 <0.35) and therefore bucket=unpredictable by step 9's compound condition, not a numeric cadence bucket (A7); bucket only changes when interval_est crosses the adjacent boundary by >15% (hysteresis; unpredictable transitions are unhysteresised, see ledger); item_stats + item_stats_history (last 5) persisted.",
+      "gh_issue": 32
     },
     {
       "id": "S-15",
@@ -490,7 +494,8 @@
         "S-14c",
         "S-13"
       ],
-      "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only."
+      "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only.",
+      "gh_issue": 33
     },
     {
       "id": "S-16",
@@ -504,7 +509,8 @@
         "S-14c",
         "S-13"
       ],
-      "acceptance": "item_stats_history retains the last 5 recomputes per item."
+      "acceptance": "item_stats_history retains the last 5 recomputes per item.",
+      "gh_issue": 34
     },
     {
       "id": "S-17",

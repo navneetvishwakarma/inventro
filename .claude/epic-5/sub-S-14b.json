@@ -1,0 +1,25 @@
+{
+  "id": "S-14b",
+  "title": "Rate-based cross-check + perishability clamp",
+  "goal": "Extend computeItemStats with steps 6-7: a quantity-based consumption rate cross-check that produces a depletion-date estimate, blended against the interval-based estimate by data quality, then clamped by any known perishability window.",
+  "in_scope": [
+    "Step 6 (rate cross-check), gated on data quality: q = fraction of the full merged event set (from step 1, before outlier rejection -- this is a data-completeness measure over all observed events, distinct from n which only counts post-rejection intervals) with non-null qtyBase. Only when q >= 0.70: dailyRateBase = sum(qtyBase, non-null, events with occurredAt >= now-120d) / daysElapsed within that trailing-120d window (days between the earliest in-window event and now, capped at 120); requires >=2 in-window events, else dailyRateBase stays null for lack of data. When q < 0.70, dailyRateBase is left null and the rate branch is skipped entirely (not computed-then-discarded) -- next_purchase falls through to the interval-only path.",
+    "dailyRate (not persisted -- derived at read/prediction time per working spec Sec5 step 6 note) = dailyRateBase * config.rateCorrection (rateCorrection is a new required ComputeItemStatsConfig field, supplied by the caller from item_stats.rate_correction, defaulting to 1 for a never-recomputed item; S-15 is the only story that ever changes the persisted value).",
+    "depletionDate = lastPurchasedAt + (currentStockBase / dailyRate) days, only when dailyRate > 0 and currentStockBase is not null (else predictedDepletionAt from this branch is null).",
+    "next_purchase blend: predictedNextPurchaseAt = q*depletionDate + (1-q)*(lastPurchasedAt + intervalEstDays) when the rate branch ran; otherwise predictedNextPurchaseAt = lastPurchasedAt + intervalEstDays (equivalent to the q=0 limit, taken directly since the branch didn't run).",
+    "Step 7 (perishability clamp): when config.perishabilityDays is set, predictedDepletionAt = min(rate-based depletionDate if computed, lastPurchasedAt + perishabilityDays) -- if no rate-based depletion date exists, predictedDepletionAt is set directly to lastPurchasedAt + perishabilityDays (a perishable item still expires on schedule even without a reliable consumption-rate estimate)."
+  ],
+  "out_of_scope": [
+    "Confidence, cadence bucketing, hysteresis, persistence (S-14c).",
+    "rate_correction reconciliation logic itself -- S-14b only *consumes* rateCorrection as an input; S-15 is the only story that computes a new value for it.",
+    "Fetching currentStockBase, rateCorrection, or perishabilityDays from the DB -- caller's job (S-16)."
+  ],
+  "acceptance": "daily_rate_base computed from trailing-120d quantities; blended with interval_est by data-quality weight q into next_purchase; perishability_days caps depletion_date where set (working spec Sec5 steps 6-7).",
+  "invariants": [
+    "dailyRateBase is always the raw, uncorrected signal (config.rateCorrection is applied only when deriving the transient dailyRate used for depletionDate math, never baked into the persisted dailyRateBase value) -- working spec Sec5 step 6 note, also docs/architecture/03-data-model.md's resolved open question.",
+    "q is computed over the full step-1 event set (pre-outlier-rejection), not the post-rejection interval count -- a quantity can be 'reliable' even on an event whose *interval* got rejected as an outlier; these are orthogonal data-quality axes.",
+    "The perishability clamp only ever shortens predictedDepletionAt, never predictedNextPurchaseAt directly -- working spec Sec5 step 7 says 'cap depletion_date', not next_purchase."
+  ],
+  "prd_ref": "REQ-16",
+  "adr_ref": null
+}

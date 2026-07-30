@@ -1,0 +1,24 @@
+{
+  "id": "S-14a",
+  "title": "Interval estimation: EWMA, outlier rejection, shrinkage-to-category-prior",
+  "goal": "Stand up computeItemStats as a pure TypeScript function (no DB access, working spec Sec5 closing note) implementing steps 1-5 of the algorithm: gather/merge purchase events into intervals, reject outliers, EWMA the intervals, and shrink toward a category prior -- the load-bearing core the rest of the epic extends.",
+  "in_scope": [
+    "lib/predictions/types.ts: PurchaseEvent { occurredAt: string (ISO instant), qtyBase: number | null }; CadenceBucket union (9 values, working spec Sec5 step 9); ComputeItemStatsConfig (now, categoryPriorDays, perishabilityDays, currentStockBase, rateCorrection -- later fields added by S-14b/c but the type is declared complete here so downstream stories only extend behavior, not the shape); PreviousBucketState { cadenceBucket, intervalEstDays } (consumed by S-14c's hysteresis, declared now for shape stability); ItemStats output type (all fields the algorithm ultimately produces, most left null/undefined by this story's partial implementation).",
+    "lib/predictions/computeItemStats.ts: pure function, step 1 (sort ascending, filter to last 24 months from config.now, cap to most recent 40, merge same-day events by Asia/Kolkata calendar day via lib/date.ts's toKolkataDateString -- summing qtyBase across merged events, null if every merged event's qtyBase is null), step 2 (intervals[i] = days between consecutive merged events, drop any interval < 0.5 days), step 3 (median + MAD over intervals; reject where |x-median| > 3.5*MAD, gated to n>=3 usable intervals, not the working spec's literal n>=5 -- see acceptance note and ledger for why), step 4 (EWMA, alpha=0.35, seeded on the first post-rejection interval), step 5 (w = n/(n+2), n = count of post-rejection intervals; interval_est = w*ewma + (1-w)*categoryPriorDays).",
+    "No import of 'server-only' in either file -- this is the whole point of the pure-function design (working spec Sec5 closing note): directly unit-testable via `npx tsx` with zero DB/server dependency.",
+    "Fields this story's partial computeItemStats leaves unset/null: dailyRateBase, predictedDepletionAt, predictedNextPurchaseAt, cadenceBucket, confidence (S-14b/S-14c's job) -- purchaseCount, ewmaIntervalDays, intervalMad, intervalEstDays, lastPurchasedAt are populated by this story."
+  ],
+  "out_of_scope": [
+    "Rate-based cross-check, perishability clamp (S-14b).",
+    "Confidence, cadence bucketing, hysteresis, DB persistence (S-14c).",
+    "Any DB read (fetching purchase events, category prior, current stock) -- that's the caller's job (S-16's recompute orchestration), never this function's."
+  ],
+  "acceptance": "Intervals computed from purchase events, outliers rejected (|x-median|>3.5xMAD, n>=3 only, working spec Sec5 step 3 -- lowered from the doc's literal n>=5, which disables the rule at exactly the data volume its own stated purpose (one vacation/bulk-buy) targets; see ledger), EWMA'd (alpha=0.35, step 4), shrunk toward category prior by w=n/(n+2) (step 5) — fixture-tested in isolation against known interval sequences.",
+  "invariants": [
+    "No DB access anywhere in lib/predictions/computeItemStats.ts or types.ts -- this is what makes the function independently unit-testable and is the single most important property of this story (working spec: 'the piece most likely to be subtly wrong, and it is the product's entire value').",
+    "n throughout (both step 5's shrinkage weight and step 8's confidence, added in S-14c) means the count of post-outlier-rejection usable intervals, not purchase_count and not the pre-rejection interval count -- fixed by this story's fixtures and must not drift in S-14b/S-14c.",
+    "Same-day merge uses the household's fixed Asia/Kolkata calendar day (lib/date.ts's toKolkataDateString), consistent with how the rest of the codebase (S-12/S-13's stock_epoch comparisons) already treats 'same day'."
+  ],
+  "prd_ref": "REQ-16",
+  "adr_ref": null
+}

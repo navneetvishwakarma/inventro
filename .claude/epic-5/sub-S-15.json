@@ -1,0 +1,29 @@
+{
+  "id": "S-15",
+  "title": "Repurchase reconciliation loop (rate_correction, clamp [0.5, 2.0])",
+  "goal": "Close F9.3's loop: at the moment a receipt commits a purchase that is the chronologically latest one on record for that item, compare the previous recompute's own depletion projection against when the repurchase actually happened, and nudge rate_correction toward reality -- so the model self-corrects without requiring the user to log consumption.",
+  "in_scope": [
+    "lib/predictions/reconcile.ts (server-only, since it reads item_stats/stock_movements/catalog_items): reconcileRateCorrection(catalogItemId, householdId, thisPurchase: { occurredAt, receiptId }) -> Promise<number> (the rate_correction to use for THIS recompute cycle; unchanged from the prior value if reconciliation doesn't apply or doesn't fire).",
+    "Eligibility check via stock_movements directly (not item_stats.last_purchased_at, which commit_receipt() has already bumped to THIS purchase by the time this runs -- see invariants): query max(occurred_at) where catalog_item_id=X, type='purchase', source_receipt_id != thisReceiptId. If null (first-ever purchase) or >= thisPurchase.occurredAt (a later purchase already exists -- this commit is backdated), skip: return the unchanged current rate_correction.",
+    "Baseline comes from the PREVIOUS recompute's own persisted projection, not a freshly-summed ledger total (a raw stock_movements sum never subtracts virtual depletion and grows monotonically, which would make the >40%-of-pack branch fire on every cycle and walk rate_correction to the floor -- caught by advisor review before implementation, see ledger): read item_stats.predicted_depletion_at, item_stats.daily_rate_base, item_stats.rate_correction (all untouched by commit_receipt()'s minimal upsert, so they still reflect the prior recompute), and catalog_items.default_pack_size. If any of predicted_depletion_at, daily_rate_base, or default_pack_size is null, skip: return the unchanged current rate_correction (nothing to compare against).",
+    "dailyRateOld = item_stats.daily_rate_base * item_stats.rate_correction (the rate the previous cycle was actually using).",
+    "Test A (projected stock still healthy): remainingProjected = (predicted_depletion_at - thisPurchase.occurredAt) * dailyRateOld [days-until-depletion-from-now * rate = quantity still modeled as on-hand]. If remainingProjected > 0.40 * default_pack_size: newRateCorrection = current_rate_correction * 0.85 ('the model over-estimated consumption', working spec F9.3 -- implemented as the literal condition -> multiplier mapping the spec states, not re-derived from first principles).",
+    "Test B (projected stock already gone for a while): elapsedSinceDepletion = thisPurchase.occurredAt - predicted_depletion_at (days, only meaningful if positive); intervalLength = thisPurchase.occurredAt - previousPurchaseAt (from the eligibility check's max() query). If elapsedSinceDepletion > 0.20 * intervalLength: newRateCorrection = current_rate_correction * 1.15.",
+    "Tests A and B are mutually exclusive by construction (one requires remainingProjected>0, the other requires it's been negative for a while) -- implemented as if/else if, not two independent applications.",
+    "Clamp: newRateCorrection = clamp(newRateCorrection, 0.5, 2.0) (working spec F9.3 / Sec5).",
+    "Wired into the on-commit recompute path only (S-16 calls this before computeItemStats for each affected item where thisPurchase context is known) -- reconcile.ts is never called from the nightly path, which has no single 'this purchase' anchor to reconcile against."
+  ],
+  "out_of_scope": [
+    "Explicit consumption actions ('Used it up' / 'Used some' / 'Wasted') -- F9.1, a separate later epic (E-7 Inventory & consumption); this story only closes the *implicit* loop.",
+    "Nightly-path reconciliation -- structurally impossible per F9.3's own scope note (only meaningful at the most recent data point) and confirmed above.",
+    "Any change to computeItemStats's signature beyond the already-declared config.rateCorrection input from S-14b -- reconcile.ts computes a new rate_correction value and the caller (S-16) passes it in as that same config field."
+  ],
+  "acceptance": "Projected stock >40% of pack size multiplies rate_correction by 0.85; projected stock <=0 for >20% of the interval multiplies it by 1.15; cumulative correction clamped to [0.5, 2.0] (working spec Sec5/F9.3). Only runs when the committed receipt is the chronologically latest purchase on record for that item — a backdated commit (S-27) updates interval/frequency stats only.",
+  "invariants": [
+    "Never reads item_stats.last_purchased_at or item_stats.purchase_count to determine purchase recency/eligibility -- commit_receipt() (S-13) has already advanced both to reflect THIS purchase by the time recompute runs, so those columns cannot answer 'was this the latest purchase before now.' Eligibility is always determined from stock_movements directly. This is the same class of ordering bug an advisor review caught in E-4's commit path.",
+    "The projection baseline is always the previous recompute's own item_stats row, never a fresh ledger sum -- this is what makes it 'compare projected stock against reality' rather than 'compare two different ways of computing the same real total,' and is the fix for the advisor-caught floor-walking bug.",
+    "A brand-new item (no prior item_stats.predicted_depletion_at) never reconciles on its first purchase -- there is no previous projection to have been right or wrong about."
+  ],
+  "prd_ref": "REQ-15",
+  "adr_ref": null
+}

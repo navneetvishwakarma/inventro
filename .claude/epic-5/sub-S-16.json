@@ -1,0 +1,26 @@
+{
+  "id": "S-16",
+  "title": "Recompute triggers: on-commit (affected items) + nightly 03:00 IST cron (all items)",
+  "goal": "Wire computeItemStats/recompute.ts/reconcile.ts to the two triggers the working spec (F10) requires: synchronously after a receipt commits, for the items that receipt touched; and nightly for every item in the household, via Vercel Cron.",
+  "in_scope": [
+    "On-commit: lib/review/commit.ts's commitReceipt(), after the commit_receipt() RPC succeeds, reads the committed receipt's lines (matched + new_item, i.e. review_state != 'excluded') to get the affected catalog_item_ids, then for each: calls reconcile.ts's reconcileRateCorrection(itemId, householdId, { occurredAt: receipt.purchased_at, receiptId }) to get this cycle's rate_correction, then recompute.ts's recomputeOneItem(itemId, householdId, { rateCorrection: <that value> }). Runs sequentially per item (typical receipt has a handful of lines; no batching needed at this scale, unlike the nightly path).",
+    "Nightly: app/api/cron/recompute-stats/route.ts (POST) -- a batched variant that does NOT call reconcileRateCorrection (S-15's invariant: reconciliation is on-commit-only) and does NOT call recomputeOneItem per item in a loop of individual queries. Instead: one query for all non-archived catalog_items (id, category_id, perishability_days, default_pack_size) for the household, one query for categories (id -> default_prior_days), one query for all type='purchase' stock_movements for the household (grouped into per-item event lists in memory, each capped/windowed exactly as computeItemStats's step 1 would but done once here to avoid N round trips -- computeItemStats still performs its own step-1 filtering on whatever slice it's handed, so correctness doesn't depend on the caller pre-trimming perfectly), one query for v_current_stock for the household, one query for existing item_stats rows (previous bucket/interval_est/rate_correction) for the household. Items with zero purchase events are skipped (per S-14c). Batched upsert of item_stats rows, batched insert of item_stats_history rows, then one call to trim_item_stats_history(household_id).",
+    "vercel.json: crons entry `{ \"path\": \"/api/cron/recompute-stats\", \"schedule\": \"30 21 * * *\" }` (21:30 UTC = 03:00 IST, no DST in India).",
+    "Route auth: the handler checks `Authorization: Bearer ${process.env.CRON_SECRET}`; if CRON_SECRET is unset OR the header doesn't match, respond 401 -- fails closed (an unset secret must never be treated as 'no auth required'), consistent with Vercel's documented Cron-secret pattern.",
+    "proxy.ts matcher: exclude `api/cron` from the passcode-gate matcher (Vercel Cron's request carries no gate cookie and would otherwise always get the gate's 401 before the route's own CRON_SECRET check ever runs).",
+    "New env var CRON_SECRET (added to .env.local for local invocation/testing; must also be set in the Vercel project's environment for the deployed cron trigger to authenticate -- flagged as a residual risk in the epic report since this session has no Vercel auth to verify it live)."
+  ],
+  "out_of_scope": [
+    "The stuck-ingest-job reaping that docs/architecture/05-api-design.md's route contract table also assigns to this same nightly route (piggybacked there to avoid a second Hobby-tier cron slot) -- that's F3 machinery from a not-yet-built epic; this story stands up the route and the schedule, and a later epic extends the same handler rather than this one building ingest-recovery logic it has no other reason to touch.",
+    "Daily 07:00 IST / weekly Sunday 18:00 IST digest crons (F14) -- separate, later epic (E-13 Notifications).",
+    "Any UI surfacing of item_stats (Inventory/Plan screens) -- later epics (E-7, E-8) are the first readers; this story only writes."
+  ],
+  "acceptance": "item_stats_history retains the last 5 recomputes per item.",
+  "invariants": [
+    "The on-commit path only ever recomputes items this specific receipt touched -- never the whole household -- matching the working spec's 'affected items' language (F10) and keeping commit latency bounded by receipt size, not catalog size.",
+    "The nightly path never calls reconcileRateCorrection -- S-15's eligibility logic (chronologically-latest-purchase, keyed off a specific commit) has no meaning in a whole-household batch sweep.",
+    "A commit_receipt() RPC failure (guard rejection, atomicity rollback) means recompute never runs for that receipt at all -- the on-commit trigger sits strictly after the RPC call succeeds, never before or in parallel."
+  ],
+  "prd_ref": "REQ-16",
+  "adr_ref": "ADR-0005"
+}

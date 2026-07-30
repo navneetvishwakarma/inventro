@@ -34,6 +34,9 @@ export default async function TodayPage() {
               {reviewQueue.length} receipt{reviewQueue.length === 1 ? '' : 's'} waiting for review
             </Link>
           )}
+          <Link href="/inventory" className="underline">
+            View inventory
+          </Link>
         </CardContent>
       </Card>
     </main>

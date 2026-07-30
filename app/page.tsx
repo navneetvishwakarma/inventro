@@ -58,6 +58,12 @@ export default async function TodayPage() {
           <Link href="/inventory" className="underline">
             View inventory
           </Link>
+          <Link href="/add/manual" className="underline">
+            Add a purchase manually
+          </Link>
+          <Link href="/catalog" className="underline">
+            Manage catalog
+          </Link>
         </CardContent>
       </Card>
 

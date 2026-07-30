@@ -154,6 +154,12 @@ export function AddCapture() {
           })()}
 
           <AddPasteText onSubmit={handleFiles} disabled={status === 'processing'} />
+
+          {/* S-29: no receipt to photograph -- search the catalog and log a
+             purchase directly. */}
+          <Link href="/add/manual" className="text-sm underline">
+            Add manually
+          </Link>
         </CardContent>
       </Card>
     </main>

@@ -138,7 +138,21 @@ function computeRateCrossCheck(
   const daysElapsed = daysBetween(windowEvents[0].occurredAt, now);
   if (daysElapsed <= 0) return { dailyRateBase: null, depletionDate: null, q };
 
-  const sumQty = windowEvents.reduce((acc, e) => acc + (e.qtyBase ?? 0), 0);
+  // Sum every window event EXCEPT the most recent -- that purchase is the
+  // current, not-yet-consumed stock (it's what currentStockBase represents),
+  // not something acquired-and-consumed during the elapsed window. Summing
+  // it anyway double-counts: over k events spanning k-1 intervals, the
+  // household consumed k-1 packs' worth (everything from the oldest window
+  // purchase up to, but not including, the newest), not k. Left uncorrected
+  // this biases dailyRateBase high by a factor of k/(k-1), worst at k=2
+  // (a flat 2x) -- most visible on 60-120 day cadence items, where the
+  // 120-day window rarely captures more than 2-3 purchases regardless of
+  // how much history exists further back. Found and hand-verified via
+  // E-6's live validation harness (a controlled 2-purchase/90-day-apart
+  // fixture: old formula gave dailyRateBase=2000/90=22.2, predicting
+  // depletion at 45 days against a true 90-day interval; corrected formula
+  // gives 1000/90=11.1, landing on the true 90 days exactly).
+  const sumQty = windowEvents.slice(0, -1).reduce((acc, e) => acc + (e.qtyBase ?? 0), 0);
   const dailyRateBase = sumQty / daysElapsed;
 
   const dailyRate = dailyRateBase * rateCorrection;

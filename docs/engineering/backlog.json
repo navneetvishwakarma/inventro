@@ -510,7 +510,7 @@
       "gh_issue": 33,
       "verify": {
         "ci": "pass",
-        "commit": "3c8327b"
+        "commit": "dd84a30"
       }
     },
     {

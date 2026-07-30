@@ -417,7 +417,7 @@
       "gh_issue": 26,
       "verify": {
         "ci": "pass",
-        "commit": "8c92035"
+        "commit": "922c7ec"
       }
     },
     {
@@ -435,7 +435,7 @@
       "gh_issue": 27,
       "verify": {
         "ci": "pass",
-        "commit": "8c92035"
+        "commit": "922c7ec"
       }
     },
     {

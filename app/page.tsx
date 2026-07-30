@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getHousehold } from '@/lib/onboarding/data';
 import { getReviewQueue } from '@/lib/review/data';
 import { getItemsNeedingAttention } from '@/lib/inventory/data';
+import { getDueSoonItems } from '@/lib/plan/data';
+import { formatBaseQty, formatDueDate } from '@/lib/inventory/format';
 
 // Reads household state fresh every request (onboarding gate, cold-start
 // display) — without this, Next statically prerenders the page at build
@@ -21,17 +23,27 @@ export default async function TodayPage() {
   // parsing asynchronously after upload.
   const reviewQueue = await getReviewQueue();
 
-  // S-20: minimal "Needs attention" section (A8's "appears in Today").
-  // The full bucketed Today view (cadence tabs, due-within-3-days) is
-  // E-8's S-22 -- this is deliberately not a preview of that.
+  // S-20: minimal "Needs attention" section (A8's "appears in Today"),
+  // already-empty virtual stock -- a fact, not a prediction.
   const needsAttention = await getItemsNeedingAttention();
+
+  // S-22: F11's Today view -- everything due within 3 days across all
+  // cadence buckets, forward-looking (a prediction, not a fact). Distinct
+  // from needsAttention: an item can be in one, both, or neither.
+  const dueSoon = await getDueSoonItems();
+
+  const nothingToShow = needsAttention.length === 0 && dueSoon.length === 0;
 
   return (
     <main style={{ maxWidth: 480, margin: '10vh auto', padding: '0 1rem' }} className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle>{household.name}</CardTitle>
-          <CardDescription>{needsAttention.length === 0 ? "Nothing due yet — you're all set." : `${needsAttention.length} item${needsAttention.length === 1 ? '' : 's'} need attention.`}</CardDescription>
+          <CardDescription>
+            {nothingToShow
+              ? "Nothing due yet — you're all set."
+              : `${dueSoon.length} item${dueSoon.length === 1 ? '' : 's'} due soon, ${needsAttention.length} need${needsAttention.length === 1 ? 's' : ''} attention.`}
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
           <p>Add your first receipt to start tracking what&apos;s in stock.</p>
@@ -40,11 +52,37 @@ export default async function TodayPage() {
               {reviewQueue.length} receipt{reviewQueue.length === 1 ? '' : 's'} waiting for review
             </Link>
           )}
+          <Link href="/plan" className="underline">
+            View plan
+          </Link>
           <Link href="/inventory" className="underline">
             View inventory
           </Link>
         </CardContent>
       </Card>
+
+      {dueSoon.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Due soon</CardTitle>
+            <CardDescription>Everything due within 3 days, across all cadence buckets.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {dueSoon.map((item) => (
+              <Link key={item.id} href={`/plan?bucket=${item.cadenceBucket}`} className="flex flex-col gap-0.5 rounded border p-2 hover:bg-accent">
+                <span className="flex justify-between">
+                  <span>
+                    {item.canonicalName}
+                    {item.brand ? <span className="text-muted-foreground"> ({item.brand})</span> : null}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{formatDueDate(item.dueDate)}</span>
+                </span>
+                <span className="text-sm text-muted-foreground">Suggested: {formatBaseQty(item.suggestedQtyBase, item.baseUnit, item.defaultPackSize)}</span>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {needsAttention.length > 0 && (
         <Card>

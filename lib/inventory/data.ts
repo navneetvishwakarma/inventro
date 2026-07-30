@@ -47,7 +47,14 @@ export type InventoryItem = {
   lastPurchasedAt: string | null;
   predictedNextPurchaseAt: string | null;
   predictedDepletionAt: string | null;
+  // Effective bucket: cadence_override ?? cadence_bucket (E-8/S-21). The
+  // one value the whole app displays/filters on, so /plan and /inventory
+  // never disagree about which bucket an item is in once overridden.
   cadenceBucket: CadenceBucket | null;
+  // The raw computed bucket, unaffected by override -- recompute.ts's own
+  // output. Needed to tell "Revert to auto" apart from "no override set".
+  computedCadenceBucket: CadenceBucket | null;
+  cadenceOverride: CadenceBucket | null;
   confidence: number | null;
   intervalEstDays: number | null;
   avgUnitPrice90d: number | null;
@@ -71,7 +78,7 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
     supabase.from('v_current_stock').select('catalog_item_id, qty_base').eq('household_id', householdId),
     supabase
       .from('item_stats')
-      .select('catalog_item_id, daily_rate_base, rate_correction, last_purchased_at, predicted_depletion_at, predicted_next_purchase_at, cadence_bucket, confidence, interval_est_days')
+      .select('catalog_item_id, daily_rate_base, rate_correction, last_purchased_at, predicted_depletion_at, predicted_next_purchase_at, cadence_bucket, cadence_override, confidence, interval_est_days')
       .eq('household_id', householdId),
     supabase.from('item_aliases').select('catalog_item_id, raw_text').eq('household_id', householdId),
     // 90-day window keeps this well clear of PostgREST's default 1000-row cap
@@ -150,7 +157,9 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
       lastPurchasedAt,
       predictedNextPurchaseAt,
       predictedDepletionAt,
-      cadenceBucket: (stats?.cadence_bucket ?? null) as CadenceBucket | null,
+      cadenceBucket: ((stats?.cadence_override ?? stats?.cadence_bucket) ?? null) as CadenceBucket | null,
+      computedCadenceBucket: (stats?.cadence_bucket ?? null) as CadenceBucket | null,
+      cadenceOverride: (stats?.cadence_override ?? null) as CadenceBucket | null,
       confidence: (stats?.confidence ?? null) as number | null,
       intervalEstDays: (stats?.interval_est_days ?? null) as number | null,
       avgUnitPrice90d,

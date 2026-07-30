@@ -444,7 +444,7 @@
       "title": "Interval estimation: EWMA, outlier rejection, shrinkage-to-category-prior",
       "epic": "E-5",
       "prd_ref": "REQ-16",
-      "status": "notstarted",
+      "status": "done",
       "order": 14,
       "estimate": 0.3,
       "blocked_by": [
@@ -462,7 +462,7 @@
       "title": "Rate-based cross-check + perishability clamp",
       "epic": "E-5",
       "prd_ref": "REQ-16",
-      "status": "blocked",
+      "status": "done",
       "order": 14.3,
       "estimate": 0.15,
       "blocked_by": [
@@ -480,7 +480,7 @@
       "title": "Confidence, cadence bucketing + hysteresis, persist item_stats + fixture unit tests",
       "epic": "E-5",
       "prd_ref": "REQ-16",
-      "status": "blocked",
+      "status": "done",
       "order": 14.6,
       "estimate": 0.25,
       "blocked_by": [
@@ -499,7 +499,7 @@
       "title": "Repurchase reconciliation loop (rate_correction, clamp [0.5, 2.0])",
       "epic": "E-5",
       "prd_ref": "REQ-15",
-      "status": "blocked",
+      "status": "done",
       "order": 15,
       "estimate": 0.3,
       "blocked_by": [
@@ -518,7 +518,7 @@
       "title": "Recompute triggers: on-commit (affected items) + nightly 03:00 IST cron (all items)",
       "epic": "E-5",
       "prd_ref": "REQ-16",
-      "status": "blocked",
+      "status": "done",
       "order": 16,
       "estimate": 0.2,
       "blocked_by": [
@@ -564,7 +564,7 @@
       "title": "Inventory screen (grouped, filterable, searchable) + item detail with plain-language prediction explanation",
       "epic": "E-7",
       "prd_ref": "REQ-13",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 19,
       "estimate": 0.4,
       "blocked_by": [
@@ -578,7 +578,7 @@
       "title": "Consumption actions (used it up / used some / wasted) + implicit virtual depletion projection",
       "epic": "E-7",
       "prd_ref": "REQ-14",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 20,
       "estimate": 0.3,
       "blocked_by": [

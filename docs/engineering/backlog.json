@@ -526,7 +526,11 @@
         "S-13"
       ],
       "acceptance": "item_stats_history retains the last 5 recomputes per item.",
-      "gh_issue": 34
+      "gh_issue": 34,
+      "verify": {
+        "ci": "pass",
+        "commit": "5391951"
+      }
     },
     {
       "id": "S-17",

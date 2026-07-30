@@ -488,7 +488,11 @@
         "S-14b"
       ],
       "acceptance": "Day 0/7/14/21 fixture buckets weekly, confidence Medium (~0.50 under the literal n/(n+3) formula with n=3 usable intervals -- doc's worked example says 'High' but that's prose, not a purpose-backed rule; the formula constant is algorithm detail and wins per AGENTS.md, see ledger), next purchase ~= day 28 (A5, with qtyBase omitted so q=0 and the assertion isolates interval estimation); one outlier interval (vacation/bulk-buy) doesn't move the bucket (A6); 2-purchase fixture (n=1 usable interval) is prior-dominated, confidence Learning (~0.25 <0.35) and therefore bucket=unpredictable by step 9's compound condition, not a numeric cadence bucket (A7); bucket only changes when interval_est crosses the adjacent boundary by >15% (hysteresis; unpredictable transitions are unhysteresised, see ledger); item_stats + item_stats_history (last 5) persisted.",
-      "gh_issue": 32
+      "gh_issue": 32,
+      "verify": {
+        "ci": "pass",
+        "commit": "a43e0e7"
+      }
     },
     {
       "id": "S-15",

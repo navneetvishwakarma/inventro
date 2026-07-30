@@ -2,7 +2,7 @@
 doc: Data Model
 project: Inventro
 status: approved
-updated: 2026-07-28
+updated: 2026-07-30
 ---
 
 # Data Model
@@ -68,6 +68,24 @@ write time: kg→g ×1000, l→ml ×1000, dozen→piece ×12, `pack of N`→piec
 review (REQ-12). Both display values (`qty_display`, `unit_display`) and base
 values (`qty_base`) are stored on `receipt_lines`, so the original document
 text is always recoverable.
+
+### Canonicalization (REQ-09, E-3)
+
+`receipt_lines.review_state` carries the epic-wide status vocabulary that
+canonicalization (E-3) writes and Review (E-4, F7) reads to decide which
+rows need a human look:
+
+| Value | Meaning | Set by |
+|---|---|---|
+| `pending` | Extracted, not yet processed by E-3 | S-06 (default) |
+| `excluded` | `is_non_inventory=true` — terminal, never matched/normalized | S-11 |
+| `matched` | Auto-resolved to an existing `catalog_items` row, category and unit both clean | S-09 / S-10 |
+| `new_item` | No existing catalog item found (score < 0.40) — a legitimate "propose new item" outcome, not an ambiguity. No `catalog_items`/`item_aliases` row exists yet: F4/F7 place that write at commit (E-4), not at ingest, so an unconfirmed OCR read never becomes a live trigram-match target | S-09 |
+| `needs_review` | Ambiguous match (0.40-0.62 trigram band), `category_slug='uncategorized'`, or an unrecognized unit string | S-09 / S-10 / S-11 |
+
+`qty_base` (REQ-10) is only computed for `matched` rows, since only those
+have a resolved `catalog_items.base_unit` to convert into; `new_item` and
+`needs_review` rows carry `qty_base=null` until E-4 resolves the item.
 
 ### Category taxonomy (REQ-11, seeded, 2 levels)
 

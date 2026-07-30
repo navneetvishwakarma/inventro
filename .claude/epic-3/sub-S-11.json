@@ -1,0 +1,23 @@
+{
+  "id": "S-11",
+  "title": "Categorization against fixed seeded taxonomy + non-inventory row flagging",
+  "goal": "Every receipt line ends up either excluded from inventory (fees/tax/discounts) or attached to a resolved category, with rows the model couldn't confidently categorize surfaced for human attention instead of silently mis-filed.",
+  "in_scope": [
+    "category_slug -> categories.id resolution (category_id), needed by S-09 to populate catalog_items.category_id when it creates a new catalog item",
+    "is_non_inventory exclusion gate: lines with is_non_inventory=true are skipped entirely by canonicalization (S-09) and unit normalization (S-10) — they get no matched_item_id, no qty_base, and review_state is set to 'excluded' rather than left 'pending'",
+    "category_slug === 'uncategorized' (the seeded catch-all leaf under Stationery & Misc) marks the line review_state='needs_review' (F6: 'unresolvable -> uncategorized, surfaced in review') — this is the only categorization-driven needs_review trigger, since the LLM schema enum (S-06) already forces every other slug to be a real seeded leaf, so an invented category is structurally impossible",
+    "This story defines the review_state vocabulary for the whole epic, since S-09 and S-10 both write into it: 'pending' (extracted, not yet processed by E-3), 'excluded' (non-inventory, terminal), 'matched' (fully auto-resolved against an EXISTING catalog item: category ok, item matched, unit normalized), 'new_item' (S-09 found no existing catalog item — legitimate 'propose new item' outcome, not an ambiguity), 'needs_review' (any one of: ambiguous category, ambiguous match band 0.40-0.62, ambiguous unit)"
+  ],
+  "out_of_scope": [
+    "Recategorization UI/action and the sticky-per-catalog-item persistence of a human override — that's the catalog manager (S-30, E-11). This story only resolves category_id for new-item creation; once a line matches an EXISTING catalog item (S-09), that item's own category_id is authoritative and is never overwritten by the line's category_slug guess (sticky categorization, F6) — enforced as an invariant on S-09, not built here",
+    "The Review queue UI that displays 'needs_review' rows (E-4) — this story only needs review_state set correctly",
+    "Changing the LLM extraction schema or prompt (S-06) — category_slug is already a validated enum at extraction time"
+  ],
+  "acceptance": "20-line PDF order confirmation parses with delivery fee and GST excluded as non-inventory (A3).",
+  "invariants": [
+    "The is_non_inventory gate runs first in the E-3 pipeline — S-09 (matching) and S-10 (unit normalization) must never process a line where is_non_inventory=true, and must never overwrite its review_state away from 'excluded'",
+    "category_id resolution never invents a category — it is a straight lookup of the LLM's own already-validated category_slug against the categories table; if that lookup somehow fails (defensive only, should be unreachable given the schema enum), the line is marked 'needs_review' rather than defaulting to any guessed category"
+  ],
+  "prd_ref": "REQ-11",
+  "adr_ref": null
+}

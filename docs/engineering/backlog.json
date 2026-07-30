@@ -787,7 +787,11 @@
         "S-09"
       ],
       "gh_issue": 60,
-      "acceptance": "Merging two catalog items reassigns aliases and movements to the survivor and recomputes stats correctly (A12)."
+      "acceptance": "Merging two catalog items reassigns aliases and movements to the survivor and recomputes stats correctly (A12).",
+      "verify": {
+        "ci": "pass",
+        "commit": "4c29ad6"
+      }
     },
     {
       "id": "S-31",

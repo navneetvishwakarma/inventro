@@ -56,6 +56,37 @@ export function formatCadenceBucket(bucket: string | null): string {
   return CADENCE_LABELS[bucket] ?? bucket;
 }
 
+// F11's tab order (daily -> unpredictable) -- single source of truth for
+// both /plan's tabs and any other place that needs to walk buckets in a
+// stable, human-meaningful order. Mirrors computeItemStats.ts's internal
+// CADENCE_ORDER + 'unpredictable', duplicated rather than imported from
+// that module's `_internal` (reserved for verification scripts, not
+// production code) since this list is a stable, algorithm-independent
+// display fact.
+export const CADENCE_BUCKET_ORDER = [
+  'daily',
+  'every_2_3_days',
+  'weekly',
+  'fortnightly',
+  'monthly',
+  'quarterly',
+  'half_yearly',
+  'yearly',
+  'unpredictable',
+] as const;
+
+// "Due today" / "Due in N days" / "Overdue by N days" -- companion to
+// formatDaysRemaining, but phrased for a due-date-centric list (Plan/Today)
+// rather than a stock-remaining one.
+export function formatDueDate(dueDate: string | null): string {
+  if (dueDate === null) return 'No estimate yet';
+  const days = Math.round((new Date(dueDate).getTime() - Date.now()) / 86_400_000);
+  if (days === 0) return 'Due today';
+  if (days > 0) return days === 1 ? 'Due in 1 day' : `Due in ${days} days`;
+  const overdue = Math.abs(days);
+  return overdue === 1 ? 'Overdue by 1 day' : `Overdue by ${overdue} days`;
+}
+
 // F8's "plain-language prediction explanation", e.g.
 // "You buy this every ~9 days; last bought 7 days ago; ~2 days left."
 export function buildPredictionExplanation(input: {

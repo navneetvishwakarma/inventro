@@ -622,7 +622,11 @@
         "S-19"
       ],
       "acceptance": "Manual cadence override survives nightly recompute; revert-to-auto restores computed value (A9).",
-      "gh_issue": 45
+      "gh_issue": 45,
+      "verify": {
+        "ci": "pass",
+        "commit": "71841017419ae85adfea7bf6d3fd114cac4395ce"
+      }
     },
     {
       "id": "S-22",
@@ -636,7 +640,11 @@
         "S-21"
       ],
       "acceptance": "Cold-start household with zero data shows a useful, non-broken Today screen (A13).",
-      "gh_issue": 46
+      "gh_issue": 46,
+      "verify": {
+        "ci": "pass",
+        "commit": "71841017419ae85adfea7bf6d3fd114cac4395ce"
+      }
     },
     {
       "id": "S-23",

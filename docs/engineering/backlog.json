@@ -405,7 +405,7 @@
       "title": "Review queue split view: mandatory purchase date, stock_epoch past-order banner",
       "epic": "E-4",
       "prd_ref": "REQ-12",
-      "status": "notstarted",
+      "status": "done",
       "order": 12,
       "estimate": 0.4,
       "blocked_by": [
@@ -425,7 +425,7 @@
       "title": "Commit -> purchase ledger movements + price history + stats-recompute trigger",
       "epic": "E-4",
       "prd_ref": "REQ-12",
-      "status": "blocked",
+      "status": "done",
       "order": 13,
       "estimate": 0.3,
       "blocked_by": [
@@ -644,7 +644,7 @@
       "title": "Multi-file queue (N files -> N receipts, sequential review with counter) + backdating flow",
       "epic": "E-10",
       "prd_ref": "REQ-05",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 27,
       "estimate": 0.35,
       "blocked_by": [

@@ -7,14 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
+import { toKolkataDateString } from '@/lib/date';
 import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction } from './actions';
 
 function todayString(): string {
-  return new Date().toISOString().slice(0, 10);
+  return toKolkataDateString(new Date().toISOString());
 }
 
+// Kolkata calendar day, not a raw UTC slice -- a purchased_at stored near
+// local midnight would otherwise render (and, if re-confirmed, persist) the
+// wrong day (see lib/date.ts).
 function toDateInputValue(iso: string | null): string {
-  return iso ? iso.slice(0, 10) : todayString();
+  return iso ? toKolkataDateString(iso) : todayString();
 }
 
 function lineLabel(line: ReceiptLineForReview): string {
@@ -231,6 +235,17 @@ export function ReviewDetail({
   const needsReviewLines = useMemo(() => lines.filter((l) => l.review_state === 'needs_review'), [lines]);
   const newItemLines = useMemo(() => lines.filter((l) => l.review_state === 'new_item'), [lines]);
 
+  // Raw instant comparison, deliberately NOT a calendar-day comparison --
+  // this must agree with what actually determines v_current_stock inclusion
+  // (ADR-0001: `occurred_at >= stock_epoch`, a plain instant filter, and
+  // commit_receipt() writes the purchase movement at exactly this
+  // purchased_at instant). It's correct now that purchased_at itself is
+  // constructed as Kolkata midnight (lib/date.ts's kolkataDateStringToInstant)
+  // instead of UTC midnight -- that instant-construction bug, not the
+  // comparison, was what advisor review caught. A calendar-day comparison
+  // here would disagree with the ledger's own filter on days stock_epoch
+  // was set partway through (banner hidden, but the movement still silently
+  // excluded) -- tried that first, verification caught it, reverted.
   const isPastOrder = receipt.purchased_at_confirmed && receipt.purchased_at !== null && new Date(receipt.purchased_at) < new Date(stockEpoch);
   const canCommit = receipt.purchased_at_confirmed && receipt.purchased_at !== null && needsReviewLines.length === 0;
 

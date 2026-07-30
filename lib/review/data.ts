@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 import { getDefaultHouseholdId } from '@/lib/household';
 import { getSignedReceiptUrl } from '@/lib/receipts/storage';
 import { normalizeText, normalizeUnitToBase, matchCatalogItem, type BaseUnit } from '@/lib/receipts/canonicalize';
+import { toKolkataDateString, kolkataDateStringToInstant } from '@/lib/date';
 
 export type ReviewQueueItem = {
   id: string;
@@ -123,8 +124,13 @@ export async function confirmPurchaseDate(receiptId: string, dateString: string)
   const { data: existing, error: existingError } = await supabase.from('receipts').select('purchased_at, date_source').eq('id', receiptId).single();
   if (existingError) throw existingError;
 
-  const isoDate = new Date(dateString).toISOString();
-  const unchanged = existing.purchased_at !== null && new Date(existing.purchased_at).toISOString().slice(0, 10) === dateString.slice(0, 10);
+  // Kolkata midnight, not UTC midnight (new Date(dateString).toISOString()
+  // would drift the calendar day by the +5:30 offset) -- this is the exact
+  // boundary the past-order banner and commit_receipt's override guard
+  // compare against, so a systematic UTC/local mismatch here silently
+  // misclassifies same-day receipts. Caught by advisor review before ship.
+  const isoDate = kolkataDateStringToInstant(dateString);
+  const unchanged = existing.purchased_at !== null && toKolkataDateString(existing.purchased_at) === dateString;
 
   const { error } = await supabase
     .from('receipts')

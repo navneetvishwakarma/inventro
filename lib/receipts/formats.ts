@@ -3,7 +3,11 @@
 // claim alone). MIME reporting for HEIC/MHTML is inconsistent across
 // browsers/OS, so extension is the primary signal, MIME secondary.
 
-export const ACCEPTED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'html', 'mhtml'] as const;
+// 'txt' (S-28) is not user-selectable via the file picker/drag-drop (no
+// document a user has locally is a .txt receipt) -- it exists purely as the
+// wrapper format for the paste-text textarea's submitted content, reusing
+// the exact same upload/dedup/ingest pipeline as every other accepted type.
+export const ACCEPTED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'html', 'mhtml', 'txt'] as const;
 
 export type AcceptedExtension = (typeof ACCEPTED_EXTENSIONS)[number];
 
@@ -35,6 +39,7 @@ const CONTENT_TYPES: Record<AcceptedExtension, string> = {
   heif: 'image/heif',
   html: 'text/html',
   mhtml: 'multipart/related',
+  txt: 'text/plain',
 };
 
 export function contentTypeFor(ext: AcceptedExtension): string {

@@ -65,3 +65,17 @@ export async function excludeItem(catalogItemId: string): Promise<void> {
 export async function includeItem(catalogItemId: string): Promise<void> {
   await upsertPlanEntry(catalogItemId, { state: 'pending', snoozed_until: null, due_date: null });
 }
+
+// S-24: a purchase just happened for this item (logged via a shopping-list
+// checkoff), so any active 'snoozed'/'skipped' suppression is moot -- the
+// user no longer needs to be reminded to buy something they just bought.
+// 'excluded' is left untouched: that is a deliberate, stronger "never plan
+// this item" signal a stray purchase log must not silently override.
+export async function resetSuppressionAfterPurchase(catalogItemId: string): Promise<void> {
+  const householdId = getDefaultHouseholdId();
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.from('plan_entries').select('state').eq('household_id', householdId).eq('catalog_item_id', catalogItemId).maybeSingle();
+  if (error) throw error;
+  if (!data || data.state === 'excluded' || data.state === 'pending') return;
+  await upsertPlanEntry(catalogItemId, { state: 'pending', snoozed_until: null, due_date: null });
+}

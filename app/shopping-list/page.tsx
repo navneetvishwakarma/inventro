@@ -69,6 +69,8 @@ export default async function ShoppingListPage() {
               key={item.id}
               id={item.id}
               checked={item.checked}
+              purchaseLoggedAt={item.purchaseLoggedAt}
+              loggedPrice={item.loggedPrice}
               label={
                 item.qtyBase !== null
                   ? `${item.canonicalName}${item.brand ? ` (${item.brand})` : ''} -- ${formatBaseQty(item.qtyBase, item.baseUnit, item.defaultPackSize)}`

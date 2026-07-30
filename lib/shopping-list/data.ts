@@ -12,6 +12,11 @@ export type ShoppingListItem = {
   defaultPackSize: number | null;
   qtyBase: number | null;
   checked: boolean;
+  // S-24: null until log_shopping_list_purchase() has actually written a
+  // purchase for this row -- distinct from `checked`, which a user can
+  // toggle back and forth without ever touching the ledger (ADR-0001).
+  purchaseLoggedAt: string | null;
+  loggedPrice: number | null;
 };
 
 export type ShoppingList = {
@@ -26,6 +31,8 @@ type ShoppingListItemRow = {
   catalog_item_id: string;
   qty_base: number | null;
   checked: boolean;
+  purchase_logged_at: string | null;
+  logged_price: number | null;
   catalog_items: {
     canonical_name: string;
     brand: string | null;
@@ -55,7 +62,7 @@ export async function getActiveShoppingList(): Promise<ShoppingList | null> {
 
   const { data: itemRows, error: itemsError } = await supabase
     .from('shopping_list_items')
-    .select('id, catalog_item_id, qty_base, checked, catalog_items(canonical_name, brand, base_unit, default_pack_size)')
+    .select('id, catalog_item_id, qty_base, checked, purchase_logged_at, logged_price, catalog_items(canonical_name, brand, base_unit, default_pack_size)')
     .eq('shopping_list_id', list.id);
   if (itemsError) throw itemsError;
 
@@ -70,6 +77,8 @@ export async function getActiveShoppingList(): Promise<ShoppingList | null> {
       defaultPackSize: row.catalog_items!.default_pack_size,
       qtyBase: row.qty_base,
       checked: row.checked,
+      purchaseLoggedAt: row.purchase_logged_at,
+      loggedPrice: row.logged_price,
     }))
     .sort((a, b) => a.canonicalName.localeCompare(b.canonicalName));
 

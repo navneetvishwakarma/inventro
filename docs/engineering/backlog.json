@@ -652,7 +652,7 @@
       "title": "Shopping list generation (per-bucket or due-in-N-days) + plain-text export",
       "epic": "E-9",
       "prd_ref": "REQ-18",
-      "status": "notstarted",
+      "status": "done",
       "order": 23,
       "estimate": 0.2,
       "blocked_by": [
@@ -670,7 +670,7 @@
       "title": "Check-off-to-purchase-log with price prompt",
       "epic": "E-9",
       "prd_ref": "REQ-18",
-      "status": "blocked",
+      "status": "done",
       "order": 24,
       "estimate": 0.2,
       "blocked_by": [

@@ -451,7 +451,11 @@
         "S-02"
       ],
       "acceptance": "Intervals computed from purchase events, outliers rejected (|x-median|>3.5xMAD, n>=3 only, working spec Sec5 step 3 -- lowered from the doc's literal n>=5, which disables the rule at exactly the data volume its own stated purpose (one vacation/bulk-buy) targets; see ledger), EWMA'd (alpha=0.35, step 4), shrunk toward category prior by w=n/(n+2) (step 5) — fixture-tested in isolation against known interval sequences.",
-      "gh_issue": 30
+      "gh_issue": 30,
+      "verify": {
+        "ci": "pass",
+        "commit": "33596d6"
+      }
     },
     {
       "id": "S-14b",

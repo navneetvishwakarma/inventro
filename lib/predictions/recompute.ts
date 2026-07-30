@@ -123,3 +123,89 @@ export async function recomputeOneItem(catalogItemId: string, householdId: strin
 
   await persistItemStats(supabase, catalogItemId, householdId, stats, rateCorrection);
 }
+
+// Nightly path (S-16, called from the Vercel Cron route). Batches every read
+// into one query each rather than looping recomputeOneItem's per-item round
+// trips -- at "a few hundred items" scale, N individual fetches risks the
+// serverless function timeout. Never reconciles (no single "this purchase"
+// anchor exists in a whole-household sweep; S-15 is on-commit only).
+export async function recomputeAllItemsForHousehold(householdId: string): Promise<{ recomputed: number; skipped: number }> {
+  const supabase = createServiceClient();
+
+  const [itemsRes, categoriesRes, movementsRes, stockRes, statsRes] = await Promise.all([
+    supabase.from('catalog_items').select('id, category_id, perishability_days').eq('household_id', householdId).eq('is_archived', false),
+    supabase.from('categories').select('id, default_prior_days'),
+    supabase
+      .from('stock_movements')
+      .select('catalog_item_id, occurred_at, qty_base')
+      .eq('household_id', householdId)
+      .eq('type', 'purchase')
+      .order('occurred_at', { ascending: true }),
+    supabase.from('v_current_stock').select('catalog_item_id, qty_base').eq('household_id', householdId),
+    supabase.from('item_stats').select('catalog_item_id, rate_correction, cadence_bucket, interval_est_days').eq('household_id', householdId),
+  ]);
+  if (itemsRes.error) throw itemsRes.error;
+  if (categoriesRes.error) throw categoriesRes.error;
+  if (movementsRes.error) throw movementsRes.error;
+  if (stockRes.error) throw stockRes.error;
+  if (statsRes.error) throw statsRes.error;
+
+  const categoryPriorById = new Map((categoriesRes.data ?? []).map((c) => [c.id, c.default_prior_days as number]));
+  const stockByItem = new Map((stockRes.data ?? []).map((s) => [s.catalog_item_id as string, s.qty_base as number]));
+  const statsByItem = new Map((statsRes.data ?? []).map((s) => [s.catalog_item_id as string, s]));
+
+  const eventsByItem = new Map<string, PurchaseEvent[]>();
+  for (const m of movementsRes.data ?? []) {
+    const arr = eventsByItem.get(m.catalog_item_id as string) ?? [];
+    arr.push({ occurredAt: m.occurred_at as string, qtyBase: m.qty_base as number | null });
+    eventsByItem.set(m.catalog_item_id as string, arr);
+  }
+
+  const now = new Date().toISOString();
+  const statsRows: ReturnType<typeof toRow>[] = [];
+  const historyRows: { household_id: string; catalog_item_id: string; stats: ReturnType<typeof toRow> }[] = [];
+  let skipped = 0;
+
+  for (const item of itemsRes.data ?? []) {
+    const events = eventsByItem.get(item.id as string) ?? [];
+    if (events.length === 0) {
+      skipped++;
+      continue;
+    }
+    const existingStats = statsByItem.get(item.id as string);
+    const previous: PreviousBucketState = {
+      cadenceBucket: (existingStats?.cadence_bucket ?? null) as CadenceBucket | null,
+      intervalEstDays: existingStats?.interval_est_days ?? null,
+    };
+    const rateCorrection = existingStats?.rate_correction ?? 1;
+
+    const stats = computeItemStats(
+      events,
+      {
+        now,
+        categoryPriorDays: categoryPriorById.get(item.category_id as string) ?? 30,
+        perishabilityDays: item.perishability_days as number | null,
+        currentStockBase: stockByItem.get(item.id as string) ?? null,
+        rateCorrection,
+      },
+      previous,
+    );
+
+    const row = toRow(item.id as string, householdId, stats, rateCorrection);
+    statsRows.push(row);
+    historyRows.push({ household_id: householdId, catalog_item_id: item.id as string, stats: row });
+  }
+
+  if (statsRows.length > 0) {
+    const { error: upsertError } = await supabase.from('item_stats').upsert(statsRows, { onConflict: 'catalog_item_id' });
+    if (upsertError) throw upsertError;
+
+    const { error: historyError } = await supabase.from('item_stats_history').insert(historyRows);
+    if (historyError) throw historyError;
+
+    const { error: trimError } = await supabase.rpc('trim_item_stats_history', { p_household_id: householdId });
+    if (trimError) throw trimError;
+  }
+
+  return { recomputed: statsRows.length, skipped };
+}

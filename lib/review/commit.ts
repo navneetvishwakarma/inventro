@@ -1,6 +1,8 @@
 import 'server-only';
 import { createServiceClient } from '@/lib/supabase/server';
 import { normalizeUnitToBase, type BaseUnit } from '@/lib/receipts/canonicalize';
+import { reconcileRateCorrection } from '@/lib/predictions/reconcile';
+import { recomputeOneItem } from '@/lib/predictions/recompute';
 
 type NewItemLine = {
   id: string;
@@ -43,14 +45,40 @@ async function computeNewItemQtyBase(receiptId: string): Promise<Record<string, 
   return result;
 }
 
+// S-16: recomputes only the items THIS receipt touched (never the whole
+// household) -- keeps commit latency bounded by receipt size. Runs strictly
+// after commit_receipt() succeeds, never before or in parallel with it, so a
+// guard rejection or atomicity rollback means recompute never runs at all.
+async function recomputeAffectedItems(supabase: ReturnType<typeof createServiceClient>, receiptId: string, householdId: string, purchasedAt: string): Promise<void> {
+  const { data: lines, error } = await supabase
+    .from('receipt_lines')
+    .select('matched_item_id')
+    .eq('receipt_id', receiptId)
+    .in('review_state', ['matched', 'new_item']);
+  if (error) throw error;
+
+  const itemIds = [...new Set((lines ?? []).map((l) => l.matched_item_id).filter((id): id is string => id !== null))];
+
+  for (const itemId of itemIds) {
+    const rateCorrection = await reconcileRateCorrection(supabase, itemId, { occurredAt: purchasedAt, receiptId });
+    await recomputeOneItem(itemId, householdId, rateCorrection);
+  }
+}
+
 export async function commitReceipt(receiptId: string, pastOrderOverride: boolean): Promise<void> {
   const newItemQtyBase = await computeNewItemQtyBase(receiptId);
 
   const supabase = createServiceClient();
+
+  const { data: receipt, error: receiptError } = await supabase.from('receipts').select('household_id, purchased_at').eq('id', receiptId).single();
+  if (receiptError) throw receiptError;
+
   const { error } = await supabase.rpc('commit_receipt', {
     p_receipt_id: receiptId,
     p_past_order_override: pastOrderOverride,
     p_new_item_qty_base: newItemQtyBase,
   });
   if (error) throw error;
+
+  await recomputeAffectedItems(supabase, receiptId, receipt.household_id, receipt.purchased_at as string);
 }

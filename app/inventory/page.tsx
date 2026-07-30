@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getInventoryItems, type InventoryItem } from '@/lib/inventory/data';
@@ -68,7 +69,12 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
       <Card>
         <CardHeader>
           <CardTitle>Inventory</CardTitle>
-          <CardDescription>{items.length} item{items.length === 1 ? '' : 's'} tracked.</CardDescription>
+          <CardDescription>
+            {items.length} item{items.length === 1 ? '' : 's'} tracked.{' '}
+            <Link href="/catalog" className="underline">
+              Seeing a duplicate? Manage the catalog.
+            </Link>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form method="get" className="flex flex-wrap items-center gap-2">

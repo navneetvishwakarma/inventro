@@ -659,7 +659,11 @@
         "S-21"
       ],
       "gh_issue": 49,
-      "acceptance": "List exports as plain text/clipboard for sharing."
+      "acceptance": "List exports as plain text/clipboard for sharing.",
+      "verify": {
+        "ci": "pass",
+        "commit": "6174d3c"
+      }
     },
     {
       "id": "S-24",
@@ -673,7 +677,11 @@
         "S-23"
       ],
       "gh_issue": 50,
-      "acceptance": "Checking an item off without a receipt still writes a purchase movement when a price is entered."
+      "acceptance": "Checking an item off without a receipt still writes a purchase movement when a price is entered.",
+      "verify": {
+        "ci": "pass",
+        "commit": "92a9526"
+      }
     },
     {
       "id": "S-25",

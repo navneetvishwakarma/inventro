@@ -16,6 +16,15 @@ export function isAcceptedExtension(ext: string | null): ext is AcceptedExtensio
   return ext !== null && (ACCEPTED_EXTENSIONS as readonly string[]).includes(ext);
 }
 
+// S-25: grouping (multi-image-as-one-order) is restricted to actual image
+// extensions -- PDF/HTML/MHTML don't need grouping, and mixing formats into
+// one multimodal call has no sane semantics.
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif']);
+
+export function isImageExtension(ext: string | null): boolean {
+  return ext !== null && IMAGE_EXTENSIONS.has(ext);
+}
+
 const CONTENT_TYPES: Record<AcceptedExtension, string> = {
   pdf: 'application/pdf',
   jpg: 'image/jpeg',

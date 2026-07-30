@@ -614,7 +614,7 @@
       "title": "Plan screen: cadence bucket tabs, suggested qty, snooze/skip/exclude/override with revert-to-auto",
       "epic": "E-8",
       "prd_ref": "REQ-17",
-      "status": "notstarted",
+      "status": "done",
       "order": 21,
       "estimate": 0.4,
       "blocked_by": [
@@ -633,7 +633,7 @@
       "title": "Today view (everything due within 3 days across all buckets, default landing screen)",
       "epic": "E-8",
       "prd_ref": "REQ-17",
-      "status": "blocked",
+      "status": "done",
       "order": 22,
       "estimate": 0.2,
       "blocked_by": [
@@ -651,7 +651,7 @@
       "title": "Shopping list generation (per-bucket or due-in-N-days) + plain-text export",
       "epic": "E-9",
       "prd_ref": "REQ-18",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 23,
       "estimate": 0.2,
       "blocked_by": [
@@ -755,7 +755,7 @@
       "title": "Insights screen: spend vs. budget by category, forward spend projection, top-10 items, price alerts, waste report",
       "epic": "E-12",
       "prd_ref": "REQ-19",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 31,
       "estimate": 0.4,
       "blocked_by": [
@@ -768,7 +768,7 @@
       "title": "Daily 07:00 IST digest + weekly Sunday 18:00 IST list-ready email (Resend) + in-app badges",
       "epic": "E-13",
       "prd_ref": "REQ-20",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 32,
       "estimate": 0.25,
       "blocked_by": [

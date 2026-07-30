@@ -545,7 +545,11 @@
         "S-02"
       ],
       "gh_issue": 37,
-      "acceptance": "npm run seed:history generates ~70 items across 7 cohorts (working spec Sec12) into a dedicated is_demo household with known ground-truth cadence/interval metadata, spanning up to computeItemStats' own 24-month lookback window (not a literal fixed 12 months -- see ledger); npm run seed:history -- --wipe removes all of that household's data in one command; every write is guarded to refuse touching any household other than the fixed demo id with is_demo=true."
+      "acceptance": "npm run seed:history generates ~70 items across 7 cohorts (working spec Sec12) into a dedicated is_demo household with known ground-truth cadence/interval metadata, spanning up to computeItemStats' own 24-month lookback window (not a literal fixed 12 months -- see ledger); npm run seed:history -- --wipe removes all of that household's data in one command; every write is guarded to refuse touching any household other than the fixed demo id with is_demo=true.",
+      "verify": {
+        "ci": "pass",
+        "commit": "62889de"
+      }
     },
     {
       "id": "S-18",
@@ -560,7 +564,11 @@
         "S-17"
       ],
       "gh_issue": 38,
-      "acceptance": "Overall S3 (n>=4 purchases, i.e. >=5 total events per item since one is held out) clears >=70%, printed per-cohort (§12 scorecard); half_yearly/yearly clean_periodic items are structurally excluded from the S3 average by computeItemStats' own 24-month lookback, not a seeding defect (see ledger)."
+      "acceptance": "Overall S3 (n>=4 purchases, i.e. >=5 total events per item since one is held out) clears >=70%, printed per-cohort (§12 scorecard); half_yearly/yearly clean_periodic items are structurally excluded from the S3 average by computeItemStats' own 24-month lookback, not a seeding defect (see ledger). Live result: 78% overall PASS, after fixing a real computeRateCrossCheck double-counting bug found by the harness (see ledger).",
+      "verify": {
+        "ci": "pass",
+        "commit": "7a8de3f"
+      }
     },
     {
       "id": "S-19",

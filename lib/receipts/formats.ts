@@ -40,3 +40,18 @@ const CONTENT_TYPES: Record<AcceptedExtension, string> = {
 export function contentTypeFor(ext: AcceptedExtension): string {
   return CONTENT_TYPES[ext];
 }
+
+// S-26: a pasted clipboard image blob has no filename at all, so
+// extensionOf(file.name) would return null and isAcceptedExtension would
+// silently reject it — synthesize one from the clipboard item's own MIME type.
+const EXTENSION_BY_MIME: Record<string, AcceptedExtension> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+};
+
+export function extensionForMimeType(mime: string): AcceptedExtension | null {
+  return EXTENSION_BY_MIME[mime] ?? null;
+}

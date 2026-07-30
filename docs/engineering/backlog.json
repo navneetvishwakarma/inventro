@@ -79,7 +79,8 @@
       "prd_ref": "REQ-12",
       "order": 4,
       "estimate": 0.5,
-      "acceptance": "Upload a real receipt, review it, see items in inventory (Day 1 gate)."
+      "acceptance": "Upload a real receipt, review it, see items in inventory (Day 1 gate).",
+      "gh_issue": 25
     },
     {
       "id": "E-5",
@@ -412,7 +413,8 @@
         "S-10",
         "S-11"
       ],
-      "acceptance": "A document with no extractable date blocks commit; setting a date manually releases it (A21)."
+      "acceptance": "A document with no extractable date blocks commit; setting a date manually releases it (A21).",
+      "gh_issue": 26
     },
     {
       "id": "S-13",
@@ -425,7 +427,8 @@
       "blocked_by": [
         "S-12"
       ],
-      "acceptance": "Committed receipt's items appear in inventory in correct base-unit quantities (Day 1 gate, A1)."
+      "acceptance": "Committed receipt's items appear in inventory in correct base-unit quantities (Day 1 gate, A1).",
+      "gh_issue": 27
     },
     {
       "id": "S-14a",

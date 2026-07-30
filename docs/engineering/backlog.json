@@ -584,7 +584,11 @@
         "S-16"
       ],
       "gh_issue": 41,
-      "acceptance": "Item card shows current stock, predicted days remaining, cadence badge, last purchased, avg price, trend sparkline."
+      "acceptance": "Item card shows current stock, predicted days remaining, cadence badge, last purchased, avg price, trend sparkline.",
+      "verify": {
+        "ci": "pass",
+        "commit": "8b15c11"
+      }
     },
     {
       "id": "S-20",

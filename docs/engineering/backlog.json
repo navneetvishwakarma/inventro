@@ -135,6 +135,7 @@
       "prd_ref": "REQ-18",
       "order": 9,
       "estimate": 0.25,
+      "gh_issue": 48,
       "acceptance": "List generates from a bucket and exports as plain text."
     },
     {
@@ -657,6 +658,7 @@
       "blocked_by": [
         "S-21"
       ],
+      "gh_issue": 49,
       "acceptance": "List exports as plain text/clipboard for sharing."
     },
     {
@@ -670,6 +672,7 @@
       "blocked_by": [
         "S-23"
       ],
+      "gh_issue": 50,
       "acceptance": "Checking an item off without a receipt still writes a purchase movement when a price is entered."
     },
     {

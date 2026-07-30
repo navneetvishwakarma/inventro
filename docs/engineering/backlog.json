@@ -115,6 +115,7 @@
       ],
       "order": 7,
       "estimate": 0.5,
+      "gh_issue": 40,
       "acceptance": "Marking an item used updates stock and Today (A8)."
     },
     {
@@ -582,6 +583,7 @@
         "S-13",
         "S-16"
       ],
+      "gh_issue": 41,
       "acceptance": "Item card shows current stock, predicted days remaining, cadence badge, last purchased, avg price, trend sparkline."
     },
     {
@@ -595,6 +597,7 @@
       "blocked_by": [
         "S-16"
       ],
+      "gh_issue": 42,
       "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement."
     },
     {

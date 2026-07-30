@@ -1,0 +1,27 @@
+{
+  "id": "S-20",
+  "title": "Consumption actions (used it up / used some / wasted) + implicit virtual depletion projection",
+  "goal": "Close F9.1's explicit half of the consumption loop -- 'used it up' / 'used some' / 'wasted' actions that write real stock_movements and trigger a recompute -- on top of S-19's virtual-depletion display (F9.2), so the app is correct whether or not the household ever taps a button. This is also the story that unblocks E-5's S-15 repurchase-reconciliation loop, which has been a documented, deliberate no-op on real households since E-5 shipped, pending 'at least one real consumption/adjustment/waste movement' existing for an item (.claude/epic-5/sub-S-15.json, .claude/epic-5/ledger.md).",
+  "in_scope": [
+    "lib/inventory/consume.ts (server-only): recordConsumption(catalogItemId, householdId, action, payload) -> Promise<void>. 'used_up': reads raw v_current_stock for the item; if <=0, no-op (nothing to write, already zero); else writes one stock_movements row, type='consumption', qty_base = -rawStock, occurred_at = now. 'used_some' with a preset fraction (0.25 / 0.5 / 0.75): fraction is applied to the DISPLAYED virtual stock (S-19's computeVirtualStockBase) -- what the user is actually looking at when they tap the button -- clamped so the resulting movement magnitude never exceeds raw stock (a defensive backstop; virtual <= raw always per S-19's own invariant, so this clamp should never actually bind in practice). 'used_some' with a numeric amount (entered in the item's base unit, since the card already displays base + friendly units): clamped to raw stock the same way. 'wasted': same zeroing behavior as used_up, but type='waste' instead of 'consumption' -- a distinct ledger type for F13's future waste report, which this story does not build.",
+    "After any actual write (the used-up-when-already-zero case is the only no-op), calls recomputeOneItem(catalogItemId, householdId) with no rate_correction override -- S-15's reconciliation is on-commit-purchase-only per its own invariants and is never invoked from a consumption action.",
+    "app/inventory/[id]/actions.ts ('use server') + a client component on the item detail page: three actions (Used it up / Used some / Wasted); 'Used some' opens an inline choice of 25/50/75% or a numeric base-unit input. Actions revalidatePath the item detail page, the inventory list, and '/' (the Today stub).",
+    "lib/inventory/data.ts: getItemsNeedingAttention(householdId) -- items whose virtual stock (S-19's computeVirtualStockBase) is <= 0, queried the same batched way as getInventoryItems.",
+    "app/page.tsx: a minimal 'Needs attention' section listing getItemsNeedingAttention() results, each linking to /inventory/[id] -- this is what makes A8's 'appears in Today' concretely true today. The full bucketed Today view (cadence tabs, everything due within 3 days) is E-8's S-22, which cannot exist yet (blocked_by S-21, itself blocked_by this epic + S-18) -- this addition is deliberately minimal, not a preview of S-22."
+  ],
+  "out_of_scope": [
+    "The full bucketed Today view (cadence tabs, due-within-3-days across all buckets, snooze/skip) -- E-8's S-22. This story only extends the existing app/page.tsx stub with a needs-attention list.",
+    "Shopping-list checkoff logging a purchase movement (F12 / E-9) -- a different movement type and flow entirely, unrelated to consumption.",
+    "Any change to reconcile.ts's own logic or its consumption-signal gate query -- this story satisfies the gate (a real non-purchase movement now exists for items that use these actions) without touching the gate's code.",
+    "A waste report (F13 / E-12) -- the 'waste' movement type is written here so that report has data to read later, but no report is built in this story."
+  ],
+  "acceptance": "\"Used it up\" zeroes stock and surfaces the item in Today (A8); virtual depletion never writes a ledger movement.",
+  "invariants": [
+    "computeVirtualStockBase (S-19) is a pure, read-only function -- never called from consume.ts's write path to decide what to persist, and consume.ts never fabricates a movement whose source is 'the virtual projection.' Every write here is a real, user-triggered explicit action against the real ledger, matching F9.2's 'never a written ledger movement' clause for the implicit/virtual side.",
+    "A consumption or waste movement's qty_base magnitude is always <= the raw v_current_stock available at write time -- no action here ever drives raw stock negative.",
+    "recordConsumption never touches item_stats.rate_correction directly -- only recomputeOneItem's own read-modify-persist cycle (called with no override, exactly like the nightly path) can change it.",
+    "Consumption actions never pass a rateCorrectionOverride to recomputeOneItem -- that parameter is reserved for S-15's reconcileRateCorrection output on the purchase-commit path only; reusing it here would let a 'used it up' tap corrupt rate_correction through a path S-15 was never designed to be called from."
+  ],
+  "prd_ref": "REQ-14",
+  "adr_ref": null
+}

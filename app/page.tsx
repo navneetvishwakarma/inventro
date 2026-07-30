@@ -65,7 +65,7 @@ export default async function TodayPage() {
         <Card>
           <CardHeader>
             <CardTitle>Due soon</CardTitle>
-            <CardDescription>Everything due within 3 days, across all cadence buckets.</CardDescription>
+            <CardDescription>Due or overdue in the next 3 days, across all cadence buckets.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {dueSoon.map((item) => (

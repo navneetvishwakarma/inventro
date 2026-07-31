@@ -48,11 +48,11 @@ export default async function TodayPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">Add your first receipt to start tracking what&apos;s in stock.</p>
-          {reviewQueue.length > 0 && (
-            <Link href="/review" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
-              {reviewQueue.length} receipt{reviewQueue.length === 1 ? '' : 's'} waiting for review
-            </Link>
-          )}
+          <Link href="/review" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
+            {reviewQueue.length > 0
+              ? `${reviewQueue.length} receipt${reviewQueue.length === 1 ? '' : 's'} waiting for review`
+              : 'Review queue'}
+          </Link>
         </CardContent>
         <CardFooter className="flex-wrap">
           <Link href="/plan" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
@@ -69,6 +69,12 @@ export default async function TodayPage() {
           </Link>
           <Link href="/insights" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
             View insights
+          </Link>
+          <Link href="/shopping-list" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            Shopping list
+          </Link>
+          <Link href="/settings" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            Settings
           </Link>
         </CardFooter>
       </Card>

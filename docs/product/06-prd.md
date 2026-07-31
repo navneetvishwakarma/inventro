@@ -2,7 +2,7 @@
 doc: prd
 project: Inventro
 status: approved        # draft | approved  — must be `approved` before backlog seeding
-updated: 2026-07-28
+updated: 2026-08-01
 ---
 
 # Inventro — Product Requirements
@@ -66,6 +66,8 @@ instead, REQ-22).
 | REQ-25 | Cost controls: hard stop at 100 receipts/day (alert at 50), per-receipt token/cost accounting | P1 | Loop-bug guard actually halts ingestion at the threshold |
 | REQ-26 | Single-household tenancy scaffolding: `household_id` on every table sourced from `DEFAULT_HOUSEHOLD_ID`, all DB access server-side, RLS policies written-but-disabled, shared-passcode gate (`middleware.ts` + signed HTTP-only cookie) | P0 | Anon Supabase key absent from client bundle; unauthenticated request without the gate cookie returns 401 (A26) — **flagged: no real authentication, explicitly scoped to grocery data only until the multi-tenant phase (see `docs/product/10-gtm-strategy.md`)** |
 | REQ-27 | PWA installability (manifest, icons); Android Web Share Target only, no offline data sync | P2 | App is installable; offline shell caches but data does not sync offline |
+| REQ-28 | Automated regression coverage: unit tests for the pure domain logic (`computeItemStats` EWMA/shrinkage/outlier-rejection/bucketing, canonicalization/alias matching, unit normalization, `rate_correction` clamping, backdating vs `stock_epoch`) plus an E2E smoke suite covering the gate and every route, using accessible roles/names rather than DOM structure so it survives REQ-29's redesign | P0 | `npm test` runs the unit suite and reproduces the hand-computed S-14a/b/c fixtures already recorded in `docs/MANUAL-TESTS.md` (day 0/7/14/21 → weekly, confidence ~0.50, next ≈ day 28; day 0/7/60/67 rejects the 60-day outlier; 2-purchase item → unpredictable, confidence ~0.25); `npm run test:e2e` passes the gate and gets a 200 on every route in `backlog.json` plus one happy-path assertion per section |
+| REQ-29 | Design system v2: an audited, modernized token set and component/page reference screens (`docs/design/`) replacing ad-hoc per-page styling drift, applied consistently across every existing screen — semantic token indirection (`--color-primary` → `--primary` → `--red-600`) preserved so future re-theming stays additive, not a rewrite | P1 | Every page under `app/(app)/**`, `app/onboarding/**`, and `app/gate/**` renders using only `docs/design/` v2 tokens and updated `components/ui` primitives (no hardcoded hex/spacing values); each page matches its `docs/design/pages/*.md` reference screen with no unaddressed gap in the epic's own gap-list |
 
 **PII / compliance flag:** REQ-26 is the one requirement touching access
 control, and it explicitly does *not* implement real authentication — this is
@@ -92,3 +94,12 @@ to at least one REQ-xx above.
 ## Open questions
 
 - [ ] None blocking backlog seeding. Astryx-vs-shadcn is an implementation-time decision documented as ADR-0002, not a product requirement.
+
+## v2 reconcile (2026-08-01)
+
+E-0 through E-16 are shipped. This cycle adds REQ-28 (regression coverage,
+since none existed) and REQ-29 (design system v2, replacing the ad-hoc
+per-page styling that accumulated across E-1–E-16). REQ-28 is sequenced
+first — a redesign without a regression net risks silently breaking the
+prediction/matching/commit logic that's already correct. Both requirements
+are additive; no existing REQ-01–REQ-27 changes.

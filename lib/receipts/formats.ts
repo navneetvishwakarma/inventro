@@ -49,12 +49,19 @@ export function contentTypeFor(ext: AcceptedExtension): string {
 // S-26: a pasted clipboard image blob has no filename at all, so
 // extensionOf(file.name) would return null and isAcceptedExtension would
 // silently reject it — synthesize one from the clipboard item's own MIME type.
+// S-35: the same gap applies to Android's Web Share Target -- a shared
+// file's name is whatever the source app chose to set (often absent or
+// generic), so this map is the fallback there too. application/pdf added
+// for that path specifically (share_target's accept list includes it;
+// paste-listener.tsx's clipboard path never sees PDFs, so this is additive,
+// not a behavior change for the existing caller).
 const EXTENSION_BY_MIME: Record<string, AcceptedExtension> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/heic': 'heic',
   'image/heif': 'heif',
+  'application/pdf': 'pdf',
 };
 
 export function extensionForMimeType(mime: string): AcceptedExtension | null {

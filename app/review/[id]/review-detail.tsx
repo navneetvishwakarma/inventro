@@ -107,7 +107,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
         categories={categories}
       />
       <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} placeholder="Pack size (optional)" />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -177,7 +177,7 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
         categories={categories}
       />
       <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} placeholder="Pack size (optional)" />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -378,7 +378,7 @@ export function ReviewDetail({
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {receipt.near_duplicate_of && (
-            <p className="rounded bg-yellow-100 p-2 text-sm text-yellow-900">
+            <p className="rounded bg-yellow-100 p-2 text-sm text-yellow-900 dark:bg-yellow-900/30 dark:text-yellow-200">
               Possible duplicate of another receipt (merchant/date/total match) — check before committing.
             </p>
           )}
@@ -391,13 +391,13 @@ export function ReviewDetail({
                 {receipt.purchased_at_confirmed ? 'Update date' : 'Confirm date'}
               </Button>
             </div>
-            {!receipt.purchased_at_confirmed && <p className="text-sm text-amber-700">Unconfirmed — commit is blocked until this is confirmed.</p>}
-            {dateError && <p className="text-sm text-red-600">{dateError}</p>}
+            {!receipt.purchased_at_confirmed && <p className="text-sm text-amber-700 dark:text-amber-400">Unconfirmed — commit is blocked until this is confirmed.</p>}
+            {dateError && <p className="text-sm text-destructive">{dateError}</p>}
           </div>
 
           {isPastOrder && (
-            <div className="rounded bg-blue-50 p-3">
-              <p className="text-sm">Past order — updates history, not current stock.</p>
+            <div className="rounded bg-blue-50 p-3 dark:bg-blue-950/40">
+              <p className="text-sm text-blue-950 dark:text-blue-100">Past order — updates history, not current stock.</p>
               <div className="mt-2 flex items-center gap-2">
                 <Checkbox id="past-order-override" checked={pastOrderOverride} onCheckedChange={(checked) => setPastOrderOverride(checked === true)} />
                 <Label htmlFor="past-order-override">Still have this on hand today</Label>
@@ -442,7 +442,7 @@ export function ReviewDetail({
           <Button className="w-full" disabled={!canCommit || pending} onClick={doCommit}>
             {pending ? 'Committing…' : 'Commit to inventory'}
           </Button>
-          {commitError && <p className="text-sm text-red-600">{commitError}</p>}
+          {commitError && <p className="text-sm text-destructive">{commitError}</p>}
         </CardContent>
       </Card>
     </main>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Maskable icon: background fills the full viewBox edge-to-edge (the OS
+       applies its own shape mask over this), and the glyph is scaled/
+       centered to stay within the ~80% "safe zone" so it isn't clipped by a
+       circular or squircle mask. -->
+  <rect width="512" height="512" fill="#16a34a" />
+  <g transform="translate(76,76) scale(0.7)">
+    <path
+      d="M156 196h30l16-40a20 20 0 0 1 18-12h72a20 20 0 0 1 18 12l16 40h30a16 16 0 0 1 15.8 18.5l-24 168A32 32 0 0 1 316.3 412H195.7a32 32 0 0 1-31.6-27.5l-24-168A16 16 0 0 1 156 196Zm70-32-9.6 32h79.2l-9.6-32Z"
+      fill="#ffffff"
+    />
+    <circle cx="216" cy="452" r="18" fill="#ffffff" />
+    <circle cx="296" cy="452" r="18" fill="#ffffff" />
+  </g>
+</svg>

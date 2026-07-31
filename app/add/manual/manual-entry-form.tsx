@@ -194,7 +194,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
                   Add &quot;{query.trim()}&quot; as a new item
                 </button>
               )}
-              {duplicateWarning && <p className="text-sm text-amber-600">{duplicateWarning}</p>}
+              {duplicateWarning && <p className="text-sm text-amber-600 dark:text-amber-400">{duplicateWarning}</p>}
             </div>
           )}
 

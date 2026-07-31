@@ -98,7 +98,7 @@ export default async function InsightsPage() {
             <div key={a.catalogItemId} className="rounded border p-2 text-sm">
               <div className="flex justify-between font-medium">
                 <span>{a.canonicalName}</span>
-                <span className={a.pctChange > 0 ? 'text-red-600' : 'text-green-700'}>
+                <span className={a.pctChange > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-700 dark:text-green-400'}>
                   {a.pctChange > 0 ? '+' : ''}
                   {(a.pctChange * 100).toFixed(0)}%
                 </span>

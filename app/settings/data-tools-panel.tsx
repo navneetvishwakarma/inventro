@@ -72,7 +72,7 @@ export function DataToolsPanel() {
           Wipe demo data
         </Button>
       </div>
-      {wipeResult && <p className="text-sm text-green-700">{wipeResult}</p>}
+      {wipeResult && <p className="text-sm text-green-700 dark:text-green-400">{wipeResult}</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );

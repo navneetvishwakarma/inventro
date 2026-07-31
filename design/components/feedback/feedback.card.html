@@ -1,0 +1,30 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Feedback" subtitle="Badge, Alert, EmptyState, Skeleton" -->
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<div id="root" style="padding:16px;font-family:var(--font-sans)"></div>
+<script type="text/babel">
+const { Badge, Alert, EmptyState, Skeleton, Button } = window.InventroDesignSystem_2cd99f;
+function Demo(){
+  return (<div style={{display:'flex',flexDirection:'column',gap:16,maxWidth:640}}>
+    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+      <Badge tone="gold">Running low</Badge>
+      <Badge tone="error">Out of stock</Badge>
+      <Badge tone="neutral">Weekly</Badge>
+      <Badge tone="info">Overridden</Badge>
+      <Badge tone="success">Staple</Badge>
+    </div>
+    <Alert tone="info" title="Past order">Updates history, not current stock.</Alert>
+    <Alert tone="warning">Possible duplicate of another receipt — check before committing.</Alert>
+    <Alert tone="error">Empty date blocks commit — never guess.</Alert>
+    <EmptyState title="Nothing due yet" description="You're all set." />
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      <Skeleton height={16} width="50%" />
+      <Skeleton height={56} radius="var(--radius-md)" />
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script>

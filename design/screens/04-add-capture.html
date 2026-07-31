@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventro &middot; Add &middot; Capture &mdash; High-fidelity</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- @screen id="add-capture" name="Add &middot; Capture" subtitle="Photo / file / paste" -->
+<link rel="stylesheet" href="../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../_ds_bundle.js"></script>
+<style>
+  body{margin:0;background:var(--color-surface-sunken);}
+  #root{padding:var(--space-8) var(--space-6);font-family:var(--font-sans);}
+  .screens-row{display:flex;gap:var(--space-8);align-items:flex-start;flex-wrap:wrap;}
+  .page-head{max-width:1180px;margin:0 auto var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);}
+  .page-head h2{font:var(--text-h2);letter-spacing:var(--ls-h2);color:var(--color-foreground);margin:0;}
+  .page-head p{font:var(--text-body-sm);color:var(--color-foreground-muted);margin:0;max-width:760px;}
+  .back-link{font:600 13px/1 var(--font-sans);color:var(--color-link);text-decoration:none;}
+  .center-wrap{max-width:1180px;margin:0 auto;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { Sidebar, TabBar, Card, CardHeader, CardTitle, CardDescription, CardContent, Checkbox, Button } = window.InventroDesignSystem_2cd99f;
+
+  // --- Composed from tokens only -- NOT first-class design-system
+  // components. See CHANGELOG "Components with no design-system match".
+  function Sparkline({ points, tone = 'var(--color-foreground-subtle)', width = 76, height = 24 }) {
+    const min = Math.min(...points), max = Math.max(...points), range = (max - min) || 1;
+    const step = width / (points.length - 1);
+    const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${(height - ((p - min) / range) * height).toFixed(1)}`).join(' ');
+    return (<svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Price trend"><path d={d} fill="none" stroke={tone} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>);
+  }
+  function StepDots({ step, total = 3 }) {
+    return (<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', justifyContent: 'center' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <React.Fragment key={i}>
+          <span style={{
+            width: 24, height: 24, borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 12px/1 var(--font-sans)',
+            background: i + 1 === step ? 'var(--color-primary)' : i + 1 < step ? 'var(--color-primary-subtle)' : 'var(--color-surface-sunken)',
+            color: i + 1 === step ? 'var(--color-primary-foreground)' : i + 1 < step ? 'var(--color-primary-subtle-foreground)' : 'var(--color-foreground-subtle)',
+          }}>{i + 1}</span>
+          {i < total - 1 && <span style={{ width: 30, height: 1.5, background: 'var(--color-border-strong)' }} />}
+        </React.Fragment>
+      ))}
+    </div>);
+  }
+  function ProgressBar({ value, max, tone = 'var(--color-primary)' }) {
+    const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+    return (<div style={{ height: 8, borderRadius: 'var(--radius-full)', background: 'var(--color-surface-sunken)', overflow: 'hidden' }}>
+      <div style={{ width: pct + '%', height: '100%', background: tone, borderRadius: 'var(--radius-full)' }} />
+    </div>);
+  }
+  function ImagePreview({ label, height = 220 }) {
+    return (<div style={{
+      height, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface-sunken)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 'var(--space-4)',
+      font: 'var(--text-caption)', color: 'var(--color-foreground-subtle)',
+    }}>{label}</div>);
+  }
+  function Dropzone({ children, dragging }) {
+    return (<div style={{
+      border: `1.5px dashed ${dragging ? 'var(--color-primary)' : 'var(--color-border-strong)'}`, borderRadius: 'var(--radius-lg)',
+      padding: 'var(--space-5)', background: dragging ? 'var(--color-primary-subtle)' : 'var(--color-surface-sunken)',
+    }}>{children}</div>);
+  }
+  function Frame({ label, width, children }) {
+    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', minWidth: 0 }}>
+      <div style={{ font: 'var(--text-overline)', textTransform: 'uppercase', letterSpacing: 'var(--ls-overline)', color: 'var(--color-foreground-subtle)' }}>{label}</div>
+      <div style={{ width, maxWidth: '100%', background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>{children}</div>
+    </div>);
+  }
+  function ScreenTitle({ children, description }) {
+    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+      <h1 style={{ font: 'var(--text-h3)', letterSpacing: 'var(--ls-h3)', color: 'var(--color-foreground)', margin: 0 }}>{children}</h1>
+      {description && <p style={{ font: 'var(--text-body-sm)', color: 'var(--color-foreground-muted)', margin: 0 }}>{description}</p>}
+    </div>);
+  }
+  function MobileTopBar({ title, back }) {
+    return (<div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', padding: '0 var(--space-4)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+      <span style={{ font: '600 13px/1 var(--font-sans)', color: 'var(--color-foreground-muted)' }}>{back ? '\u2190' : '\u2261'}</span>
+      <span style={{ font: 'var(--text-h6)', color: 'var(--color-foreground)' }}>{title}</span>
+    </div>);
+  }
+
+const SIDEBAR_ITEMS = [
+    { key: 'today', label: 'Today' },
+    { key: 'add', label: 'Add' },
+    { key: 'review', label: 'Review', count: 4 },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'plan', label: 'Plan' },
+    { key: 'shopping-list', label: 'Shopping list' },
+    { key: 'insights', label: 'Insights' },
+    { key: 'catalog', label: 'Catalog' },
+    { key: 'settings', label: 'Settings' },
+  ];
+const TABBAR_ITEMS = [
+    { key: 'today', label: 'Today' },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'add', label: 'Add' },
+    { key: 'shop', label: 'Shop' },
+    { key: 'more', label: 'More' },
+  ];
+
+function CaptureCard({ mobile }) {
+  return (
+    <Card>
+      <CardHeader><CardTitle>Add a receipt</CardTitle><CardDescription>Photo, file, or drag it in &mdash; PDF, JPG, PNG, WEBP, HEIC, HTML/MHTML.</CardDescription></CardHeader>
+      <CardContent>
+        <Checkbox id="group" label="These are screenshots of one order (2&ndash;3 images)" checked={false} onChange={() => {}} />
+        <Dropzone>
+          <div style={{ display: 'flex', flexDirection: mobile ? 'column' : 'row', gap: 'var(--space-2)' }}>
+            <Button variant="primary" size="md">Take photo</Button>
+            <Button variant="outline" size="md">Choose files</Button>
+          </div>
+          {!mobile && <p style={{ font: 'var(--text-caption)', color: 'var(--color-foreground-subtle)', margin: 'var(--space-2) 0 0' }}>Or drag files anywhere in this zone.</p>}
+        </Dropzone>
+        <Button variant="ghost" size="sm">Paste order text</Button>
+        <Button variant="tertiary" size="sm">Add manually</Button>
+      </CardContent>
+    </Card>
+  );
+}
+function Demo(){
+  return (<div>
+    <div className="page-head">
+      <a className="back-link" href="index.html">&larr; All screens</a>
+      <h2>Add &middot; Capture</h2>
+      <p>Highest-traffic surface in the product &mdash; must feel as fast as the phone&rsquo;s native camera. Persistent entry point across the app.</p>
+    </div>
+    <div className="screens-row">
+      <Frame label="Web &middot; 1280px viewport" width={1100}>
+        <div style={{ display: 'flex', minHeight: 560 }}>
+          <Sidebar active="add" items={SIDEBAR_ITEMS} householdName="The Sharmas" />
+          <div style={{ flex: 1, minWidth: 0, padding: 'var(--space-6)', display: 'flex', justifyContent: 'center', background: 'var(--color-background)' }}>
+            <div style={{ width: 440 }}><CaptureCard mobile={false} /></div>
+          </div>
+        </div>
+      </Frame>
+      <Frame label="Mobile &middot; 375px viewport" width={375}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 640 }}>
+          <MobileTopBar title="Add a receipt" />
+          <div style={{ flex: 1, padding: 'var(--space-4)', background: 'var(--color-background)' }}>
+            <CaptureCard mobile={true} />
+          </div>
+          <TabBar active="add" items={TABBAR_ITEMS} />
+        </div>
+      </Frame>
+    </div>
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script>
+</body>
+</html>

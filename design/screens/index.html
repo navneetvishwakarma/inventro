@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventro &middot; High-fidelity screens</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;background:var(--color-surface-sunken);font-family:var(--font-sans);}
+.wrap{max-width:980px;margin:0 auto;padding:var(--space-10) var(--space-6);}
+h1{font:var(--text-h1);letter-spacing:var(--ls-h1);color:var(--color-foreground);margin:0 0 var(--space-2);}
+.lede{font:var(--text-body);color:var(--color-foreground-muted);max-width:720px;margin:0 0 var(--space-2);}
+.meta{display:flex;gap:var(--space-2);flex-wrap:wrap;margin-bottom:var(--space-8);}
+.pill{font:var(--text-caption);color:var(--color-foreground-muted);border:1px solid var(--color-border-strong);border-radius:var(--radius-full);padding:2px 10px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--space-4);}
+.s-card{display:flex;flex-direction:column;gap:4px;padding:var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);text-decoration:none;transition:box-shadow var(--duration-fast) var(--ease-standard);}
+.s-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-border-strong);}
+.s-num{font:600 11px/1 var(--font-mono);color:var(--color-primary);}
+.s-name{font:600 16px/1.3 var(--font-sans);color:var(--color-foreground);}
+.s-sub{font:var(--text-body-sm);color:var(--color-foreground-muted);}
+.links{margin-top:var(--space-10);display:flex;gap:var(--space-4);font:var(--text-body-sm);}
+.links a{color:var(--color-link);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Inventro &mdash; high-fidelity screens</h1>
+  <p class="lede">Skinned from the approved wireframes (<code>design/wireframes/</code>) using the live design system: real tokens, real components (<code>Sidebar</code>, <code>TabBar</code>, <code>Tabs</code>, <code>Card</code>, <code>ListRow</code>, <code>Table</code>, <code>Alert</code>, <code>Badge</code>, <code>EmptyState</code>, <code>Button</code>, form controls). Each page below renders its web and mobile variant side by side, exactly as paired at the wireframe stage.</p>
+  <div class="meta"><span class="pill">14 screens</span><span class="pill">Web + Mobile per screen</span><span class="pill">Built on _ds_bundle.js</span><span class="pill">See ../CHANGELOG.md</span></div>
+  <div class="grid">
+    <a class="s-card" href="01-gate.html"><span class="s-num">01</span><span class="s-name">Gate</span><span class="s-sub">Passcode entry</span></a>
+<a class="s-card" href="02-onboarding.html"><span class="s-num">02</span><span class="s-name">Onboarding</span><span class="s-sub">First-run wizard</span></a>
+<a class="s-card" href="03-today.html"><span class="s-num">03</span><span class="s-name">Today</span><span class="s-sub">Home / landing</span></a>
+<a class="s-card" href="04-add-capture.html"><span class="s-num">04</span><span class="s-name">Add &middot; Capture</span><span class="s-sub">Photo / file / paste</span></a>
+<a class="s-card" href="05-add-manual.html"><span class="s-num">05</span><span class="s-name">Add &middot; Manual entry</span><span class="s-sub">Search & quick-log</span></a>
+<a class="s-card" href="06-review-queue.html"><span class="s-num">06</span><span class="s-name">Review &middot; Queue</span><span class="s-sub">Receipts awaiting confirmation</span></a>
+<a class="s-card" href="07-review-detail.html"><span class="s-num">07</span><span class="s-name">Review &middot; Detail</span><span class="s-sub">Split document + line review</span></a>
+<a class="s-card" href="08-inventory-list.html"><span class="s-num">08</span><span class="s-name">Inventory &middot; List</span><span class="s-sub">Filterable, grouped by category</span></a>
+<a class="s-card" href="09-inventory-detail.html"><span class="s-num">09</span><span class="s-name">Inventory &middot; Item detail</span><span class="s-sub">Prediction, consume actions, history</span></a>
+<a class="s-card" href="10-plan.html"><span class="s-num">10</span><span class="s-name">Plan</span><span class="s-sub">Cadence-bucketed suggested quantities</span></a>
+<a class="s-card" href="11-shopping-list.html"><span class="s-num">11</span><span class="s-name">Shopping list</span><span class="s-sub">Generated, checkable, exportable</span></a>
+<a class="s-card" href="12-insights.html"><span class="s-num">12</span><span class="s-name">Insights</span><span class="s-sub">Budget, projection, alerts, waste</span></a>
+<a class="s-card" href="13-catalog.html"><span class="s-num">13</span><span class="s-name">Catalog manager</span><span class="s-sub">Merge, recategorize, archive</span></a>
+<a class="s-card" href="14-settings.html"><span class="s-num">14</span><span class="s-name">Settings</span><span class="s-sub">Household, cost meter, data tools</span></a>
+  </div>
+  <div class="links">
+    <a href="../wireframes/low-fidelity-wireframes.html">&larr; Low-fidelity wireframes (approved source)</a>
+    <a href="../CHANGELOG.md">Changelog &amp; gap list</a>
+  </div>
+</div>
+</body>
+</html>

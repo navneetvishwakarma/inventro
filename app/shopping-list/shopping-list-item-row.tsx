@@ -66,7 +66,7 @@ export function ShoppingListItemRow({
             onChange={(e) => setPrice(e.target.value)}
             className="w-20 rounded border px-2 py-1 text-xs"
           />
-          <Button type="button" size="xs" variant="outline" disabled={isPending || !price} onClick={handleLogPurchase}>
+          <Button type="button" size="sm" variant="outline" disabled={isPending || !price} onClick={handleLogPurchase}>
             Log purchase
           </Button>
         </div>

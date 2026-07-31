@@ -62,7 +62,7 @@ function ItemRow({
             {item.isArchived && <span className="ml-1 text-xs text-muted-foreground">(archived)</span>}
           </span>
         </label>
-        <Button type="button" size="xs" variant="outline" onClick={handleArchiveToggle} disabled={isPending}>
+        <Button type="button" size="sm" variant="outline" onClick={handleArchiveToggle} disabled={isPending}>
           {item.isArchived ? 'Unarchive' : 'Archive'}
         </Button>
       </div>

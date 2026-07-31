@@ -1103,14 +1103,18 @@
       "title": "Commit/backdating + rate_correction unit tests",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 45,
       "estimate": 0.4,
       "blocked_by": [
         "S-42"
       ],
       "acceptance": "Unit tests (mocked Supabase client, no live DB) cover lib/predictions/reconcile.ts's reconcileRateCorrection arithmetic in isolation: multiplier selects DOWN (0.85) when remaining-projected-stock exceeds 40% of pack size, UP (1.15) when elapsed-since-depletion exceeds 20% of the interval, no-op when neither threshold fires or no prior purchase/consumption-signal exists, and the cumulative result is clamped to [0.5, 2.0]. Backdating-vs-stock_epoch itself lives in the commit_receipt SQL RPC, not TypeScript -- covered by S-46's E2E suite instead of a unit test (deviation from the original story framing, discovered while reading lib/review/commit.ts; see epic ledger).",
-      "gh_issue": 93
+      "gh_issue": 93,
+      "verify": {
+        "ci": "pass",
+        "commit": "604dd31"
+      }
     },
     {
       "id": "S-46",

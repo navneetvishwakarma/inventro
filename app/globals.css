@@ -125,6 +125,7 @@ a:hover {
   --gold-100: #FFFBEF; --gold-200: #FCF0C8; --gold-300: #F9E39C; --gold-400: #F6D97C; --gold-500: #F4D35E; --gold-600: #D9AE31; --gold-700: #B38620; --gold-800: #8C6418; --gold-900: #654510;
   --blue-100: #EAF2F7; --blue-200: #CBE0EC; --blue-300: #A2C7DC; --blue-400: #75A9C4; --blue-500: #457B9D; --blue-600: #33637F; --blue-700: #244C63; --blue-800: #1A3A4C; --blue-900: #112838;
   --neutral-0: #FFFFFF; --neutral-50: #FBF8F7; --neutral-100: #F5EFED; --neutral-200: #E9DEDB; --neutral-300: #D6C4C0; --neutral-400: #B5A19C; --neutral-500: #8F7B76; --neutral-600: #6D5D59; --neutral-700: #4F433F; --neutral-800: #362D2A; --neutral-900: #221B19; --neutral-950: #140F0E;
+  --success-100: #E6EFE3; --success-300: #9BBE9E; --success-500: #4C7A52; --success-700: #345A38; --success-900: #1F3B22;
 }
 
 @theme inline {
@@ -250,9 +251,9 @@ a:hover {
   --link: var(--blue-600);
   --link-hover: var(--blue-700);
 
-  --success: #4C7A52;
-  --success-subtle: #E6EFE3;
-  --success-foreground: #345A38;
+  --success: var(--success-500);
+  --success-subtle: var(--success-100);
+  --success-foreground: var(--success-700);
   --warning: var(--gold-500);
   --warning-subtle: var(--gold-100);
   --warning-foreground: var(--gold-800);
@@ -306,9 +307,9 @@ a:hover {
   --link: var(--blue-400);
   --link-hover: var(--blue-300);
 
-  --success: #9BBE9E;
+  --success: var(--success-300);
   --success-subtle: rgba(76, 122, 82, 0.2);
-  --success-foreground: #9BBE9E;
+  --success-foreground: var(--success-300);
   --warning: var(--gold-400);
   --warning-subtle: rgba(244, 211, 94, 0.14);
   --warning-foreground: var(--gold-400);
@@ -321,6 +322,18 @@ a:hover {
 
   --shadow-tint: #000000;
   --ring-focus: 0 0 0 3px color-mix(in oklch, var(--primary) 35%, transparent);
+}
+
+@theme {
+  --animate-shimmer: inv-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes inv-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @layer base {

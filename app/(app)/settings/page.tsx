@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
@@ -31,7 +32,9 @@ export default async function SettingsPage() {
   const costMeter = await getCostMeterSummary();
 
   return (
-    <div className="mx-auto flex w-full max-w-[440px] flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Settings" />
+      <div className="mx-auto flex w-full max-w-[440px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Household</CardTitle>
@@ -101,6 +104,7 @@ export default async function SettingsPage() {
           <DataToolsPanel />
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

@@ -15,6 +15,9 @@ import { ListRow } from '@/components/ui/list-row';
 import { cn } from '@/lib/utils';
 import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
 import { toKolkataDateString } from '@/lib/date';
+import { formatBaseQty } from '@/lib/inventory/format';
+import { formatMoney } from '@/lib/format/money';
+import type { BaseUnit } from '@/lib/receipts/canonicalize';
 import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction } from './actions';
 
 function todayString(): string {
@@ -60,16 +63,17 @@ function EditableLineFields({
 }) {
   return (
     <div className="grid grid-cols-2 gap-2">
-      <Input value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Item name" size="sm" />
-      <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Brand (optional)" size="sm" />
+      <Input value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Item name" label="Item name" size="sm" />
+      <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Brand (optional)" label="Brand (optional)" size="sm" />
       <Select
         value={categorySlug}
         onChange={(e) => setCategorySlug(e.target.value)}
         options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        label="Category"
       />
       <div className="flex gap-2">
-        <Input value={qtyDisplay} onChange={(e) => setQtyDisplay(e.target.value)} placeholder="Qty" size="sm" />
-        <Input value={unitDisplay} onChange={(e) => setUnitDisplay(e.target.value)} placeholder="Unit" size="sm" />
+        <Input value={qtyDisplay} onChange={(e) => setQtyDisplay(e.target.value)} placeholder="Qty" label="Qty" size="sm" />
+        <Input value={unitDisplay} onChange={(e) => setUnitDisplay(e.target.value)} placeholder="Unit" label="Unit" size="sm" />
       </div>
     </div>
   );
@@ -336,7 +340,8 @@ export function ReviewDetail({
   }
 
   return (
-    <div className="flex w-full flex-col gap-3 p-4 md:flex-row md:gap-6 md:p-6">
+    <>
+    <div className="flex w-full flex-col gap-3 p-4 pb-24 md:flex-row md:gap-6 md:p-6 md:pb-6">
       <Card className="md:w-[320px] md:shrink-0">
         <CardHeader>
           <CardTitle>Document</CardTitle>
@@ -420,7 +425,7 @@ export function ReviewDetail({
                 <ListRow
                   key={line.id}
                   title={lineLabel(line)}
-                  subtitle={`${line.qty_base ?? '—'} · ₹${line.unit_price ?? '—'}`}
+                  subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
                   trailing={<Badge tone="success">Matched</Badge>}
                 />
               ))}
@@ -447,7 +452,7 @@ export function ReviewDetail({
 
           {excludedCount > 0 && <p className="text-sm text-muted-foreground">{excludedCount} non-inventory row(s) excluded.</p>}
 
-          <div className="flex flex-col gap-1">
+          <div className="hidden flex-col gap-1 md:flex">
             <Button className="w-full" disabled={!canCommit || pending} onClick={doCommit}>
               {pending ? 'Committing…' : 'Commit to inventory'}
             </Button>
@@ -457,9 +462,21 @@ export function ReviewDetail({
               </p>
             )}
           </div>
-          {commitError && <Alert tone="error">{commitError}</Alert>}
+          {commitError && <Alert tone="error" className="hidden md:block">{commitError}</Alert>}
         </CardContent>
       </Card>
     </div>
+    <div className="fixed inset-x-0 bottom-16 z-10 flex flex-col gap-1 border-t border-border bg-surface p-3 md:hidden">
+      <Button className="w-full" disabled={!canCommit || pending} onClick={doCommit}>
+        {pending ? 'Committing…' : 'Commit to inventory'}
+      </Button>
+      {!canCommit && !pending && (
+        <p className="text-xs text-foreground-subtle">
+          {needsReviewLines.length > 0 ? 'Disabled until every "needs review" line above is resolved.' : 'Disabled until the purchase date is confirmed.'}
+        </p>
+      )}
+      {commitError && <Alert tone="error">{commitError}</Alert>}
+    </div>
+    </>
   );
 }

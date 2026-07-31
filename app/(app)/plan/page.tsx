@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getPlanItems, type PlanItem } from '@/lib/plan/data';
 import { formatBaseQty, formatDueDate, formatCadenceBucket, CADENCE_BUCKET_ORDER } from '@/lib/inventory/format';
@@ -56,7 +57,9 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     });
 
   return (
-    <div className="flex w-full flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Plan" />
+      <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Plan</CardTitle>
@@ -112,6 +115,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
           ))}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

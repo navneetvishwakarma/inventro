@@ -21,7 +21,7 @@ export interface TabsProps {
 // `role="group"` of toggle buttons instead.
 function Tabs({ items, active, onChange, className }: TabsProps) {
   return (
-    <div role="group" className={cn("flex flex-wrap gap-1.5", className)}>
+    <div role="group" className={cn("flex flex-nowrap gap-1.5 overflow-x-auto md:flex-wrap md:overflow-visible", className)}>
       {items.map((item) => {
         const isActive = item.value === active;
         return (
@@ -31,7 +31,7 @@ function Tabs({ items, active, onChange, className }: TabsProps) {
             aria-pressed={isActive}
             onClick={() => onChange?.(item.value)}
             className={cn(
-              "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[13px] text-muted-foreground transition-colors",
+              "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[13px] text-muted-foreground transition-colors",
               isActive
                 ? "border-primary bg-primary-subtle font-semibold text-primary-subtle-foreground"
                 : "border-border bg-surface"

@@ -25,7 +25,7 @@ function Switch({ checked, onChange, label, disabled, id, className }: SwitchPro
       disabled={disabled}
       onCheckedChange={onChange}
       className={cn(
-        "relative inline-flex h-6 w-10 shrink-0 items-center rounded-full bg-border-strong outline-none transition-colors focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 data-checked:bg-primary",
+        "relative inline-flex h-6 w-10 shrink-0 items-center rounded-full bg-border-strong outline-none transition-colors disabled:cursor-not-allowed disabled:opacity-50 data-checked:bg-primary",
         className
       )}
     >

@@ -1,5 +1,6 @@
 import type { InventoryItem } from '@/lib/inventory/data';
 import { formatBaseQty, formatDaysRemaining, formatCadenceBucket } from '@/lib/inventory/format';
+import { formatMoney } from '@/lib/format/money';
 import { ListRow } from '@/components/ui/list-row';
 import { Sparkline } from './sparkline';
 
@@ -23,7 +24,7 @@ export function ItemCard({ item }: { item: InventoryItem }) {
       meta={[
         formatCadenceBucket(item.cadenceBucket),
         item.lastPurchasedAt ? `last bought ${new Date(item.lastPurchasedAt).toLocaleDateString()}` : 'never purchased',
-        item.avgUnitPrice90d !== null ? `avg ₹${item.avgUnitPrice90d.toFixed(2)}` : 'no recent price',
+        item.avgUnitPrice90d !== null ? `avg ${formatMoney(item.avgUnitPrice90d)}` : 'no recent price',
       ]}
       trailing={<Sparkline points={item.priceSeries} />}
     />

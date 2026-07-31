@@ -3,8 +3,10 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableRowMobile } from '@/components/ui/table';
 import { EmptyState } from '@/components/ui/empty-state';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getReviewQueue, type ReviewQueueItem } from '@/lib/review/data';
+import { formatMoney } from '@/lib/format/money';
 
 // Same force-dynamic rationale as app/page.tsx and app/add/page.tsx: the
 // review queue must reflect the latest extraction results on every load.
@@ -15,7 +17,7 @@ function formatDate(value: string | null): string {
 }
 
 function formatTotal(value: number | null): string {
-  return value !== null ? `₹${value}` : '—';
+  return value !== null ? formatMoney(value) : '—';
 }
 
 export default async function ReviewQueuePage() {
@@ -25,7 +27,9 @@ export default async function ReviewQueuePage() {
   const queue = await getReviewQueue();
 
   return (
-    <div className="mx-auto w-full max-w-[780px] p-4 md:p-6">
+    <>
+      <MobileTopBar title="Review queue" />
+      <div className="mx-auto w-full max-w-[780px] p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Review queue</CardTitle>
@@ -71,6 +75,7 @@ export default async function ReviewQueuePage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

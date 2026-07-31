@@ -41,6 +41,19 @@ export function PlanItemActions({
     });
   }
 
+  const moveToSelect = (
+    <Select
+      disabled={isPending}
+      value=""
+      placeholder="Move to…"
+      onChange={(e) => {
+        const bucket = e.target.value as CadenceBucket;
+        if (bucket) run(() => setCadenceOverrideAction(catalogItemId, bucket));
+      }}
+      options={CADENCE_BUCKET_ORDER.filter((b) => b !== effectiveBucket).map((b) => ({ value: b, label: formatCadenceBucket(b) }))}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap items-center gap-2">
@@ -52,7 +65,7 @@ export function PlanItemActions({
             <Button size="sm" variant="outline" disabled={isPending} onClick={() => run(() => skipOnceAction(catalogItemId))}>
               Skip once
             </Button>
-            <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run(() => excludeItemAction(catalogItemId))}>
+            <Button size="sm" variant="destructive" disabled={isPending} className="hidden md:inline-flex" onClick={() => run(() => excludeItemAction(catalogItemId))}>
               Always exclude
             </Button>
           </>
@@ -73,24 +86,27 @@ export function PlanItemActions({
           </Button>
         )}
 
-        <div className="w-[150px]">
-          <Select
-            disabled={isPending}
-            value=""
-            placeholder="Move to…"
-            onChange={(e) => {
-              const bucket = e.target.value as CadenceBucket;
-              if (bucket) run(() => setCadenceOverrideAction(catalogItemId, bucket));
-            }}
-            options={CADENCE_BUCKET_ORDER.filter((b) => b !== effectiveBucket).map((b) => ({ value: b, label: formatCadenceBucket(b) }))}
-          />
-        </div>
+        <div className="hidden w-[150px] md:block">{moveToSelect}</div>
 
         {hasCadenceOverride && (
           <Button size="sm" variant="outline" disabled={isPending} onClick={() => run(() => setCadenceOverrideAction(catalogItemId, null))}>
             Revert to auto
           </Button>
         )}
+
+        <details className="md:hidden">
+          <summary className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-md border border-border text-muted-foreground">
+            &hellip;
+          </summary>
+          <div className="mt-2 flex flex-col items-start gap-2">
+            {planState === 'pending' && (
+              <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run(() => excludeItemAction(catalogItemId))}>
+                Always exclude
+              </Button>
+            )}
+            <div className="w-[150px]">{moveToSelect}</div>
+          </div>
+        </details>
       </div>
 
       {showSnooze && planState === 'pending' && (

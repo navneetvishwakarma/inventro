@@ -12,8 +12,13 @@ function revalidateAll(): void {
   revalidatePath('/plan');
 }
 
-export async function getMergePreviewAction(itemAId: string, itemBId: string): Promise<MergePreview> {
-  return getMergePreview(itemAId, itemBId);
+export async function getMergePreviewAction(itemAId: string, itemBId: string): Promise<{ ok: true; preview: MergePreview } | { ok: false; error: string }> {
+  try {
+    const preview = await getMergePreview(itemAId, itemBId);
+    return { ok: true, preview };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 export async function mergeCatalogItemsAction(survivorId: string, loserId: string): Promise<{ ok: true; result: MergeResult } | { ok: false; error: string }> {

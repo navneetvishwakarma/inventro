@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getLeafCategories } from '@/lib/review/data';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { ManualEntryForm } from './manual-entry-form';
 
 // See app/add/page.tsx for why force-dynamic is needed here too.
@@ -15,5 +16,10 @@ export default async function ManualEntryPage() {
   // entirely, backed by log_manual_purchase()'s own server-side guard.
   const categories = (await getLeafCategories()).filter((c) => c.slug !== 'uncategorized');
 
-  return <ManualEntryForm categories={categories} />;
+  return (
+    <>
+      <MobileTopBar title="Add manually" backHref="/add" />
+      <ManualEntryForm categories={categories} />
+    </>
+  );
 }

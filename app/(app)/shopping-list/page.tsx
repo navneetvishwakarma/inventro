@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getActiveShoppingList } from '@/lib/shopping-list/data';
 import { formatShoppingListAsText } from '@/lib/shopping-list/format';
@@ -23,7 +24,9 @@ export default async function ShoppingListPage() {
   const listText = list ? formatShoppingListAsText(list) : '';
 
   return (
-    <div className="flex w-full flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Shopping list" />
+      <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Generate a shopping list</CardTitle>
@@ -78,6 +81,7 @@ export default async function ShoppingListPage() {
           ))}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

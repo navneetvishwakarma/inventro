@@ -10,11 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover active:bg-[var(--gold-700)]",
         tertiary: "bg-transparent text-tertiary hover:bg-tertiary-subtle active:bg-tertiary-subtle",
         outline: "border border-border-strong bg-surface text-foreground hover:bg-surface-sunken",
         ghost: "bg-transparent text-foreground hover:bg-surface-sunken",
-        destructive: "bg-error/10 text-error hover:bg-error/20 active:bg-error/30",
+        destructive:
+          "bg-error-subtle text-error hover:bg-[color-mix(in_oklch,var(--color-error-subtle),var(--color-error)_20%)] active:bg-[color-mix(in_oklch,var(--color-error-subtle),var(--color-error)_35%)]",
       },
       size: {
         sm: "h-8 gap-1.5 rounded-md px-3 text-[13px]",

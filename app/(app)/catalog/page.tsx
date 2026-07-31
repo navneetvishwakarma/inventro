@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getCatalogManagerItems } from '@/lib/catalog/manager';
 import { getLeafCategories } from '@/lib/review/data';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { CatalogManager } from './catalog-manager';
 
 export const dynamic = 'force-dynamic';
@@ -13,5 +14,10 @@ export default async function CatalogPage() {
   const [items, categories] = await Promise.all([getCatalogManagerItems(), getLeafCategories()]);
   const recategorizeCategories = categories.filter((c) => c.slug !== 'uncategorized');
 
-  return <CatalogManager items={items} categories={recategorizeCategories} />;
+  return (
+    <>
+      <MobileTopBar title="Catalog manager" />
+      <CatalogManager items={items} categories={recategorizeCategories} />
+    </>
+  );
 }

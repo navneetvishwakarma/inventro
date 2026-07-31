@@ -2,18 +2,16 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListRow } from '@/components/ui/list-row';
 import { Alert } from '@/components/ui/alert';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getBudgetSummary, getForwardProjection, getTopSpendItems, getPriceAlerts, getWasteReport } from '@/lib/insights/data';
+import { formatMoney as money } from '@/lib/format/money';
 import { ProgressBar } from './progress-bar';
 
 // Same force-dynamic rationale as app/plan/page.tsx and app/shopping-list/page.tsx
 // -- Insights is a live view over the same underlying state everything else
 // uses (UX doc's own stated success signal), never a cached/static report.
 export const dynamic = 'force-dynamic';
-
-function money(n: number): string {
-  return `₹${n.toFixed(2)}`;
-}
 
 export default async function InsightsPage() {
   const household = await getHousehold();
@@ -22,7 +20,9 @@ export default async function InsightsPage() {
   const [budget, projection, topItems, alerts, waste] = await Promise.all([getBudgetSummary(), getForwardProjection(), getTopSpendItems(), getPriceAlerts(), getWasteReport()]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Insights" />
+      <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Spend vs. budget</CardTitle>
@@ -127,6 +127,7 @@ export default async function InsightsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

@@ -25,6 +25,11 @@
       "id": "D4",
       "name": "Post-ship UX/design-system remediation",
       "order": 4
+    },
+    {
+      "id": "D5",
+      "name": "V2: regression coverage + design system",
+      "order": 5
     }
   ],
   "epics": [
@@ -227,6 +232,17 @@
       "estimate": 2,
       "acceptance": "Every screen is reachable from a mobile-width viewport; Switch and Radio show a visible keyboard focus ring; every CHANGELOG-documented responsive collapse (filter trigger, sticky bars, tab scroll) is actually implemented; shared components consume design tokens instead of bypassing them with ad hoc values.",
       "gh_issue": 80
+    },
+    {
+      "id": "E-17",
+      "title": "Test infrastructure & regression coverage",
+      "phase": "D5",
+      "prd_ref": "REQ-28",
+      "order": 17,
+      "vertical": false,
+      "estimate": 2,
+      "acceptance": "npm test runs a unit suite covering computeItemStats (EWMA/shrinkage/outlier-rejection/bucketing), unit normalization, and rate_correction clamping, reproducing the hand-computed S-14a/c fixtures already recorded in docs/MANUAL-TESTS.md; npm run test:e2e passes the gate and gets a 200 on every route in this backlog plus one happy-path assertion per section, using accessible roles/names rather than DOM structure. Alias-hit/trigram matching and backdating-vs-stock_epoch commit behavior need a seeded-DB integration harness (S-47) and are tracked as a deferred follow-up, not silently dropped.",
+      "gh_issue": 89
     }
   ],
   "stories": [
@@ -1030,6 +1046,107 @@
         "commit": "55158fa"
       },
       "acceptance": "Button's secondary variant has an active/pressed state and destructive variant's color-mix recipe matches the design source; Table and ListRow consume the --text-body-sm composite token (incl. its 768px shrink) instead of a hardcoded font-size; Add·Manual's new-item fields and Review Detail's EditableLineFields all have accessible labels; Table column headers carry scope=\"col\"; the shimmer keyframe respects prefers-reduced-motion."
+    },
+    {
+      "id": "S-42",
+      "title": "Test runner setup (vitest + Playwright wired to package.json)",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "in_progress",
+      "order": 42,
+      "estimate": 0.3,
+      "acceptance": "npm test runs vitest against a red-then-green trivial smoke assertion; npm run test:e2e runs a Playwright config pointed at a locally-started dev server with the gate passcode wired from .env.local; both scripts exit non-zero on failure so they're CI-usable later.",
+      "gh_issue": 90,
+      "verify": {
+        "ci": "pass",
+        "commit": "5e727ae"
+      }
+    },
+    {
+      "id": "S-43",
+      "title": "Prediction-engine unit tests (computeItemStats fixtures)",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "in_progress",
+      "order": 43,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "Unit tests reproduce the three MANUAL-TESTS.md S-14a/b/c fixtures verbatim: day 0/7/14/21 purchases bucket weekly with confidence ~0.50 and next-purchase ~day 28; day 0/7/60/67 rejects the 60-day outlier and stays weekly; a 2-purchase item is prior-dominated with confidence ~0.25 and bucket=unpredictable. A same-Kolkata-day duplicate purchase collapses into one event before interval math runs.",
+      "gh_issue": 91,
+      "verify": {
+        "ci": "pass",
+        "commit": "935fc15"
+      }
+    },
+    {
+      "id": "S-44",
+      "title": "Canonicalization/matching + unit-normalization unit tests",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "in_progress",
+      "order": 44,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "Unit tests cover lib/receipts/canonicalize.ts's two pure functions in isolation: normalizeText's casing/whitespace/punctuation normalization, and normalizeUnitToBase across mixed units (kg, l, dozen, pack-of-N, '2 x 500ml') producing correct base-unit quantities, with a nonsense unit string producing qty_base=1 and ambiguous=true (caller demotes review_state). Alias-hit/trigram-similarity matching (matchCatalogItem, runCanonicalization) is DB-bound (Supabase RPC + pg_trgm), out of scope for this story -- deferred to a future integration-test story against a local Supabase instance, not folded in here (deviation from the original story framing; see epic ledger).",
+      "gh_issue": 92,
+      "verify": {
+        "ci": "pass",
+        "commit": "da1e930"
+      }
+    },
+    {
+      "id": "S-45",
+      "title": "Commit/backdating + rate_correction unit tests",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "in_progress",
+      "order": 45,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "Unit tests (mocked Supabase client, no live DB) cover lib/predictions/reconcile.ts's reconcileRateCorrection arithmetic in isolation: multiplier selects DOWN (0.85) when remaining-projected-stock exceeds 40% of pack size, UP (1.15) when elapsed-since-depletion exceeds 20% of the interval, no-op when neither threshold fires or no prior purchase/consumption-signal exists, and the cumulative result is clamped to [0.5, 2.0]. Backdating-vs-stock_epoch itself lives in the commit_receipt SQL RPC, not TypeScript -- covered by S-46's E2E suite instead of a unit test (deviation from the original story framing, discovered while reading lib/review/commit.ts; see epic ledger).",
+      "gh_issue": 93,
+      "verify": {
+        "ci": "pass",
+        "commit": "604dd31"
+      }
+    },
+    {
+      "id": "S-46",
+      "title": "E2E route smoke suite (gate auth, every route, one happy path per section)",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "in_progress",
+      "order": 46,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "A Playwright suite authenticates through /gate once, then asserts every route in this backlog's shipped epics (Today, Add, Add/manual, Catalog, Insights, Inventory, Inventory/[id], Plan, Review, Review/[id], Settings, Shopping-list, Onboarding) returns 200 and renders its expected heading role/name; one happy-path interaction per section (e.g. Plan: click a bucket tab and see it become active) using accessible roles/names, not CSS selectors, so it survives the REQ-29 redesign. Backdating-vs-stock_epoch (A18) is deferred to S-47 -- it needs a seeded-DB integration harness this story does not build (see epic ledger).",
+      "gh_issue": 94,
+      "verify": {
+        "ci": "pass",
+        "commit": "715bc8a"
+      }
+    },
+    {
+      "id": "S-47",
+      "title": "Seeded-DB integration harness (alias matching + backdating commit)",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "notstarted",
+      "order": 47,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "A test-only Supabase service-role seed/cleanup helper inserts and tears down fixture rows (catalog_items, receipts, receipt_lines, stock_movements, item_aliases) against the household configured in .env.local without corrupting the demo household's row counts that REQ-23's npm run validate:predictions depends on. Covers: matchCatalogItem's exact-alias-hit and pg_trgm fuzzy-match/miss bands (deferred from S-44), and commit_receipt's backdating behavior -- a backdated receipt (purchased_at < household.stock_epoch) committed without the past-order override leaves current stock unaffected; committed with the override, an extra 'initial' movement dated now() makes it affected (A18, deferred from S-46). Both deferred here together since they need the same seeded-DB infrastructure, not two separate harnesses.",
+      "gh_issue": 95
     }
   ]
 }

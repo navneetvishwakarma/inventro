@@ -1,0 +1,20 @@
+{
+  "id": "S-44",
+  "title": "Canonicalization + unit-normalization unit tests",
+  "goal": "lib/receipts/canonicalize.ts has two pure, directly-testable functions (normalizeText, normalizeUnitToBase) underneath the DB-touching matching/canonicalization pipeline -- covering these locks in REQ-10's unit-conversion contract without needing a database.",
+  "in_scope": [
+    "lib/receipts/canonicalize.test.ts covering normalizeText (line 10): casing, whitespace collapse, punctuation stripping -- whatever the function's actual documented behavior is per its implementation, not assumed behavior.",
+    "normalizeUnitToBase (line 54) across the working spec's own mixed-unit examples: kg, l, dozen, pack-of-N, '2 x 500ml' -> correct base-unit (g/ml/piece) quantities.",
+    "normalizeUnitToBase with a nonsense/unrecognized unit string -> qtyBase=1, ambiguous=true (the caller, not this function, is responsible for demoting review_state on ambiguous=true -- test only normalizeUnitToBase's own contract)."
+  ],
+  "out_of_scope": [
+    "matchCatalogItem (line 24) and runCanonicalization (line 110) -- both async, both DB-bound (Supabase client, pg_trgm trigram similarity RPC). Unit-testing these meaningfully needs either a mocked Supabase query-builder chain deep enough to be its own story, or a local Supabase instance -- deferred as a follow-up integration-test story, not silently dropped.",
+    "The review_state demotion behavior itself (that's commit.ts/review pipeline call-site logic, not canonicalize.ts)."
+  ],
+  "acceptance": "Unit tests cover lib/receipts/canonicalize.ts's two pure functions in isolation: normalizeText's casing/whitespace/punctuation normalization, and normalizeUnitToBase across mixed units (kg, l, dozen, pack-of-N, '2 x 500ml') producing correct base-unit quantities, with a nonsense unit string producing qty_base=1 and ambiguous=true. Alias-hit/trigram-similarity matching is out of scope, deferred to a future integration-test story.",
+  "invariants": [
+    "No Supabase client import in this test file -- if a test needs one, it belongs to the deferred integration-test story, not here."
+  ],
+  "prd_ref": "REQ-28",
+  "adr_ref": null
+}

@@ -7,12 +7,12 @@ type SupabaseClient = ReturnType<typeof createServiceClient>;
 // mapping the spec states, not re-derived from first principles (the
 // parenthetical "the model over-estimated consumption" is quoted verbatim
 // below, not independently justified).
-const REMAINING_STOCK_HEALTHY_FRACTION = 0.4;
-const DEPLETED_INTERVAL_FRACTION = 0.2;
-const DOWN_MULTIPLIER = 0.85;
-const UP_MULTIPLIER = 1.15;
-const CLAMP_MIN = 0.5;
-const CLAMP_MAX = 2.0;
+export const REMAINING_STOCK_HEALTHY_FRACTION = 0.4;
+export const DEPLETED_INTERVAL_FRACTION = 0.2;
+export const DOWN_MULTIPLIER = 0.85;
+export const UP_MULTIPLIER = 1.15;
+export const CLAMP_MIN = 0.5;
+export const CLAMP_MAX = 2.0;
 
 function daysBetween(a: string, b: string): number {
   return (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000;

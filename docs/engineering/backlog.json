@@ -1015,6 +1015,10 @@
       "estimate": 0.4,
       "blocked_by": ["S-36a"],
       "gh_issue": 85,
+      "verify": {
+        "ci": "pass",
+        "commit": "55158fa"
+      },
       "acceptance": "Button's secondary variant has an active/pressed state and destructive variant's color-mix recipe matches the design source; Table and ListRow consume the --text-body-sm composite token (incl. its 768px shrink) instead of a hardcoded font-size; Add·Manual's new-item fields and Review Detail's EditableLineFields all have accessible labels; Table column headers carry scope=\"col\"; the shimmer keyframe respects prefers-reduced-motion."
     }
   ]

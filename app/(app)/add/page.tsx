@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getHousehold } from '@/lib/onboarding/data';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { AddCapture } from './capture';
 
 // See app/page.tsx (S-04) for why this must be forced dynamic: without it,
@@ -11,5 +12,10 @@ export default async function AddPage() {
   const household = await getHousehold();
   if (!household.onboarded_at) redirect('/onboarding');
 
-  return <AddCapture />;
+  return (
+    <>
+      <MobileTopBar title="Add a receipt" />
+      <AddCapture />
+    </>
+  );
 }

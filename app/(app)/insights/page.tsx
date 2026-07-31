@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListRow } from '@/components/ui/list-row';
 import { Alert } from '@/components/ui/alert';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getBudgetSummary, getForwardProjection, getTopSpendItems, getPriceAlerts, getWasteReport } from '@/lib/insights/data';
 import { ProgressBar } from './progress-bar';
@@ -22,7 +23,9 @@ export default async function InsightsPage() {
   const [budget, projection, topItems, alerts, waste] = await Promise.all([getBudgetSummary(), getForwardProjection(), getTopSpendItems(), getPriceAlerts(), getWasteReport()]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Insights" />
+      <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Spend vs. budget</CardTitle>
@@ -127,6 +130,7 @@ export default async function InsightsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

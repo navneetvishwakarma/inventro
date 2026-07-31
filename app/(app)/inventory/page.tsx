@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getInventoryItems, type InventoryItem } from '@/lib/inventory/data';
 import { formatCadenceBucket } from '@/lib/inventory/format';
@@ -70,7 +71,9 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   const allCadences = [...new Set(items.map((i) => i.cadenceBucket).filter((c): c is NonNullable<typeof c> => c !== null))];
 
   return (
-    <div className="flex w-full flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title="Inventory" />
+      <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Inventory</CardTitle>
@@ -172,6 +175,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
           </CardContent>
         </Card>
       ))}
-    </div>
+      </div>
+    </>
   );
 }

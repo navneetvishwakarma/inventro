@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableRowMobile } from '@/components/ui/table';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getInventoryItem, type ItemDetail } from '@/lib/inventory/data';
 
@@ -36,7 +37,9 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
+    <>
+      <MobileTopBar title={item.canonicalName} backHref="/inventory" />
+      <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>
@@ -101,6 +104,7 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

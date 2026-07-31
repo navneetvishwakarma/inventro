@@ -806,7 +806,11 @@
         "S-21"
       ],
       "gh_issue": 63,
-      "acceptance": "Forward projection of next month's committed recurring spend derives directly from live cadences and prices."
+      "acceptance": "Forward projection of next month's committed recurring spend derives directly from live cadences and prices.",
+      "verify": {
+        "ci": "pass",
+        "commit": "4716fc0"
+      }
     },
     {
       "id": "S-32",

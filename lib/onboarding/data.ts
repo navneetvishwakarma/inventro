@@ -15,7 +15,7 @@ export async function getHousehold() {
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from('households')
-    .select('id, name, monthly_budget, onboarded_at')
+    .select('id, name, monthly_budget, onboarded_at, notify_email')
     .eq('id', getDefaultHouseholdId())
     .single();
   if (error) throw error;

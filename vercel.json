@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/recompute-stats",
       "schedule": "30 21 * * *"
+    },
+    {
+      "path": "/api/cron/digest-daily",
+      "schedule": "30 1 * * *"
+    },
+    {
+      "path": "/api/cron/digest-weekly",
+      "schedule": "30 12 * * 0"
     }
   ]
 }

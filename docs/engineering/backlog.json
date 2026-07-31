@@ -1121,14 +1121,18 @@
       "title": "E2E route smoke suite (gate auth, every route, one happy path per section)",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 46,
       "estimate": 0.4,
       "blocked_by": [
         "S-42"
       ],
       "acceptance": "A Playwright suite authenticates through /gate once, then asserts every route in this backlog's shipped epics (Today, Add, Add/manual, Catalog, Insights, Inventory, Inventory/[id], Plan, Review, Review/[id], Settings, Shopping-list, Onboarding) returns 200 and renders its expected heading role/name; one happy-path interaction per section (e.g. Plan: click a bucket tab and see it become active) using accessible roles/names, not CSS selectors, so it survives the REQ-29 redesign. Backdating-vs-stock_epoch (A18) is deferred to S-47 -- it needs a seeded-DB integration harness this story does not build (see epic ledger).",
-      "gh_issue": 94
+      "gh_issue": 94,
+      "verify": {
+        "ci": "pass",
+        "commit": "715bc8a"
+      }
     },
     {
       "id": "S-47",

@@ -20,6 +20,11 @@
       "id": "D3",
       "name": "Capture polish, trust, ship",
       "order": 3
+    },
+    {
+      "id": "D4",
+      "name": "Post-ship UX/design-system remediation",
+      "order": 4
     }
   ],
   "epics": [
@@ -212,6 +217,16 @@
       "estimate": 0.5,
       "acceptance": "All §11 acceptance tests pass on the production URL (ship gate).",
       "gh_issue": 72
+    },
+    {
+      "id": "E-16",
+      "title": "Mobile navigation & design-system fidelity remediation",
+      "phase": "D4",
+      "prd_ref": "REQ-26",
+      "order": 16,
+      "estimate": 2,
+      "acceptance": "Every screen is reachable from a mobile-width viewport; Switch and Radio show a visible keyboard focus ring; every CHANGELOG-documented responsive collapse (filter trigger, sticky bars, tab scroll) is actually implemented; shared components consume design tokens instead of bypassing them with ad hoc values.",
+      "gh_issue": 80
     }
   ],
   "stories": [
@@ -925,6 +940,66 @@
         "ci": "pass",
         "commit": "6688151"
       }
+    },
+    {
+      "id": "S-37",
+      "title": "Mobile reachability + focus-ring/functional blockers",
+      "epic": "E-16",
+      "prd_ref": "REQ-26",
+      "status": "notstarted",
+      "order": 37,
+      "estimate": 0.4,
+      "blocked_by": ["S-36a"],
+      "gh_issue": 81,
+      "acceptance": "Settings and Shopping List gain a direct link reachable from Today (or another always-visible surface) on mobile; Catalog and Review remain reachable even when their conditional link is absent (empty review queue); Switch and Radio both show a visible focus-visible ring on keyboard Tab; the gate passcode cookie works on http://localhost; a catalog merge-preview RPC failure surfaces a visible error instead of leaving Confirm merge silently disabled forever."
+    },
+    {
+      "id": "S-38",
+      "title": "Mobile top bar component + rollout",
+      "epic": "E-16",
+      "prd_ref": "REQ-26",
+      "status": "notstarted",
+      "order": 38,
+      "estimate": 0.4,
+      "blocked_by": ["S-37"],
+      "gh_issue": 82,
+      "acceptance": "A new components/ui MobileTopBar (title + optional back button) renders below the lg breakpoint on every app/(app) route with the screen's title; Review Detail and Inventory Detail show a working back button."
+    },
+    {
+      "id": "S-39",
+      "title": "Documented mobile responsive collapses (filter bar, tabs, sticky bars)",
+      "epic": "E-16",
+      "prd_ref": "REQ-26",
+      "status": "notstarted",
+      "order": 39,
+      "estimate": 0.4,
+      "blocked_by": ["S-36a"],
+      "gh_issue": 83,
+      "acceptance": "Below 768px: Inventory's filter bar collapses behind a single \"Filters (N active)\" trigger; Plan's bucket Tabs scroll horizontally instead of wrapping, and per-item actions collapse to Snooze/Skip + overflow; Catalog's Merge selected button and Review Detail's Commit button are pinned to the viewport bottom instead of scrolling with content."
+    },
+    {
+      "id": "S-40",
+      "title": "Shared money formatter + consume/display bug fixes",
+      "epic": "E-16",
+      "prd_ref": "REQ-26",
+      "status": "notstarted",
+      "order": 40,
+      "estimate": 0.35,
+      "blocked_by": ["S-36a"],
+      "gh_issue": 84,
+      "acceptance": "A single lib/format money helper (thousands-grouped, 2dp, en-IN) replaces every ad hoc ₹ formatting call site across Insights, Review, Inventory, Shopping list; Review Detail's matched-line subtitle shows human-formatted qty/unit via the existing formatBaseQty helper instead of raw numbers; the Inventory item-detail Log button rejects amount<=0 with a visible validation message instead of silently no-op'ing; Sparkline's default tone reverts to neutral instead of hardcoded brand red."
+    },
+    {
+      "id": "S-41",
+      "title": "Component/token fidelity pass (Button, Table/ListRow typography, labels, a11y, reduced motion)",
+      "epic": "E-16",
+      "prd_ref": "REQ-26",
+      "status": "notstarted",
+      "order": 41,
+      "estimate": 0.4,
+      "blocked_by": ["S-36a"],
+      "gh_issue": 85,
+      "acceptance": "Button's secondary variant has an active/pressed state and destructive variant's color-mix recipe matches the design source; Table and ListRow consume the --text-body-sm composite token (incl. its 768px shrink) instead of a hardcoded font-size; Add·Manual's new-item fields and Review Detail's EditableLineFields all have accessible labels; Table column headers carry scope=\"col\"; the shimmer keyframe respects prefers-reduced-motion."
     }
   ]
 }

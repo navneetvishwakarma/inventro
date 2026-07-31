@@ -1,0 +1,22 @@
+{
+  "id": "S-40",
+  "title": "Shared money formatter + consume/display bug fixes",
+  "goal": "No shared currency formatter exists anywhere in the codebase (confirmed via repo-wide grep for toFixed/Intl.NumberFormat/₹) -- six call sites each reinvent ₹ formatting differently, one (Shopping list) not even calling toFixed, producing inconsistent and sometimes ungrouped output such as ₹84200.00 on Insights instead of ₹8,420.",
+  "in_scope": [
+    "New lib/format/money.ts exporting a single formatMoney(amountInRupees: number) using Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }) or equivalent manual thousands-grouping if Intl's symbol placement doesn't match the app's existing ₹-prefix convention -- verify against current rendered output before choosing the exact implementation.",
+    "Replace ad hoc formatting at: app/(app)/insights/page.tsx:15 (money() helper), app/(app)/review/page.tsx:18, app/(app)/review/[id]/review-detail.tsx:423, app/(app)/inventory/item-card.tsx:26, app/(app)/inventory/[id]/page.tsx:56, app/(app)/shopping-list/shopping-list-item-row.tsx:63 (currently unformatted raw ₹{loggedPrice}).",
+    "app/(app)/review/[id]/review-detail.tsx:423 also currently shows the raw qty_base number -- switch to the existing lib/inventory/format.ts formatBaseQty helper (already used everywhere else for the identical qty_base+baseUnit pair) instead of the bare base-unit number.",
+    "app/(app)/inventory/[id]/consume-actions.tsx:62-68 -- the Log button's disabled condition only checks for empty/NaN input, not <=0. Add the <=0 check to the disabled condition and show a visible validation message (not a silent no-op) when a user submits an invalid amount.",
+    "app/(app)/inventory/sparkline.tsx:23 -- drop the hardcoded className=\"... text-primary\" and default to the neutral text-foreground-subtle tone the design system specifies, keeping tone overridable via prop for any future caller that wants brand color deliberately."
+  ],
+  "out_of_scope": [
+    "app/(app)/settings/page.tsx's usd() helper (lines 23-25) -- already correctly separated from the ₹ formatter with a documented rationale (fractional-cent USD LLM cost accounting); not touched.",
+    "Any change to how prices are stored or computed -- formatting only."
+  ],
+  "acceptance": "Money values render with thousands separators everywhere (e.g. ₹8,420.00, not ₹8420.00 or unformatted); Review Detail shows human-formatted units instead of raw base-unit numbers; entering 0 or a negative consume amount shows a visible validation error instead of silently no-op'ing.",
+  "invariants": [
+    "formatMoney must round to the same 2-decimal precision every existing call site already used -- no silent precision change to displayed totals."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

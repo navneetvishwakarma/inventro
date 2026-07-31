@@ -1,0 +1,25 @@
+{
+  "id": "S-41",
+  "title": "Component/token fidelity pass (Button, Table/ListRow typography, labels, a11y, reduced motion)",
+  "goal": "A small set of shared-component divergences from the design source (color recipes, token bypasses, missing labels/a11y attributes) currently repeats on every screen that uses Button/Table/ListRow, so fixing them once here fixes every screen that consumes them rather than patching per-page.",
+  "in_scope": [
+    "components/ui/button.tsx:13 secondary variant -- add an active/pressed state (active:bg-gold-700), matching design/components/forms/Button.jsx:15's bgActive: var(--gold-700), which is already themed in app/globals.css:117.",
+    "components/ui/button.tsx:17 destructive variant -- replace the bg-error/10 hover:bg-error/20 active:bg-error/30 opacity-modifier approach with the design's actual color-mix recipe (rest = var(--color-error-subtle), hover/active = color-mix(in oklch, var(--color-error-subtle), var(--color-error) 20%/35%, transparent)), per design/components/forms/Button.jsx:23.",
+    "components/ui/table.tsx:23 and components/ui/list-row.tsx:28,30 -- replace hardcoded text-[0.875rem]/text-xs with the [font:var(--text-body-sm)]/[font:var(--text-caption)] arbitrary-property pattern components/ui/card.tsx:51 (CardDescription) already uses correctly, restoring the composite token's line-height and its 768px responsive shrink (app/globals.css:94-105).",
+    "components/ui/table.tsx:27-33 -- add scope=\"col\" to the <th> column headers (missing in both the design source and the implementation; fixed once here since table.tsx is the app's only real <table> element).",
+    "app/(app)/add/manual/manual-entry-form.tsx:250-258 -- add a label prop to the new-item category Select and the Brand/Qty/Unit Inputs (currently placeholder-only, no accessible name).",
+    "app/(app)/review/[id]/review-detail.tsx's EditableLineFields (~lines 62-75) -- add label props to Item name/Brand/Category/Qty/Unit fields, matching design/screens/07-review-detail.html:124-127.",
+    "app/globals.css's @keyframes inv-shimmer block (~line 322) -- wrap the animate-shimmer utility so it's disabled/replaced with a static state under @media (prefers-reduced-motion: reduce)."
+  ],
+  "out_of_scope": [
+    "The broader touch-target-sizing shortfall (Button sm/md, Checkbox, Radio, Switch below the 44px --touch-target-min token) -- true in the design source too, not a regression, and large enough to warrant its own future story rather than folding into this one.",
+    "Sidebar/TabBar's dropped active/onNavigate prop API, unwired --radius-full/breakpoint/color-ramp tokens, and Alert/EmptyState role/line-height nitpicks -- logged in the audit as minor/info findings with no user-visible impact; not worth the churn in this remediation pass."
+  ],
+  "acceptance": "Button's secondary variant has an active/pressed state and destructive variant's color-mix recipe matches the design source; Table and ListRow consume the --text-body-sm composite token (including its 768px shrink) instead of a hardcoded font-size; Add·Manual's new-item fields and Review Detail's EditableLineFields all have accessible labels; Table column headers carry scope=\"col\"; the shimmer keyframe respects prefers-reduced-motion.",
+  "invariants": [
+    "Button variant changes must not alter any non-color styling (padding, radius, sizing) already correct.",
+    "Table/ListRow's typography fix must visually match the current desktop rendering exactly (0.875rem at >=768px) -- only the sub-768px behavior changes."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

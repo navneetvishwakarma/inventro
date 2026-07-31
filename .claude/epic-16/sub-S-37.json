@@ -1,0 +1,27 @@
+{
+  "id": "S-37",
+  "title": "Mobile reachability + focus-ring/functional blockers",
+  "goal": "Unblock navigation and fix the accessibility/functional defects that make parts of the app unusable on mobile, not just visually off-spec -- confirmed by grep that nothing links to /settings or /shopping-list anywhere except the desktop-only Sidebar (app/(app)/layout.tsx:17,40), and that Switch/Radio have no visible keyboard focus indicator at all.",
+  "in_scope": [
+    "app/(app)/page.tsx CardFooter (lines 57-73): add 'Settings' and 'Shopping list' links alongside the existing plan/inventory/add-manual/catalog/insights links, using the same buttonVariants({ variant: 'ghost', size: 'sm' }) pattern -- per the 2026-07-31 product decision to keep the TabBar's plain 5-item set (Today/Inventory/Add/Plan/Insights) and add direct links instead of the CHANGELOG's proposed Shop/More folding scheme.",
+    "Today's /review link is conditional on reviewQueue.length > 0 (app/(app)/page.tsx:51-54) -- once the queue empties, mobile has zero path back to /review, even to see its own empty state. Make this link unconditional (still show the count when > 0).",
+    "Verify Catalog remains reachable via an always-visible link after the above edit (currently linked from Today's footer and from app/(app)/inventory/page.tsx:79) -- no new work if so.",
+    "components/ui/switch.tsx:28 -- remove focus-visible:ring-0, which currently zeroes the global :focus-visible box-shadow ring (app/globals.css:353-356). Switch must show a visible keyboard focus indicator like every other interactive control.",
+    "components/ui/radio.tsx:28-42 -- the visually-hidden native input (opacity-0) is the actual focus target, so its focus box-shadow is invisible on the rendered radio. Add a peer-focus-visible:ring-* class on the visible span, mirroring how Checkbox already makes its own Root the visible, focusable element.",
+    "app/gate/actions.ts:19 -- cookie is set secure: true unconditionally, which browsers silently drop on plain http://localhost. Scope it to production only (e.g. process.env.NODE_ENV === 'production') so local dev passcode entry works.",
+    "Catalog merge-preview error handling: the RPC chain (app/(app)/catalog/actions.ts's getMergePreviewAction -> lib/catalog/manager.ts's getMergePreview, which throws on any Supabase error) has no try/catch anywhere, including the caller's useEffect in catalog-manager.tsx (~lines 108-113) awaiting it inside startTransition. Add error handling at both layers so an RPC failure surfaces a visible Alert instead of leaving preview null forever with 'Confirm merge' silently, permanently disabled."
+  ],
+  "out_of_scope": [
+    "The Shop/More tab-bar folding scheme proposed in design/CHANGELOG.md:20 -- explicitly rejected by the product owner in favor of keeping the existing TabBar item set and adding direct links.",
+    "Any new overflow/sheet/drawer component -- not needed under the chosen approach.",
+    "MobileTopBar and the per-screen responsive-collapse work -- covered by S-38 and S-39 respectively."
+  ],
+  "acceptance": "Settings and Shopping List gain a direct link reachable from Today (or another always-visible surface) on mobile; Catalog and Review remain reachable even when their conditional link is absent (empty review queue); Switch and Radio both show a visible focus-visible ring on keyboard Tab; the gate passcode cookie works on http://localhost; a catalog merge-preview RPC failure surfaces a visible error instead of leaving Confirm merge silently disabled forever.",
+  "invariants": [
+    "The Today page's CardFooter link list continues to use the shared buttonVariants pattern already used by every other link in that footer -- no bespoke styling introduced.",
+    "The Switch/Radio focus-ring fix must not remove or alter the global :focus-visible ring definition (app/globals.css:353-357) for any other component -- scoped to these two files only.",
+    "The gate cookie fix must keep secure:true in production -- this is a dev-environment-only relaxation, not a security regression."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

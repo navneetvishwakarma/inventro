@@ -1,0 +1,22 @@
+{
+  "id": "S-39",
+  "title": "Documented mobile responsive collapses (filter bar, tabs, sticky bars)",
+  "goal": "design/CHANGELOG.md:55-68 checkmarks four specific web->mobile responsive collapses as 'verified' against the wireframe stage. None of the four actually exist in the shipped code -- all four render their full desktop layout unconditionally at every breakpoint, confirmed by reading each file directly.",
+  "in_scope": [
+    "Inventory filter bar (app/(app)/inventory/page.tsx:88-125): collapse the 5-control inline form (search, 3 selects, checkbox, Apply) behind a single 'Filters (N active)' trigger below 768px, per design/CHANGELOG.md:61 and design/screens/08-inventory-list.html:120-122. N = count of non-default query params (category/cadence/stock/staples) currently applied.",
+    "Plan bucket Tabs (components/ui/tabs.tsx:24 is flex flex-wrap; consumers app/(app)/plan/bucket-tabs.tsx and app/(app)/plan/page.tsx:68-75): wrap in a horizontal-scroll container (overflow-x-auto, flex-nowrap) below 768px instead of wrapping to multiple rows, per design/CHANGELOG.md:63 and design/screens/10-plan.html:157.",
+    "Plan per-item mobile actions (app/(app)/plan/plan-item-actions.tsx:44-94): collapse to Snooze/Skip once + a '...' overflow trigger below 768px, hiding 'Always exclude' and the 'Move to...' Select behind it, per design/screens/10-plan.html:124-130.",
+    "Catalog 'Merge selected' button (app/(app)/catalog/catalog-manager.tsx:200-207): pin to a sticky, full-width bottom bar below 768px instead of sitting inline in the toolbar row, per design/CHANGELOG.md:64 and design/screens/13-catalog.html:168-171.",
+    "Review Detail Commit button (app/(app)/review/[id]/review-detail.tsx:450-453): move out of the scrolling CardContent into a sticky bottom bar below 768px, per design/CHANGELOG.md:60 and design/screens/07-review-detail.html:169,176-178."
+  ],
+  "out_of_scope": [
+    "Any change to desktop (>=768px) layout for these five spots -- all five already match the mockup at desktop width.",
+    "Editing design/CHANGELOG.md's inaccurate checkmarks -- a docs-only follow-up, not required for this story's acceptance."
+  ],
+  "acceptance": "At <768px, inventory filters collapse behind a single trigger; plan bucket tabs scroll horizontally instead of wrapping, and per-item mobile actions collapse to Snooze/Skip + overflow; catalog merge bar and review commit button are pinned to viewport bottom, not scrolled with content.",
+  "invariants": [
+    "None of these five changes may alter the underlying data/state logic (filter query params, tab selection, merge selection, commit payload) -- presentation/layout only."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

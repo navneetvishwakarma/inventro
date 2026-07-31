@@ -1,0 +1,21 @@
+{
+  "id": "S-38",
+  "title": "Mobile top bar component + rollout",
+  "goal": "Every one of the 14 design/screens/*.html mockups' mobile frame includes a MobileTopBar (title, optional back button) for page orientation once the desktop-only Sidebar disappears below lg (design/screens/03-today.html:82-87 and equivalents). No implemented route has one today, so mobile users get zero page-identification chrome anywhere in the app.",
+  "in_scope": [
+    "New components/ui/mobile-top-bar.tsx: a 44-48px header with title text and an optional back button (Link to a fixed href, or router.back()), rendered only below the lg breakpoint -- parallel to the existing Sidebar/TabBar breakpoint split in app/(app)/layout.tsx:40,45.",
+    "Wire it into every app/(app)/**/page.tsx route (Today, Add, Add Manual, Review queue, Review Detail, Inventory, Inventory Detail, Plan, Shopping List, Insights, Catalog, Settings) using each screen's title from the corresponding design/screens/*.html mockup.",
+    "Add back={true} on Review Detail (app/(app)/review/[id]/page.tsx) and Inventory Detail (app/(app)/inventory/[id]/page.tsx) -- the two screens whose mockups show a back affordance (design/screens/07-review-detail.html:171, design/screens/09-inventory-detail.html:171)."
+  ],
+  "out_of_scope": [
+    "/gate and /onboarding -- explicitly excluded from nav chrome per the design spec's 'no nav chrome' note, already honored by the app/(app)/ route-group boundary.",
+    "Any change to the desktop Sidebar."
+  ],
+  "acceptance": "A new components/ui MobileTopBar (title + optional back button) renders below the lg breakpoint on every app/(app) route with the screen's title; Review Detail and Inventory Detail show a working back button.",
+  "invariants": [
+    "MobileTopBar must not render at >=lg viewport widths -- matches the existing Sidebar/TabBar breakpoint split.",
+    "Its title must not duplicate information already shown in a page's own CardTitle on the same screen -- it identifies the route, the Card identifies the content."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

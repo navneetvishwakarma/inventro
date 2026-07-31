@@ -1052,11 +1052,15 @@
       "title": "Test runner setup (vitest + Playwright wired to package.json)",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 42,
       "estimate": 0.3,
       "acceptance": "npm test runs vitest against a red-then-green trivial smoke assertion; npm run test:e2e runs a Playwright config pointed at a locally-started dev server with the gate passcode wired from .env.local; both scripts exit non-zero on failure so they're CI-usable later.",
-      "gh_issue": 90
+      "gh_issue": 90,
+      "verify": {
+        "ci": "pass",
+        "commit": "5e727ae"
+      }
     },
     {
       "id": "S-43",

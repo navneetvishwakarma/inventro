@@ -77,12 +77,23 @@ export type ForwardProjection = {
 // wording). Reuses S-21's getPlanItems() (already reads item_stats'
 // cadenceBucket/intervalEstDays and computes suggestedQtyBase with the
 // exact no-rate-signal-safe fallback -- not re-derived here) combined with
-// get_latest_prices' per-item latest verified price. monthlyProjected per
-// item = (suggestedQtyBase / intervalEstDays) * 30 * latestPricePerBaseUnit
-// -- suggestedQtyBase is already a pack-aware "how much you'll buy this
-// cycle" figure; dividing by the cycle length and scaling to 30 days turns
-// it into "how much you'll spend in a typical month," using the single
-// formula S-21 already established rather than a second competing one.
+// get_latest_prices' per-item latest verified price.
+//
+// monthlyProjected uses dailyRateBase directly when it's known (an actual
+// measured consumption rate, unbiased), falling back to
+// suggestedQtyBase/intervalEstDays only when there's no rate signal yet.
+// Advisor-caught before shipping: a single suggestedQtyBase/intervalEstDays
+// formula for BOTH cases inherits S-21's pack-rounding
+// (suggestedQtyBase = defaultPackSize * ceil(cycleConsumption/defaultPackSize)),
+// which is correct for "what to buy this cycle" but systematically
+// OVERSTATES spend for any item whose real per-cycle consumption is below
+// one pack -- unboundedly so (e.g. cycleConsumption 300 against a
+// defaultPackSize of 1000 comes out ~3.3x too high). The seeder's fixture
+// data couldn't catch this: it emits qtyBase = defaultPackSize for every
+// event, so cycleConsumption == defaultPackSize by construction and both
+// formulas agree on demo data -- confirmed by a separate pure arithmetic
+// check (dailyRateBase=30, intervalEstDays=10, defaultPackSize=1000: the
+// single-formula version gives 3x the dailyRateBase-direct answer).
 export async function getForwardProjection(): Promise<ForwardProjection> {
   const supabase = createServiceClient();
   const householdId = getDefaultHouseholdId();
@@ -106,7 +117,8 @@ export async function getForwardProjection(): Promise<ForwardProjection> {
       continue;
     }
 
-    const monthlyProjected = (item.suggestedQtyBase / item.intervalEstDays) * 30 * price;
+    const dailyRateEquivalent = item.dailyRateBase ?? item.suggestedQtyBase / item.intervalEstDays;
+    const monthlyProjected = dailyRateEquivalent * 30 * price;
     items.push({ catalogItemId: item.id, canonicalName: item.canonicalName, monthlyProjected });
   }
 

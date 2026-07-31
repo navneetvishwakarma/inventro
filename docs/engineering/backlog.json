@@ -799,7 +799,7 @@
       "title": "Insights screen: spend vs. budget by category, forward spend projection, top-10 items, price alerts, waste report",
       "epic": "E-12",
       "prd_ref": "REQ-19",
-      "status": "notstarted",
+      "status": "done",
       "order": 31,
       "estimate": 0.4,
       "blocked_by": [
@@ -869,7 +869,7 @@
       "title": "Error/empty/loading states, mobile pass, dark mode",
       "epic": "E-15",
       "prd_ref": "REQ-26",
-      "status": "blocked",
+      "status": "notstarted",
       "order": 36,
       "estimate": 0.2,
       "blocked_by": [

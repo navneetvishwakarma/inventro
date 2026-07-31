@@ -983,6 +983,10 @@
       "estimate": 0.4,
       "blocked_by": ["S-36a"],
       "gh_issue": 83,
+      "verify": {
+        "ci": "pass",
+        "commit": "aca7779"
+      },
       "acceptance": "Below 768px: Inventory's filter bar collapses behind a single \"Filters (N active)\" trigger; Plan's bucket Tabs scroll horizontally instead of wrapping, and per-item actions collapse to Snooze/Skip + overflow; Catalog's Merge selected button and Review Detail's Commit button are pinned to the viewport bottom instead of scrolling with content."
     },
     {

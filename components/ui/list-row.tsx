@@ -25,9 +25,9 @@ function ListRow({ title, subtitle, meta = [], trailing, href, onClick, classNam
         <span className="text-sm font-semibold text-foreground">{title}</span>
         {trailing}
       </div>
-      {subtitle ? <span className="text-[0.875rem] text-muted-foreground">{subtitle}</span> : null}
+      {subtitle ? <span className="[font:var(--text-body-sm)] text-muted-foreground">{subtitle}</span> : null}
       {meta.length > 0 ? (
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-2 [font:var(--text-caption)] text-muted-foreground">
           {meta.map((m, i) => (
             <span key={i}>{m}</span>
           ))}

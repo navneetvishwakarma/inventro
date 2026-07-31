@@ -327,6 +327,11 @@ body {
     background-position: -200% 0;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation: none;
+  }
+}
 
 @layer base {
   * {

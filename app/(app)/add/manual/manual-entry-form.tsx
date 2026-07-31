@@ -247,18 +247,20 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
           {showNewItemForm && (
             <div className="flex flex-col gap-2 rounded-md border border-border p-3">
               <strong className="text-[0.875rem]">New item: {query.trim()}</strong>
-              <Input value={newBrand} onChange={(e) => setNewBrand(e.target.value)} placeholder="Brand (optional)" />
+              <Input value={newBrand} onChange={(e) => setNewBrand(e.target.value)} placeholder="Brand (optional)" label="Brand (optional)" />
               <Select
                 value={newCategorySlug}
                 onChange={(e) => setNewCategorySlug(e.target.value)}
                 options={categories.map((c) => ({ value: c.slug, label: c.name }))}
+                label="Category"
+                placeholder="Category"
               />
               <div className="flex gap-2">
-                <Input value={newQtyDisplay} onChange={(e) => setNewQtyDisplay(e.target.value)} placeholder="Qty" />
-                <Input value={newUnitDisplay} onChange={(e) => setNewUnitDisplay(e.target.value)} placeholder="Unit (e.g. kg, piece)" />
+                <Input value={newQtyDisplay} onChange={(e) => setNewQtyDisplay(e.target.value)} placeholder="Qty" label="Qty" />
+                <Input value={newUnitDisplay} onChange={(e) => setNewUnitDisplay(e.target.value)} placeholder="Unit (e.g. kg, piece)" label="Unit" />
               </div>
-              <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Total paid (optional)" />
-              <Input type="date" value={dateString} onChange={(e) => setDateString(e.target.value)} max={todayString()} />
+              <Input type="number" min={0} step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} placeholder="Total paid (optional)" label="Total paid (optional)" />
+              <Input type="date" value={dateString} onChange={(e) => setDateString(e.target.value)} max={todayString()} label="Date" />
               <Button type="button" onClick={handleCreateNew} disabled={isPending}>
                 Create item &amp; log purchase
               </Button>

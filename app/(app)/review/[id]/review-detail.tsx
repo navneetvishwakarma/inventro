@@ -63,16 +63,17 @@ function EditableLineFields({
 }) {
   return (
     <div className="grid grid-cols-2 gap-2">
-      <Input value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Item name" size="sm" />
-      <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Brand (optional)" size="sm" />
+      <Input value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Item name" label="Item name" size="sm" />
+      <Input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Brand (optional)" label="Brand (optional)" size="sm" />
       <Select
         value={categorySlug}
         onChange={(e) => setCategorySlug(e.target.value)}
         options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        label="Category"
       />
       <div className="flex gap-2">
-        <Input value={qtyDisplay} onChange={(e) => setQtyDisplay(e.target.value)} placeholder="Qty" size="sm" />
-        <Input value={unitDisplay} onChange={(e) => setUnitDisplay(e.target.value)} placeholder="Unit" size="sm" />
+        <Input value={qtyDisplay} onChange={(e) => setQtyDisplay(e.target.value)} placeholder="Qty" label="Qty" size="sm" />
+        <Input value={unitDisplay} onChange={(e) => setUnitDisplay(e.target.value)} placeholder="Unit" label="Unit" size="sm" />
       </div>
     </div>
   );

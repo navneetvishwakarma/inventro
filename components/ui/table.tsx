@@ -20,12 +20,13 @@ export interface TableProps<T> {
 function Table<T extends Record<string, unknown>>({ columns, rows, keyField = "id" as keyof T, className }: TableProps<T>) {
   return (
     <div className={cn("w-full overflow-x-auto", className)}>
-      <table className="w-full border-collapse text-[0.875rem]">
+      <table className="w-full border-collapse [font:var(--text-body-sm)]">
         <thead>
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
+                scope="col"
                 className="border-b border-border-strong px-2.5 py-2 text-[11px] font-semibold tracking-[0.04em] text-muted-foreground uppercase"
                 style={{ textAlign: column.align ?? "left" }}
               >

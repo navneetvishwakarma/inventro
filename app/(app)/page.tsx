@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { buttonVariants } from '@/components/ui/button';
 import { ListRow } from '@/components/ui/list-row';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getReviewQueue } from '@/lib/review/data';
 import { getItemsNeedingAttention } from '@/lib/inventory/data';
@@ -35,7 +36,7 @@ export default async function TodayPage() {
   const nothingToShow = needsAttention.length === 0 && dueSoon.length === 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>{household.name}</CardTitle>
@@ -48,7 +49,7 @@ export default async function TodayPage() {
         <CardContent>
           <p className="text-sm text-muted-foreground">Add your first receipt to start tracking what&apos;s in stock.</p>
           {reviewQueue.length > 0 && (
-            <Link href="/review" className={buttonVariants({ variant: 'tertiary', size: 'sm' })}>
+            <Link href="/review" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
               {reviewQueue.length} receipt{reviewQueue.length === 1 ? '' : 's'} waiting for review
             </Link>
           )}

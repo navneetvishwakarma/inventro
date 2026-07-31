@@ -70,7 +70,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
   const allCadences = [...new Set(items.map((i) => i.cadenceBucket).filter((c): c is NonNullable<typeof c> => c !== null))];
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+    <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Inventory</CardTitle>

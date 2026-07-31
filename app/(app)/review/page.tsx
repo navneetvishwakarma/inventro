@@ -25,7 +25,7 @@ export default async function ReviewQueuePage() {
   const queue = await getReviewQueue();
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-4">
+    <div className="mx-auto w-full max-w-[780px] p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Review queue</CardTitle>

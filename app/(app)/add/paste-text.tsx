@@ -23,7 +23,7 @@ export function AddPasteText({ onSubmit, disabled }: { onSubmit: (files: File[])
 
   if (!open) {
     return (
-      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} disabled={disabled}>
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} disabled={disabled} className="self-start">
         Paste order text
       </Button>
     );

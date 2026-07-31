@@ -28,14 +28,6 @@ body {
   margin: 0;
 }
 
-a {
-  color: var(--link);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--link-hover);
-}
-
 /* Design-system tokens (design/tokens/*.css) — spacing, typography and
    motion are consumed as plain custom properties (arbitrary Tailwind
    values, e.g. duration-(--duration-fast)), not re-declared under @theme,
@@ -346,6 +338,13 @@ a:hover {
   }
   html {
     @apply font-sans;
+  }
+  a {
+    color: var(--link);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--link-hover);
   }
   ::selection {
     background: var(--primary-subtle);

@@ -57,7 +57,7 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface-sunken p-4">
-      <div className="w-full max-w-[480px]">
+      <div className="w-full max-w-[420px]">
         <Card>
           <div className="flex flex-col gap-4">
             <StepDots step={step} />

@@ -152,7 +152,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
 
   if (status === 'success') {
     return (
-      <div className="mx-auto w-full max-w-[480px] p-4">
+      <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle>Purchase logged</CardTitle>
@@ -160,7 +160,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
           </CardHeader>
           <CardContent>
             <Button onClick={reset}>Log another</Button>
-            <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+            <Link href="/" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
               Back to Today
             </Link>
           </CardContent>
@@ -170,7 +170,7 @@ export function ManualEntryForm({ categories }: { categories: LeafCategory[] }) 
   }
 
   return (
-    <div className="mx-auto w-full max-w-[480px] p-4">
+    <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Add manually</CardTitle>

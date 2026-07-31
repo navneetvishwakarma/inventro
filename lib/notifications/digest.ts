@@ -42,13 +42,20 @@ export type SendResult = { sent: boolean; reason?: string };
 // RESEND_API_KEY is unconfigured in this environment and the SDK's surface
 // can't be exercised live either way (see .claude/epic-13/sub-S-32.json).
 // Callers are responsible for the dueCount===0 skip (route-specific reason
-// text); this function only covers the two remaining honest-skip cases
-// (no recipient, no key) plus the real send attempt.
+// text); this function covers the three remaining honest-skip cases (no
+// recipient, no key, no verified sending domain) plus the real send attempt.
 export async function sendDigestEmail(to: string | null, digest: Digest): Promise<SendResult> {
   if (!to) return { sent: false, reason: 'no notify_email configured' };
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: false, reason: 'RESEND_API_KEY not configured' };
+
+  // Resend rejects a `from` address on a domain that hasn't been verified in
+  // the Resend account -- there is no domain this repo can safely hardcode
+  // (the deploy is inventro-tau.vercel.app, not a domain this project owns),
+  // so this is a fourth honest-skip input, not a default.
+  const from = process.env.RESEND_FROM_EMAIL;
+  if (!from) return { sent: false, reason: 'RESEND_FROM_EMAIL not configured' };
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -57,7 +64,7 @@ export async function sendDigestEmail(to: string | null, digest: Digest): Promis
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Inventro <notifications@inventro.app>',
+      from,
       to: [to],
       subject: digest.subject,
       text: digest.body,

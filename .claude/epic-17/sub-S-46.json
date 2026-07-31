@@ -1,0 +1,22 @@
+{
+  "id": "S-46",
+  "title": "E2E smoke suite (gate auth, every route, one happy path per section, backdating)",
+  "goal": "Nothing exercises the app as a real browser today -- a thin, role/name-based smoke layer catches route-level breakage and covers the backdating-vs-stock_epoch behavior that lives in the commit_receipt SQL RPC (not unit-testable per S-45's scope note), without being so deep it has to be rewritten for the REQ-29 redesign.",
+  "in_scope": [
+    "e2e/gate.spec.ts: authenticate via /gate using GATE_PASSCODE from .env.local, confirm the cookie persists across a subsequent navigation.",
+    "e2e/routes.spec.ts: for every route this backlog's shipped epics cover (/, /add, /add/manual, /catalog, /insights, /inventory, /inventory/[id] with a seeded id, /plan, /review, /review/[id] with a seeded id, /settings, /shopping-list, /onboarding), assert HTTP 200 and an accessible heading role/name renders.",
+    "One happy-path interaction per major section, e.g.: Plan -- click a bucket tab, assert aria-pressed/active state changes; Inventory -- use the Filters disclosure, assert it expands; Catalog -- type in search, assert the list filters. Selectors via getByRole/getByLabelText/getByText, never CSS class or DOM structure (must survive the REQ-29 visual redesign).",
+    "e2e/backdating.spec.ts: commit a backdated receipt (purchased_at before household.stock_epoch) through the real Add -> Review -> Commit flow without the past-order override, assert current stock is unaffected (A18); repeat with the override checked, assert it is."
+  ],
+  "out_of_scope": [
+    "Visual regression / screenshot-diff testing -- explicitly not wanted right now since REQ-29 is about to change every screen's pixels; would need constant re-baselining for no signal in this cycle.",
+    "Testing against the seeded demo household's synthetic history data depth -- REQ-23's own validation harness (npm run validate:predictions) already owns prediction-accuracy scoring; this suite only needs one deterministic backdating fixture, not the full synthetic cohort."
+  ],
+  "acceptance": "A Playwright suite authenticates through /gate once, then asserts every listed route returns 200 and renders its expected heading role/name; one happy-path interaction per section using accessible roles/names, not CSS selectors; one dedicated test commits a backdated receipt and asserts current stock is unaffected without the override checkbox and is affected with it (A18).",
+  "invariants": [
+    "Every selector is role/label/text-based (getByRole, getByLabelText, getByText) -- zero CSS-class or nth-child selectors, since REQ-29's page-shell/component styling is about to change.",
+    "Tests run against a real local dev server + the household's actual configured Supabase backend (per .env.local) -- must not leave behind receipts/items that corrupt the seeded demo household's state for other tests or for REQ-23's validation harness; clean up what this suite creates."
+  ],
+  "prd_ref": "REQ-28",
+  "adr_ref": null
+}

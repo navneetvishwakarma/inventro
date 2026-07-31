@@ -1,0 +1,26 @@
+{
+  "id": "S-45",
+  "title": "rate_correction reconciliation unit tests (mocked Supabase client)",
+  "goal": "lib/predictions/reconcile.ts's reconcileRateCorrection contains the working-spec F9.3 multiplier/clamp arithmetic (REQ-15's core mechanism) behind four Supabase queries -- a lightweight mock of the query-builder chain isolates the arithmetic without a live database.",
+  "in_scope": [
+    "lib/predictions/reconcile.test.ts with a minimal fake Supabase client implementing only the chain shape reconcile.ts actually calls (.from().select().eq()...maybeSingle()/.single(), .not(), .or(), .order(), .limit()) returning canned {data, error} per test case -- not a generic Supabase mock library, just enough surface for this one function.",
+    "Case: remaining-projected-stock > 40% of pack size at repurchase -> rate_correction *= 0.85 (DOWN_MULTIPLIER).",
+    "Case: elapsed-since-depletion > 20% of interval -> rate_correction *= 1.15 (UP_MULTIPLIER).",
+    "Case: neither threshold fires -> rate_correction unchanged.",
+    "Case: no previous purchase, or previous purchase is >= this purchase (backdated commit) -> rate_correction unchanged, function returns early before the arithmetic.",
+    "Case: no consumption/adjustment/waste movement ever recorded for the item -> rate_correction unchanged (untrustworthy baseline guard).",
+    "Case: cumulative correction clamps to [0.5, 2.0] even when the multiplier would push it outside that range.",
+    "lib/predictions/reconcile.ts:10-15 -- add `export` to the five threshold/multiplier/clamp constants (currently module-private) so the test asserts against the real source constants instead of duplicating magic numbers; no behavior change."
+  ],
+  "out_of_scope": [
+    "Backdating-vs-stock_epoch current-stock behavior -- that decision lives in the commit_receipt SQL RPC (supabase/ migrations), not in this TypeScript function. Covered by S-46's E2E suite instead (deviation from the original story framing discovered while reading lib/review/commit.ts -- commitReceipt is thin orchestration around an RPC call, the actual backdating logic is server-side SQL).",
+    "recomputeAffectedItems / commitReceipt (lib/review/commit.ts) -- thin orchestration wrappers, not where the risk is; not worth mocking their additional DB round-trips for marginal coverage."
+  ],
+  "acceptance": "Unit tests (mocked Supabase client, no live DB) cover reconcileRateCorrection's arithmetic in isolation per the six cases above, matching the DOWN_MULTIPLIER/UP_MULTIPLIER/CLAMP_MIN/CLAMP_MAX constants in lib/predictions/reconcile.ts:10-15.",
+  "invariants": [
+    "Test constants (0.85, 1.15, 0.4, 0.2, 0.5, 2.0) are imported from the now-exported module constants, not hand-copied magic numbers that could silently drift from the source.",
+    "Exporting the constants must not change reconcileRateCorrection's behavior -- purely a visibility change."
+  ],
+  "prd_ref": "REQ-28",
+  "adr_ref": null
+}

@@ -1,0 +1,24 @@
+{
+  "id": "S-42",
+  "title": "Test runner setup (vitest + Playwright wired to package.json)",
+  "goal": "No automated test runner exists anywhere in the repo (no jest/vitest/playwright in package.json, no test script) -- every other story in this epic is blocked on this one.",
+  "in_scope": [
+    "Add vitest + @vitejs/plugin-react (or plain node config, no React components under unit test in this epic) as devDependencies; vitest.config.ts targeting lib/**/*.test.ts.",
+    "package.json: `test` script running vitest run; `test:watch` running vitest.",
+    "Add @playwright/test as a devDependency (playwright-core + chromium browser already present under node_modules/.bin per prior session verification -- reuse, don't reinstall browsers if already cached).",
+    "playwright.config.ts: baseURL http://127.0.0.1:3000, webServer block that runs `npm run dev` and waits for it, testDir e2e/.",
+    "A minimal .env.test or reuse of .env.local for GATE_PASSCODE in the e2e config (test-only, never committed secrets beyond what .env.local already has).",
+    "package.json: `test:e2e` script running playwright test."
+  ],
+  "out_of_scope": [
+    "CI workflow file (.github/workflows) -- not requested, this story only needs the scripts to work locally; a future story can wire CI.",
+    "Coverage reporting/thresholds -- not requested, keep this story to 'the runner works'."
+  ],
+  "acceptance": "npm test runs vitest against a red-then-green trivial smoke assertion; npm run test:e2e runs a Playwright config pointed at a locally-started dev server with the gate passcode wired from .env.local; both scripts exit non-zero on failure so they're CI-usable later.",
+  "invariants": [
+    "Must not change any existing script (dev/build/start/lint/seed:history/validate:predictions).",
+    "vitest must not pull in a browser/DOM environment by default (lib/ under test is pure Node/TS) -- keep it fast."
+  ],
+  "prd_ref": "REQ-28",
+  "adr_ref": null
+}

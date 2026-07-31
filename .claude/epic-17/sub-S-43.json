@@ -1,0 +1,23 @@
+{
+  "id": "S-43",
+  "title": "Prediction-engine unit tests (computeItemStats fixtures)",
+  "goal": "computeItemStats (lib/predictions/computeItemStats.ts:241) is the pure function the entire cadence/prediction feature is built on, and docs/MANUAL-TESTS.md already has three hand-computed fixtures (S-14a/b/c) recorded as the algorithm's own acceptance criteria -- converting those to unit tests is free, high-signal regression coverage for the riskiest logic in the app.",
+  "in_scope": [
+    "lib/predictions/computeItemStats.test.ts, three fixture-driven tests matching docs/MANUAL-TESTS.md's E-5 section verbatim: day 0/7/14/21 purchases -> bucket=weekly, confidence ~0.50, next-purchase ~day 28 (S-14c fixture 1).",
+    "day 0/7/60/67 -> the 60-day outlier is rejected, bucket stays weekly (S-14c fixture 2).",
+    "2-purchase item -> prior-dominated, confidence ~0.25, bucket=unpredictable (S-14c fixture 3).",
+    "A same-Kolkata-day duplicate purchase (two events on the same calendar day in Asia/Kolkata) collapses into one event before interval math runs, not a spurious ~0-day interval (S-14a).",
+    "Read computeItemStats.ts's exported _internal (line 283) if any of the above requires exercising a sub-step directly rather than only the top-level export -- prefer testing the public computeItemStats API first, drop to _internal only if a fixture can't be expressed through it alone."
+  ],
+  "out_of_scope": [
+    "S-14b's rate-blended next-purchase-date fixture (needs quantity-reliability data not covered by MANUAL-TESTS.md's recorded fixtures for S-14c) and the perishability-clamp fixture -- both real gaps, logged as a follow-up rather than inventing untested-in-production expected values.",
+    "recompute.ts / reconcile.ts (the DB-touching callers) -- those are S-45's concern, not this story's."
+  ],
+  "acceptance": "Unit tests reproduce the three MANUAL-TESTS.md S-14a/b/c fixtures verbatim: day 0/7/14/21 purchases bucket weekly with confidence ~0.50 and next-purchase ~day 28; day 0/7/60/67 rejects the 60-day outlier and stays weekly; a 2-purchase item is prior-dominated with confidence ~0.25 and bucket=unpredictable. A same-Kolkata-day duplicate purchase collapses into one event before interval math runs.",
+  "invariants": [
+    "Tests assert against computeItemStats's actual exported types (lib/predictions/types.ts) -- no `any`, no loosely-typed fixture objects.",
+    "Fixture dates are literal ISO strings matching MANUAL-TESTS.md's own day-0/7/14/21 framing, not derived from `new Date()` (must be deterministic, no flakiness from run-time clock)."
+  ],
+  "prd_ref": "REQ-28",
+  "adr_ref": null
+}

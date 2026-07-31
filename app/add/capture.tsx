@@ -99,7 +99,7 @@ export function AddCapture() {
             <Checkbox id="group-toggle" checked={isGrouped} onCheckedChange={(checked) => setIsGrouped(checked === true)} disabled={status === 'processing'} />
             <Label htmlFor="group-toggle">These are screenshots of one order (2-3 images)</Label>
           </div>
-          {groupError && <p className="text-sm text-red-600">{groupError}</p>}
+          {groupError && <p className="text-sm text-destructive">{groupError}</p>}
 
           <div className="flex gap-2">
             <Button onClick={() => cameraInputRef.current?.click()} disabled={status === 'processing'}>

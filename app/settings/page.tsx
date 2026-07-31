@@ -66,7 +66,7 @@ export default async function SettingsPage() {
               costMeter.hardStopReached
                 ? 'rounded border border-destructive bg-destructive/10 p-2 text-sm text-destructive'
                 : costMeter.alertReached
-                  ? 'rounded border border-amber-500 bg-amber-500/10 p-2 text-sm text-amber-700'
+                  ? 'rounded border border-amber-500 bg-amber-500/10 p-2 text-sm text-amber-700 dark:border-amber-400 dark:bg-amber-400/10 dark:text-amber-300'
                   : 'text-sm text-muted-foreground'
             }
           >

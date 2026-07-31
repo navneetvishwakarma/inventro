@@ -65,7 +65,7 @@ export function SettingsForm({
         <Button onClick={save} disabled={isPending}>
           {isPending ? 'Saving...' : 'Save'}
         </Button>
-        {saved && !error && <span className="text-sm text-green-700">Saved.</span>}
+        {saved && !error && <span className="text-sm text-green-700 dark:text-green-400">Saved.</span>}
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

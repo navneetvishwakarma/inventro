@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -194,8 +195,10 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
     .map((id) => items.find((i) => i.id === id))
     .filter((i): i is CatalogManagerItem => i !== undefined && !i.isArchived);
 
+  const mergeBarVisible = selectedItems.length === 2 && !merging;
+
   return (
-    <div className="mx-auto flex w-full max-w-[620px] flex-col gap-4 p-4 md:p-6">
+    <div className={cn('mx-auto flex w-full max-w-[620px] flex-col gap-4 p-4 md:p-6', mergeBarVisible && 'pb-20 md:pb-6')}>
       <Card>
         <CardHeader>
           <CardTitle>Catalog manager</CardTitle>
@@ -206,11 +209,19 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search catalog…" size="sm" className="w-full sm:w-[260px]" />
             <Checkbox checked={showArchived} onChange={(c) => setShowArchived(c)} label="Show archived" />
             {selectedItems.length === 2 && !merging && (
-              <Button type="button" size="sm" onClick={() => setMerging(true)}>
+              <Button type="button" size="sm" className="hidden md:inline-flex" onClick={() => setMerging(true)}>
                 Merge selected
               </Button>
             )}
           </div>
+
+          {selectedItems.length === 2 && !merging && (
+            <div className="fixed inset-x-0 bottom-16 z-10 border-t border-border bg-surface p-3 md:hidden">
+              <Button type="button" size="lg" className="w-full" onClick={() => setMerging(true)}>
+                Merge selected
+              </Button>
+            </div>
+          )}
 
           {merging && selectedItems.length === 2 && (
             <MergePanel

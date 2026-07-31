@@ -30,6 +30,65 @@ function matchesSearch(item: InventoryItem, q: string): boolean {
   return item.aliases.some((a) => a.toLowerCase().includes(needle));
 }
 
+function FilterFields({
+  q,
+  category,
+  cadence,
+  stock,
+  staplesOnly,
+  allCategories,
+  allCadences,
+}: {
+  q: string;
+  category: string;
+  cadence: string;
+  stock: string;
+  staplesOnly: boolean;
+  allCategories: string[];
+  allCadences: string[];
+}) {
+  return (
+    <>
+      <Input name="q" defaultValue={q} placeholder="Name or alias" label="Search" size="sm" className="w-[200px]" />
+      <div className="w-[150px]">
+        <Select
+          name="category"
+          defaultValue={category}
+          label="Category"
+          placeholder="All categories"
+          options={allCategories.map((c) => ({ value: c, label: c }))}
+        />
+      </div>
+      <div className="w-[150px]">
+        <Select
+          name="cadence"
+          defaultValue={cadence}
+          label="Cadence"
+          placeholder="All cadences"
+          options={allCadences.map((c) => ({ value: c, label: formatCadenceBucket(c) }))}
+        />
+      </div>
+      <div className="w-[150px]">
+        <Select
+          name="stock"
+          defaultValue={stock}
+          label="Stock state"
+          options={[
+            { value: 'all', label: 'Any stock state' },
+            { value: 'out_of_stock', label: 'Out of stock' },
+            { value: 'running_low', label: 'Running low' },
+            { value: 'in_stock', label: 'In stock' },
+          ]}
+        />
+      </div>
+      <Checkbox name="staples" value="1" defaultChecked={staplesOnly} label="Staples only" />
+      <Button type="submit" variant="outline">
+        Apply
+      </Button>
+    </>
+  );
+}
+
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const household = await getHousehold();
   if (!household.onboarded_at) redirect('/onboarding');
@@ -69,6 +128,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
 
   const allCategories = [...new Set(items.map((i) => i.categoryName))].sort();
   const allCadences = [...new Set(items.map((i) => i.cadenceBucket).filter((c): c is NonNullable<typeof c> => c !== null))];
+  const activeFilterCount = [category, cadence, stock !== 'all', staplesOnly].filter(Boolean).length;
 
   return (
     <>
@@ -88,44 +148,17 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form method="get" className="flex flex-wrap items-end gap-2">
-            <Input name="q" defaultValue={q} placeholder="Name or alias" label="Search" size="sm" className="w-[200px]" />
-            <div className="w-[150px]">
-              <Select
-                name="category"
-                defaultValue={category}
-                label="Category"
-                placeholder="All categories"
-                options={allCategories.map((c) => ({ value: c, label: c }))}
-              />
-            </div>
-            <div className="w-[150px]">
-              <Select
-                name="cadence"
-                defaultValue={cadence}
-                label="Cadence"
-                placeholder="All cadences"
-                options={allCadences.map((c) => ({ value: c, label: formatCadenceBucket(c) }))}
-              />
-            </div>
-            <div className="w-[150px]">
-              <Select
-                name="stock"
-                defaultValue={stock}
-                label="Stock state"
-                options={[
-                  { value: 'all', label: 'Any stock state' },
-                  { value: 'out_of_stock', label: 'Out of stock' },
-                  { value: 'running_low', label: 'Running low' },
-                  { value: 'in_stock', label: 'In stock' },
-                ]}
-              />
-            </div>
-            <Checkbox name="staples" value="1" defaultChecked={staplesOnly} label="Staples only" />
-            <Button type="submit" variant="outline">
-              Apply
-            </Button>
+          <form method="get" className="hidden flex-wrap items-end gap-2 md:flex">
+            <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
           </form>
+          <details className="md:hidden">
+            <summary className="flex h-9 w-fit cursor-pointer list-none items-center rounded-md border border-border px-3 text-sm font-medium text-foreground">
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
+            </summary>
+            <form method="get" className="mt-3 flex flex-col items-start gap-2">
+              <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
+            </form>
+          </details>
         </CardContent>
       </Card>
 

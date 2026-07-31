@@ -818,7 +818,7 @@
       "title": "Daily 07:00 IST digest + weekly Sunday 18:00 IST list-ready email (Resend) + in-app badges",
       "epic": "E-13",
       "prd_ref": "REQ-20",
-      "status": "notstarted",
+      "status": "done",
       "order": 32,
       "estimate": 0.25,
       "blocked_by": [

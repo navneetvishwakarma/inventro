@@ -80,7 +80,7 @@ export function AddCapture() {
   const reviewHref = okIds.length > 1 ? `/review/${okIds[0]}?session=${okIds.join(',')}` : `/review/${okIds[0]}`;
 
   return (
-    <div className="mx-auto w-full max-w-[480px] p-4">
+    <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Add a receipt</CardTitle>
@@ -153,7 +153,7 @@ export function AddCapture() {
              review link carrying every id as the `session` param, so the
              review flow can show a running "X of Y" counter. */}
           {okIds.length > 0 && (
-            <Link href={reviewHref} className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+            <Link href={reviewHref} className={cn(buttonVariants({ variant: 'primary', size: 'sm' }), 'self-start')}>
               {okIds.length > 1 ? `Review ${okIds.length} receipts` : 'Review receipt'}
             </Link>
           )}

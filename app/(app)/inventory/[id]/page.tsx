@@ -36,7 +36,7 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getCostMeterSummary } from '@/lib/settings/cost-meter';
 import { DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
@@ -30,7 +31,7 @@ export default async function SettingsPage() {
   const costMeter = await getCostMeterSummary();
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-4 p-4">
+    <div className="mx-auto flex w-full max-w-[440px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Household</CardTitle>
@@ -85,7 +86,7 @@ export default async function SettingsPage() {
           <CardDescription>Merge, archive, or recategorize items.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Link href="/catalog" className={buttonVariants({ variant: 'tertiary', size: 'sm' })}>
+          <Link href="/catalog" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
             Manage catalog
           </Link>
         </CardContent>

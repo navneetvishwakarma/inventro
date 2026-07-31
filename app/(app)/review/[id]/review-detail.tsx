@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ListRow } from '@/components/ui/list-row';
+import { cn } from '@/lib/utils';
 import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
 import { toKolkataDateString } from '@/lib/date';
 import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction } from './actions';
@@ -306,7 +307,7 @@ export function ReviewDetail({
 
   if (receipt.status === 'committed') {
     return (
-      <div className="mx-auto w-full max-w-[480px] p-4">
+      <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle>Committed</CardTitle>
@@ -319,11 +320,11 @@ export function ReviewDetail({
             <CardContent>
               <SessionCounter session={session} nextHref={null} />
               {nextHref ? (
-                <Link href={nextHref} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+                <Link href={nextHref} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
                   Next ({session.position + 1} of {session.total})
                 </Link>
               ) : (
-                <Link href="/review" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+                <Link href="/review" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
                   Back to review queue
                 </Link>
               )}
@@ -335,8 +336,8 @@ export function ReviewDetail({
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 p-4 md:grid-cols-2">
-      <Card>
+    <div className="flex w-full flex-col gap-3 p-4 md:flex-row md:gap-6 md:p-6">
+      <Card className="md:w-[320px] md:shrink-0">
         <CardHeader>
           <CardTitle>Document</CardTitle>
           <CardDescription>{receipt.merchant ?? 'Unknown merchant'}</CardDescription>
@@ -360,7 +361,7 @@ export function ReviewDetail({
                 ))}
               </div>
             ) : (
-              <a href={docUrls[0]} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'tertiary', size: 'sm' })}>
+              <a href={docUrls[0]} target="_blank" rel="noreferrer" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
                 Open original document
               </a>
             )
@@ -370,7 +371,7 @@ export function ReviewDetail({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="min-w-0 md:flex-1">
         <CardHeader>
           <CardTitle>Review lines</CardTitle>
           <CardDescription>

@@ -23,7 +23,7 @@ export default async function ShoppingListPage() {
   const listText = list ? formatShoppingListAsText(list) : '';
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+    <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle>Generate a shopping list</CardTitle>

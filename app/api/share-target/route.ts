@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { after } from 'next/server';
 import { uploadReceiptFile } from '@/lib/receipts/storage';
-import { extensionOf, isAcceptedExtension } from '@/lib/receipts/formats';
+import { extensionOf, extensionForMimeType, isAcceptedExtension } from '@/lib/receipts/formats';
 import { createIngestJob } from '@/lib/receipts/ingest';
 import { runExtraction } from '@/lib/llm/extract';
 import { hashFileBytes, findDuplicateReceipt } from '@/lib/receipts/dedup';
@@ -39,7 +39,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const acceptedIds: string[] = [];
 
   for (const file of files) {
-    const ext = extensionOf(file.name);
+    // Android's share sheet gives no guarantee about the shared file's
+    // name -- it's whatever the source app chose to set, often absent or a
+    // generic placeholder. Falls back to the file's own MIME type (same
+    // pattern as app/paste-listener.tsx's clipboard-paste path, S-26) before
+    // giving up, rather than silently dropping a validly-shared file just
+    // because extensionOf(file.name) came back null.
+    const ext = extensionOf(file.name) ?? extensionForMimeType(file.type);
     if (!isAcceptedExtension(ext)) continue;
 
     // Same guard as uploadReceiptsAction: checked before any hashing/

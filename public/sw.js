@@ -14,15 +14,23 @@ const SHELL_ASSETS = ['/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-m
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL_CACHE).then((cache) =>
-      // Per-asset, not cache.addAll(): addAll is all-or-nothing, so one
-      // failed asset would abort the whole install and leave a
-      // registered-but-useless worker with an empty cache. A missing shell
-      // asset here is a degraded offline experience, not a fatal one.
+      // Per-asset fetch+put, not cache.add()/cache.addAll(): addAll is
+      // all-or-nothing (one failed asset aborts the whole install, leaving
+      // a registered-but-useless worker with an empty cache -- a missing
+      // shell asset should degrade, not fail closed), and cache.add() has
+      // thinner browser support than fetch+put -- an unsupported cache.add()
+      // would silently no-op every asset while still reporting "success",
+      // which no check against a real server can detect after the fact.
       Promise.all(
         SHELL_ASSETS.map((url) =>
-          cache.add(url).catch((err) => {
-            console.warn('[sw] failed to precache', url, err);
-          }),
+          fetch(url)
+            .then((response) => {
+              if (!response.ok) throw new Error(`${url}: ${response.status}`);
+              return cache.put(url, response);
+            })
+            .catch((err) => {
+              console.warn('[sw] failed to precache', url, err);
+            }),
         ),
       ),
     ),

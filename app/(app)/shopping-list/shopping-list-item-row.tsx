@@ -61,13 +61,14 @@ export function ShoppingListItemRow({
         label={<span className={cn(checked && 'text-muted-foreground line-through')}>{label}</span>}
       />
       {purchaseLoggedAt !== null ? (
-        <span className="ml-[26px] text-xs text-muted-foreground">Logged: {loggedPrice !== null ? formatMoney(loggedPrice) : '—'}</span>
+        <span className="ml-[52px] text-xs text-muted-foreground">Logged: {loggedPrice !== null ? formatMoney(loggedPrice) : '—'}</span>
       ) : (
-        <div className="ml-[26px] flex items-center gap-2">
+        <div className="ml-[52px] flex items-center gap-2">
           <Input
             type="number"
             min={0}
             step="0.01"
+            aria-label="Total paid"
             placeholder="Total paid"
             value={price}
             disabled={isPending}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Alert } from '@/components/ui/alert';
@@ -95,8 +96,8 @@ export function PlanItemActions({
         )}
 
         <details className="md:hidden">
-          <summary className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-md border border-border text-muted-foreground">
-            &hellip;
+          <summary aria-label="More actions" className="flex size-11 cursor-pointer list-none items-center justify-center rounded-md border border-border text-muted-foreground">
+            <MoreHorizontal className="size-5" aria-hidden="true" />
           </summary>
           <div className="mt-2 flex flex-col items-start gap-2">
             {planState === 'pending' && (

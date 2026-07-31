@@ -23,6 +23,7 @@ function Input({
 }: InputProps) {
   const generatedId = React.useId()
   const inputId = id ?? generatedId
+  const descriptionId = error || helperText ? `${inputId}-description` : undefined
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       {label ? (
@@ -36,6 +37,7 @@ function Input({
         data-slot="input"
         disabled={disabled}
         aria-invalid={!!error}
+        aria-describedby={descriptionId}
         className={cn(
           "h-11 w-full min-w-0 rounded-md border bg-surface px-3 text-[15px] text-foreground outline-none transition-colors placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:bg-surface-sunken disabled:opacity-60",
           error ? "border-error focus-visible:border-error" : "border-border focus-visible:border-primary",
@@ -44,9 +46,9 @@ function Input({
         {...props}
       />
       {error ? (
-        <span className="text-xs text-error">{error}</span>
+        <span id={descriptionId} className="text-xs text-error">{error}</span>
       ) : helperText ? (
-        <span className="text-xs text-muted-foreground">{helperText}</span>
+        <span id={descriptionId} className="text-xs text-muted-foreground">{helperText}</span>
       ) : null}
     </div>
   )

@@ -32,6 +32,7 @@ export function AddPasteText({ onSubmit, disabled }: { onSubmit: (files: File[])
   return (
     <div className="flex flex-col gap-2">
       <Textarea
+        label="Order text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Paste an order-confirmation email body here…"

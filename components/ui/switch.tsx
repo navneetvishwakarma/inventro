@@ -29,7 +29,7 @@ function Switch({ checked, onChange, label, disabled, id, className }: SwitchPro
         className
       )}
     >
-      <SwitchPrimitive.Thumb className="block size-[18px] translate-x-[3px] rounded-full bg-white shadow-sm transition-transform data-checked:translate-x-[19px]" />
+      <SwitchPrimitive.Thumb className="block size-[18px] translate-x-[3px] rounded-full bg-[var(--neutral-0)] shadow-sm transition-transform data-checked:translate-x-[19px]" />
     </SwitchPrimitive.Root>
   )
   if (!label) return control

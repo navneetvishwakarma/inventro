@@ -112,7 +112,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
         setUnitDisplay={setUnitDisplay}
         categories={categories}
       />
-      <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} placeholder="Pack size (optional)" size="sm" />
+      <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} aria-label="Pack size (optional)" placeholder="Pack size (optional)" size="sm" />
       {error && <Alert tone="error">{error}</Alert>}
       <div className="flex flex-wrap gap-2">
         <Button
@@ -182,7 +182,7 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
         setUnitDisplay={setUnitDisplay}
         categories={categories}
       />
-      <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} placeholder="Pack size (optional)" size="sm" />
+      <Input value={packSize} onChange={(e) => setPackSize(e.target.value)} aria-label="Pack size (optional)" placeholder="Pack size (optional)" size="sm" />
       {error && <Alert tone="error">{error}</Alert>}
       <div className="flex flex-wrap gap-2">
         <Button

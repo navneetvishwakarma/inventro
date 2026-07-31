@@ -1,0 +1,24 @@
+{
+  "id": "S-36b",
+  "title": "Security pass + full acceptance-test ship-gate verification",
+  "goal": "Close out REQ-26's ship gate: prove the anon Supabase key never reaches the client bundle, prove the passcode gate still 401s an unauthenticated request (A26), and sweep the full §11 acceptance-test list (A1-A26) against the production URL (https://inventro-tau.vercel.app) as the final v1 ship gate, since E-0 through E-14 already live-verified each feature against Supabase but none of them re-checked production reachability end-to-end after deploy.",
+  "in_scope": [
+    "`npm run build` then grep the entire `.next/` build output for the literal NEXT_PUBLIC_SUPABASE_ANON_KEY value -- confirms A26's first half. (Preliminary code read already shows no file under app/, lib/, or components/ imports that env var at all -- every Supabase call goes through lib/supabase/server.ts's createServiceClient(), which reads SUPABASE_SERVICE_ROLE_KEY server-side only. This check proves it, rather than trusting the earlier grep.)",
+    "A live unauthenticated curl against the production URL's root route, confirming 401 without the gate cookie -- re-confirms A26's second half is still true after this epic's own diff (the share-target route and any new static assets from S-35 must not have created a gate bypass).",
+    "A full A1-A26 sweep against the production URL, scoped honestly given this epic's actual diff: A26 (above) is checked live end-to-end. For every other test (A1-A9, A11-A13, A18, A21-A22, A24-A25 -- business logic this epic's diff never touches, each already live-verified against Supabase in its originating epic per that epic's ledger), verification here is (a) a page-render reachability check against production with a signed, self-constructed gate cookie (same HMAC algorithm as lib/gate.ts, using the real GATE_COOKIE_SECRET/GATE_PASSCODE from .env.local -- confirms production is actually serving the deployed code, not stale) for every route the test exercises, plus (b) a code-trace confirming this epic's changes (new error/loading/not-found boundaries, dark-mode class toggle, service worker, share-target route) don't alter the code path any A-numbered test depends on. Re-running full live data flows (uploading real receipts, incurring real Gemini cost) against the production household is explicitly out of scope -- see below.",
+    "Document the full A1-A26 pass/fail table (with verification method per test: 'live-e2e' vs 'reachability + code-trace, verified in <epic>') in the ledger, since this is the terminal ship-gate story for the whole v1 backlog."
+  ],
+  "out_of_scope": [
+    "Re-running A1/A3/A11/A22/A24 (real receipt upload + Gemini extraction) against the production Supabase project/household -- real LLM cost, real Storage writes, and risk to the one production household's actual data, for logic this epic's diff does not touch and that was already live-verified in E-2/E-3's originating epics. A dry-run-only reachability check (page loads, gate enforced) substitutes.",
+    "Load testing, penetration testing, or dependency vulnerability scanning -- REQ-26's stated security surface is the anon-key/gate pair specifically (ADR-0004's documented, accepted scope: 'no real authentication, explicitly scoped to grocery data only').",
+    "Any RLS policy change -- still written-but-disabled per REQ-26/ADR-0004, unaffected by this story."
+  ],
+  "acceptance": "Anon Supabase key absent from client bundle (grep build output); unauthenticated request without the gate cookie returns 401 (A26); all §11 acceptance tests (A1-A26) pass on the production URL (ship gate).",
+  "invariants": [
+    "The anon-key grep runs against the actual `.next/` build output produced by this epic's own final commit, not a stale prior build.",
+    "The unauthenticated-401 check hits the real deployed production URL live, not localhost or a preview deployment.",
+    "Every A-numbered test in the final table has an explicit verification method recorded -- no test is silently marked pass without stating how."
+  ],
+  "prd_ref": "REQ-26",
+  "adr_ref": null
+}

@@ -1,0 +1,30 @@
+{
+  "id": "S-35",
+  "title": "PWA manifest + installability (Android Web Share Target)",
+  "goal": "Ship REQ-27: an installable PWA (manifest + icons + a minimal offline app shell) and Android Web Share Target so a photo/PDF shared from another app (e.g. Photos, Gmail) lands directly in Inventro's existing receipt-ingestion pipeline instead of requiring a manual file-picker round trip.",
+  "in_scope": [
+    "public/manifest.webmanifest (static JSON, not app/manifest.ts -- share_target isn't part of Next's MetadataRoute.Manifest TS union, and every other config surface in this repo is hand-written JSON/TS, not framework-generated): name, short_name, start_url ('/'), display 'standalone', background_color/theme_color matching the existing --background token, icons array, and share_target.",
+    "public/icons/icon.svg (purpose 'any') and public/icons/icon-maskable.svg (purpose 'maskable', drawn with safe-zone padding) -- SVG, not PNG: no raster/image-generation dependency exists in this repo (no sharp/canvas; heic2any is client-side HEIC decode only), and modern Chrome/Android accept 'sizes': 'any' SVG manifest icons for installability. Flagged as a residual risk (below), not blocked on.",
+    "app/layout.tsx: <link rel=\"manifest\"> via the Metadata API's `manifest` field, `viewport` export with themeColor, and a `color-scheme` meta hint.",
+    "share_target in the manifest: method POST, enctype multipart/form-data, action '/api/share-target', accepting image/* and application/pdf under a 'files' param -- the same accepted set as app/add/capture.tsx's ACCEPT list minus HTML/MHTML (Android's share sheet surfaces images/PDFs, never local HTML files).",
+    "New app/api/share-target/route.ts (POST Route Handler, inherits the existing passcode gate -- proxy.ts's matcher only excludes /gate, /_next/*, favicon.ico, api/cron/*, so this route is gated like every other page). Reuses the existing lib/receipts/{storage,dedup,ingest}.ts + lib/llm/extract.ts + lib/receipts/guard.ts functions directly (the same primitives uploadReceiptsAction already calls) rather than going through the Server Action wrapper, since a Web Share Target POST is a real multipart browser navigation, not a React Server Action call. No client-side preprocessing (HEIC->JPEG, downscale) runs on this path -- shared files come straight from the OS share sheet as whatever format the source app provides (Android photos/screenshots are JPEG/PNG, not HEIC). Applies the same duplicate/guard checks as the manual upload path, then redirects (303) to /review so the user lands on the queue immediately.",
+    "public/sw.js: a hand-rolled (no Workbox/next-pwa -- avoids a new dependency and matches this repo's zero-framework-magic convention) minimal service worker. Precaches only static shell assets (manifest, icons, /offline.html) on install. Its fetch handler only intercepts navigation requests (`event.request.mode === 'navigate'`) and only as a network-first-with-offline-fallback -- every other request (data fetches, Server Actions, API routes, RSC payloads, _next static chunks) passes straight through untouched. This is the mechanism that keeps 'offline shell caches but data does not sync offline' true: no response body from any dynamic route is ever written to the cache.",
+    "public/offline.html: a static, framework-independent fallback page (own inline <style>, not the compiled Tailwind bundle -- hashed build filenames make linking the real stylesheet from a precached static file fragile) shown only when a navigation fetch fails while offline and no cached page exists for it.",
+    "app/register-service-worker.tsx ('use client', mounted once from RootLayout): `if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js')` inside a useEffect, guarded so it never throws in browsers/contexts without the API."
+  ],
+  "out_of_scope": [
+    "Any offline data sync, background sync, or IndexedDB caching of receipts/inventory/plan data -- REQ-27 explicitly scopes this to shell-only caching.",
+    "PNG/raster icon generation or a maskable-icon design pass beyond a safe-zone-padded SVG -- no image-generation tooling in this repo; flagged as a residual risk, not solved by adding a new dependency for one epic.",
+    "iOS-specific installability (apple-touch-icon is included as a courtesy meta tag, but Web Share Target is an Android-only manifest field per spec; no iOS share-extension work).",
+    "Real-device install/share testing (Chrome's install prompt, Android's share sheet actually listing Inventro as a target) -- unattended agent, no physical device or Android emulator available. Verified by code-trace, curl-based manifest/route reachability, and Chrome DevTools' Lighthouse installability *criteria* checked by hand against the manifest JSON -- not an actual on-device install.",
+    "HTML/MHTML files via share target -- Android's native share sheet does not surface local HTML files as shareable content the way it does photos/PDFs; the existing manual-upload path already covers that format."
+  ],
+  "acceptance": "App is installable; offline shell caches but data does not sync offline.",
+  "invariants": [
+    "The service worker's fetch handler never caches or serves a response for a non-navigation request -- no data route's response is ever written into the Cache API.",
+    "app/api/share-target/route.ts runs the exact same duplicate-detection and daily-ingest-guard checks as uploadReceiptsAction before any Storage/LLM work -- a shared file is never treated as exempt from either safeguard.",
+    "The share-target route stays behind the existing passcode gate (proxy.ts) -- no new exemption is added to its matcher."
+  ],
+  "prd_ref": "REQ-27",
+  "adr_ref": null
+}

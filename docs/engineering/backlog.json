@@ -210,7 +210,8 @@
       ],
       "order": 15,
       "estimate": 0.5,
-      "acceptance": "All §11 acceptance tests pass on the production URL (ship gate)."
+      "acceptance": "All §11 acceptance tests pass on the production URL (ship gate).",
+      "gh_issue": 72
     }
   ],
   "stories": [
@@ -879,7 +880,8 @@
       "blocked_by": [
         "S-05"
       ],
-      "acceptance": "App is installable; offline shell caches but data does not sync offline."
+      "acceptance": "App is installable; offline shell caches but data does not sync offline.",
+      "gh_issue": 73
     },
     {
       "id": "S-36a",
@@ -893,7 +895,8 @@
         "S-21",
         "S-31"
       ],
-      "acceptance": "Every screen defines an error, empty, and loading state (no blank/broken renders); full mobile-viewport pass; dark mode functional across the app."
+      "acceptance": "Every screen defines an error, empty, and loading state (no blank/broken renders); full mobile-viewport pass; dark mode functional across the app.",
+      "gh_issue": 74
     },
     {
       "id": "S-36b",
@@ -908,7 +911,8 @@
         "S-31",
         "S-36a"
       ],
-      "acceptance": "Anon Supabase key absent from client bundle (grep build output); unauthenticated request without the gate cookie returns 401 (A26); all §11 acceptance tests (A1-A26) pass on the production URL (ship gate)."
+      "acceptance": "Anon Supabase key absent from client bundle (grep build output); unauthenticated request without the gate cookie returns 401 (A26); all §11 acceptance tests (A1-A26) pass on the production URL (ship gate).",
+      "gh_issue": 75
     }
   ]
 }

@@ -32,11 +32,11 @@ function Radio({ checked, onChange, label, name, disabled, id, className }: Radi
           checked={checked}
           disabled={disabled}
           onChange={onChange}
-          className="absolute inset-0 m-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          className="peer absolute inset-0 m-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
         />
         <span
           className={cn(
-            "pointer-events-none absolute inset-0 rounded-full border transition-colors",
+            "pointer-events-none absolute inset-0 rounded-full border transition-colors peer-focus-visible:[box-shadow:var(--ring-focus)]",
             checked ? "border-primary" : "border-border-strong"
           )}
         />

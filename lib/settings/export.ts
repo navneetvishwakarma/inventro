@@ -16,10 +16,16 @@ async function selectAllPaged<T>(supabase: Supabase, table: string, columns: str
   const out: T[] = [];
   let from = 0;
   for (;;) {
+    // .order('id') is load-bearing: .range() with no stable sort gives
+    // Postgres no guaranteed page-to-page ordering, which can silently
+    // duplicate or drop rows across pages once a table crosses PAGE_SIZE
+    // (advisor-caught -- the demo household's 1136 stock_movements is a
+    // real, not hypothetical, two-page case).
     const { data, error } = await supabase
       .from(table)
       .select(columns)
       .eq('household_id', householdId)
+      .order('id')
       .range(from, from + PAGE_SIZE - 1);
     if (error) throw error;
     const rows = (data ?? []) as T[];
@@ -125,23 +131,31 @@ function csvRow(fields: (string | number | null)[]): string {
   return fields.map(csvField).join(',');
 }
 
+type ExportCatalogItemLookup = { id: string; canonical_name: string; category_id: string; base_unit: string };
+type ExportReceiptLookup = { id: string; merchant: string | null };
+
 export async function getExportCsv(): Promise<string> {
   const supabase = createServiceClient();
   const householdId = getDefaultHouseholdId();
 
-  const [catalogItemsRes, categoriesRes, receiptsRes, movements] = await Promise.all([
-    supabase.from('catalog_items').select('id, canonical_name, category_id, base_unit').eq('household_id', householdId),
+  // catalog_items and receipts both need selectAllPaged too, same as the
+  // JSON export -- catalog_items is already at 238 for the real household
+  // and grows with every new item; a plain .select() here would silently
+  // truncate past 1000 and every row past the cap would render
+  // "(unknown item)" with a null category (a valid-CSV-shaped file with
+  // wrong contents, worse than an outright failure). categories is a small
+  // seeded global table, not household-scoped, and stays a plain select.
+  const [categoriesRes, catalogItems, receipts, movements] = await Promise.all([
     supabase.from('categories').select('id, name'),
-    supabase.from('receipts').select('id, merchant').eq('household_id', householdId),
+    selectAllPaged<ExportCatalogItemLookup>(supabase, 'catalog_items', 'id, canonical_name, category_id, base_unit', householdId),
+    selectAllPaged<ExportReceiptLookup>(supabase, 'receipts', 'id, merchant', householdId),
     selectAllPaged<ExportStockMovement>(supabase, 'stock_movements', 'id, catalog_item_id, type, qty_base, occurred_at, source_receipt_id, note', householdId),
   ]);
-  if (catalogItemsRes.error) throw catalogItemsRes.error;
   if (categoriesRes.error) throw categoriesRes.error;
-  if (receiptsRes.error) throw receiptsRes.error;
 
   const categoryById = new Map((categoriesRes.data ?? []).map((c) => [c.id, c.name as string]));
-  const itemById = new Map((catalogItemsRes.data ?? []).map((i) => [i.id, i]));
-  const merchantByReceiptId = new Map((receiptsRes.data ?? []).map((r) => [r.id, r.merchant as string | null]));
+  const itemById = new Map(catalogItems.map((i) => [i.id, i]));
+  const merchantByReceiptId = new Map(receipts.map((r) => [r.id, r.merchant]));
 
   const header = csvRow(['date', 'type', 'item', 'category', 'qty_base', 'base_unit', 'merchant', 'note']);
   const rows = movements

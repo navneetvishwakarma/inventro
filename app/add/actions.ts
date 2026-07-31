@@ -6,7 +6,7 @@ import { extensionOf, isAcceptedExtension, isImageExtension, type AcceptedExtens
 import { createIngestJob } from '@/lib/receipts/ingest';
 import { runExtraction } from '@/lib/llm/extract';
 import { hashFileBytes, hashCombinedFileBytes, findDuplicateReceipt } from '@/lib/receipts/dedup';
-import { getTodayReceiptCount, DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
+import { getTodayReceiptCount, allowedCountInBatch, DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
 
 const DAILY_LIMIT_ERROR = `Daily ingestion limit (${DAILY_INGEST_HARD_STOP} receipts) reached -- try again tomorrow`;
 
@@ -43,8 +43,10 @@ export async function uploadReceiptsAction(formData: FormData): Promise<UploadRe
     }
 
     // Checked before any hashing/Storage/dedup work -- a blocked file costs
-    // nothing at all, not even a dedup lookup.
-    if (countBeforeBatch + acceptedInBatch >= DAILY_INGEST_HARD_STOP) {
+    // nothing at all, not even a dedup lookup. Reuses the same boundary
+    // function the guard's edge cases are unit-tested against (batchSize=1
+    // per file, since acceptance is decided one file at a time here).
+    if (allowedCountInBatch(countBeforeBatch + acceptedInBatch, 1) === 0) {
       results.push({ fileName: file.name, ok: false, error: DAILY_LIMIT_ERROR });
       continue;
     }
@@ -97,7 +99,7 @@ export async function uploadGroupedReceiptAction(formData: FormData): Promise<Up
   // extraction call, so a single check against today's count (no local
   // batch increment needed, unlike uploadReceiptsAction's N-file loop).
   const countBeforeUpload = await getTodayReceiptCount();
-  if (countBeforeUpload >= DAILY_INGEST_HARD_STOP) {
+  if (allowedCountInBatch(countBeforeUpload, 1) === 0) {
     return [{ fileName: groupName, ok: false, error: DAILY_LIMIT_ERROR }];
   }
 

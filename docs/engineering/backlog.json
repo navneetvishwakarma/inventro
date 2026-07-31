@@ -1067,14 +1067,18 @@
       "title": "Prediction-engine unit tests (computeItemStats fixtures)",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 43,
       "estimate": 0.5,
       "blocked_by": [
         "S-42"
       ],
       "acceptance": "Unit tests reproduce the three MANUAL-TESTS.md S-14a/b/c fixtures verbatim: day 0/7/14/21 purchases bucket weekly with confidence ~0.50 and next-purchase ~day 28; day 0/7/60/67 rejects the 60-day outlier and stays weekly; a 2-purchase item is prior-dominated with confidence ~0.25 and bucket=unpredictable. A same-Kolkata-day duplicate purchase collapses into one event before interval math runs.",
-      "gh_issue": 91
+      "gh_issue": 91,
+      "verify": {
+        "ci": "pass",
+        "commit": "935fc15"
+      }
     },
     {
       "id": "S-44",

@@ -16,7 +16,7 @@ export async function submitPasscode(formData: FormData) {
   const cookieStore = await cookies();
   cookieStore.set(GATE_COOKIE_NAME, await signGateCookie(secret), {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30,

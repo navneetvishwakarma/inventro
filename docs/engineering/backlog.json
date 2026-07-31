@@ -999,6 +999,10 @@
       "estimate": 0.35,
       "blocked_by": ["S-36a"],
       "gh_issue": 84,
+      "verify": {
+        "ci": "pass",
+        "commit": "95611ff"
+      },
       "acceptance": "A single lib/format money helper (thousands-grouped, 2dp, en-IN) replaces every ad hoc ₹ formatting call site across Insights, Review, Inventory, Shopping list; Review Detail's matched-line subtitle shows human-formatted qty/unit via the existing formatBaseQty helper instead of raw numbers; the Inventory item-detail Log button rejects amount<=0 with a visible validation message instead of silently no-op'ing; Sparkline's default tone reverts to neutral instead of hardcoded brand red."
     },
     {

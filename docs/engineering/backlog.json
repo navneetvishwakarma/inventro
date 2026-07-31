@@ -1085,14 +1085,18 @@
       "title": "Canonicalization/matching + unit-normalization unit tests",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 44,
       "estimate": 0.5,
       "blocked_by": [
         "S-42"
       ],
       "acceptance": "Unit tests cover lib/receipts/canonicalize.ts's two pure functions in isolation: normalizeText's casing/whitespace/punctuation normalization, and normalizeUnitToBase across mixed units (kg, l, dozen, pack-of-N, '2 x 500ml') producing correct base-unit quantities, with a nonsense unit string producing qty_base=1 and ambiguous=true (caller demotes review_state). Alias-hit/trigram-similarity matching (matchCatalogItem, runCanonicalization) is DB-bound (Supabase RPC + pg_trgm), out of scope for this story -- deferred to a future integration-test story against a local Supabase instance, not folded in here (deviation from the original story framing; see epic ledger).",
-      "gh_issue": 92
+      "gh_issue": 92,
+      "verify": {
+        "ci": "pass",
+        "commit": "da1e930"
+      }
     },
     {
       "id": "S-45",

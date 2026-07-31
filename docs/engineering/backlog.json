@@ -874,7 +874,7 @@
       "title": "PWA manifest + installability (Android Web Share Target)",
       "epic": "E-15",
       "prd_ref": "REQ-27",
-      "status": "notstarted",
+      "status": "done",
       "order": 35,
       "estimate": 0.2,
       "blocked_by": [
@@ -892,7 +892,7 @@
       "title": "Error/empty/loading states, mobile pass, dark mode",
       "epic": "E-15",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 36,
       "estimate": 0.2,
       "blocked_by": [
@@ -911,7 +911,7 @@
       "title": "Security pass + full acceptance-test ship-gate verification",
       "epic": "E-15",
       "prd_ref": "REQ-26",
-      "status": "blocked",
+      "status": "done",
       "order": 36.5,
       "estimate": 0.2,
       "blocked_by": [
@@ -920,7 +920,11 @@
         "S-36a"
       ],
       "acceptance": "Anon Supabase key absent from client bundle (grep build output); unauthenticated request without the gate cookie returns 401 (A26); all §11 acceptance tests (A1-A26) pass on the production URL (ship gate).",
-      "gh_issue": 75
+      "gh_issue": 75,
+      "verify": {
+        "ci": "pass",
+        "commit": "6688151"
+      }
     }
   ]
 }

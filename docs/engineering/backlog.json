@@ -825,7 +825,11 @@
         "S-21"
       ],
       "acceptance": "Digest only fires when something is actually due within 3 days.",
-      "gh_issue": 66
+      "gh_issue": 66,
+      "verify": {
+        "ci": "pass",
+        "commit": "fda30d6"
+      }
     },
     {
       "id": "S-33",

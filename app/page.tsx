@@ -53,7 +53,7 @@ export default async function TodayPage() {
             </Link>
           )}
           <Link href="/plan" className="underline">
-            View plan
+            View plan{dueSoon.length > 0 ? ` (${dueSoon.length})` : ''}
           </Link>
           <Link href="/inventory" className="underline">
             View inventory

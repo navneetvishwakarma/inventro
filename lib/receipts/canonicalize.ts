@@ -61,7 +61,7 @@ export function normalizeUnitToBase(qtyDisplay: string | null, unitDisplay: stri
     const [, nStr, mStr, unitStr] = multiMatch;
     const conv = WEIGHT_VOLUME_UNITS[unitStr.toLowerCase()];
     if (conv && conv.base === targetBaseUnit) {
-      return { qtyBase: parseFloat(nStr) * parseFloat(mStr) * conv.factor, ambiguous: false };
+      return { qtyBase: parseFloat(nStr) * parseFloat(mStr) * conv.factor * (qty ?? 1), ambiguous: false };
     }
   }
 

@@ -1,0 +1,27 @@
+{
+  "id": "S-34",
+  "title": "Cost meter + loop-bug guard (100 receipts/day hard stop, alert at 50, per-receipt token/cost accounting)",
+  "goal": "Make the 100/day loop-bug guard (working spec Sec13, PRD REQ-25) an actual hard stop on ingestion instead of just a documented intent, and surface the per-receipt token/cost accounting that has existed on the receipts table since S-06 in the Settings screen S-33 builds.",
+  "in_scope": [
+    "lib/date.ts: add currentKolkataDayRange(nowIso?) returning [start, end) instants for today's Kolkata calendar day -- same derive-from-toKolkataDateString pattern as the existing currentKolkataMonthRange, day granularity instead of month.",
+    "lib/receipts/guard.ts (new): DAILY_INGEST_HARD_STOP = 100, DAILY_INGEST_ALERT_THRESHOLD = 50 constants; getTodayReceiptCount(): Promise<number> counts receipts rows for getDefaultHouseholdId() with created_at inside today's Kolkata day range (currentKolkataDayRange()).",
+    "Guard wired into both upload Server Actions in app/add/actions.ts (uploadReceiptsAction, uploadGroupedReceiptAction): today's count is fetched ONCE per action invocation (not once per file) and incremented locally as files are accepted within that same batch, so a single batch that would cross the 100 boundary partially succeeds (files before the cap upload normally) and partially fails (files at/after the cap return {ok:false, error:'Daily ingestion limit (100 receipts) reached -- try again tomorrow'}). The guard check happens BEFORE hashFileBytes/uploadReceiptFile/createIngestJob/runExtraction for a blocked file -- a blocked file incurs zero Storage write and zero LLM call.",
+    "lib/settings/cost-meter.ts (new): getCostMeterSummary() returns, all scoped to getDefaultHouseholdId(): month-to-date (Kolkata calendar month via the existing currentKolkataMonthRange) totalSpendUsd (sum of receipts.parse_cost where parse_cost is not null), receiptCount (same filter), avgCostPerReceipt (totalSpendUsd / receiptCount, 0 when receiptCount is 0 -- never NaN/Infinity), totalTokens (sum parse_tokens), countByModelTier (grouped by parse_model: 'gemini-flash-latest' vs 'gemini-pro-latest'), plus today's ingestion status (todayCount via getTodayReceiptCount(), hardStopReached = todayCount >= 100, alertReached = todayCount >= 50) for the same loop-guard state the upload actions enforce.",
+    "Settings page (app/settings/page.tsx, the route S-33 creates) gets a 'Cost meter' Card rendering: month-to-date spend, per-receipt average, a small table of counts by model tier, and today's ingestion status -- a plain count when under 50, an amber/warning-styled line at >=50, a red 'Daily limit reached' line at >=100 (display-only; the actual block is enforced server-side in the upload actions regardless of whether this page has been viewed)."
+  ],
+  "out_of_scope": [
+    "Any dollar/currency spend CAP that blocks ingestion -- ADR-0003 and the PRD state only a receipt-COUNT cap (100/day); no product-stated $ ceiling exists anywhere in the PRD/ADRs, and inventing one is a business decision, not an engineering default, per this epic's own authority note.",
+    "Backfilling parse_cost/parse_tokens on any pre-existing receipt -- both columns have been populated by lib/llm/extract.ts since S-06 shipped; there is no historical gap to fill.",
+    "Blocking app/add/manual (manual-entry purchases) with this guard -- manual entry makes zero LLM calls; REQ-25's loop-bug guard is specifically about runaway LLM/extraction cost.",
+    "Any change to the Flash-to-Pro escalation ladder or retry logic in lib/llm/extract.ts -- this story only gates HOW MANY receipts enter that pipeline per day, not what happens once one does."
+  ],
+  "acceptance": "Ingestion actually halts at the daily threshold; Settings shows month-to-date LLM spend, per-receipt average, count by model tier.",
+  "invariants": [
+    "The guard check runs strictly before any Storage upload or LLM call for a given file -- a blocked file costs nothing (no upload, no ingest_jobs row, no extraction attempt).",
+    "The daily count is scoped to getDefaultHouseholdId() and computed on the Kolkata calendar day (not raw UTC), consistent with every other day-boundary computation already in this codebase (lib/date.ts).",
+    "The hard stop is exactly 100 receipts/day: the 100th receipt of the day succeeds, the 101st+ is blocked; the 50-receipt threshold is display-only (alert banner), never blocking.",
+    "getCostMeterSummary()'s totalSpendUsd/avgCostPerReceipt only include receipts with a non-null parse_cost -- a manual-entry-fallback receipt that never got a real LLM call does not silently dilute the average toward zero."
+  ],
+  "prd_ref": "REQ-25",
+  "adr_ref": "docs/architecture/decisions/ADR-0003-llm-provider-gemini-flash.md"
+}

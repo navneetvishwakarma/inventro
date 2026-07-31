@@ -197,7 +197,8 @@
       ],
       "order": 14,
       "estimate": 0.5,
-      "acceptance": "Cost meter reflects real per-receipt token/cost accounting; loop-bug guard halts at 100/day."
+      "acceptance": "Cost meter reflects real per-receipt token/cost accounting; loop-bug guard halts at 100/day.",
+      "gh_issue": 68
     },
     {
       "id": "E-15",
@@ -842,7 +843,8 @@
       "blocked_by": [
         "S-02"
       ],
-      "acceptance": "Data export produces valid CSV/JSON; demo-data wipe only touches is_demo-flagged rows."
+      "acceptance": "Data export produces valid CSV/JSON; demo-data wipe only touches is_demo-flagged rows.",
+      "gh_issue": 69
     },
     {
       "id": "S-34",
@@ -855,7 +857,8 @@
       "blocked_by": [
         "S-06"
       ],
-      "acceptance": "Ingestion actually halts at the daily threshold; Settings shows month-to-date LLM spend, per-receipt average, count by model tier."
+      "acceptance": "Ingestion actually halts at the daily threshold; Settings shows month-to-date LLM spend, per-receipt average, count by model tier.",
+      "gh_issue": 70
     },
     {
       "id": "S-35",

@@ -27,6 +27,9 @@ async function wipeDemoData(supabase: SupabaseAdmin): Promise<void> {
   if (historyErr) throw historyErr;
   const { error: statsErr } = await supabase.from('item_stats').delete().eq('household_id', DEMO_HOUSEHOLD_ID);
   if (statsErr) throw statsErr;
+  // S-31: price_history before stock_movements/catalog_items (FK-safe, both reference catalog_items).
+  const { error: priceErr } = await supabase.from('price_history').delete().eq('household_id', DEMO_HOUSEHOLD_ID);
+  if (priceErr) throw priceErr;
   const { error: movementsErr } = await supabase.from('stock_movements').delete().eq('household_id', DEMO_HOUSEHOLD_ID);
   if (movementsErr) throw movementsErr;
   const { error: aliasesErr } = await supabase.from('item_aliases').delete().eq('household_id', DEMO_HOUSEHOLD_ID);
@@ -34,7 +37,7 @@ async function wipeDemoData(supabase: SupabaseAdmin): Promise<void> {
   const { error: itemsErr } = await supabase.from('catalog_items').delete().eq('household_id', DEMO_HOUSEHOLD_ID);
   if (itemsErr) throw itemsErr;
 
-  console.log(`Wiped demo household ${DEMO_HOUSEHOLD_ID} (catalog_items, stock_movements, item_stats, item_stats_history, item_aliases).`);
+  console.log(`Wiped demo household ${DEMO_HOUSEHOLD_ID} (catalog_items, stock_movements, price_history, item_stats, item_stats_history, item_aliases).`);
 }
 
 async function seed(supabase: SupabaseAdmin): Promise<void> {
@@ -87,6 +90,12 @@ async function seed(supabase: SupabaseAdmin): Promise<void> {
   const catalogItemIdByName = new Map((insertedItems ?? []).map((r) => [r.canonical_name as string, r.id as string]));
 
   const movementRows: { household_id: string; catalog_item_id: string; type: 'purchase'; qty_base: number | null; occurred_at: string }[] = [];
+  // S-31: one price_history row per purchase event, price_basis='per_base_unit'
+  // always (the price itself is a rate, known regardless of whether qtyBase
+  // was dropped for this event by the qty_inconsistent cohort) -- qty_base
+  // on the row mirrors the event's own qtyBase (null when dropped, so the
+  // total-spend derivation correctly excludes it rather than guessing).
+  const priceRows: { household_id: string; catalog_item_id: string; merchant: null; unit_price: number; observed_at: string; qty_base: number | null; price_per_base_unit: number; price_basis: 'per_base_unit' }[] = [];
   for (const item of items) {
     const catalogItemId = catalogItemIdByName.get(item.canonicalName);
     if (!catalogItemId) throw new Error(`Failed to resolve inserted id for ${item.canonicalName}`);
@@ -99,6 +108,16 @@ async function seed(supabase: SupabaseAdmin): Promise<void> {
         qty_base: event.qtyBase,
         occurred_at: event.occurredAt,
       });
+      priceRows.push({
+        household_id: DEMO_HOUSEHOLD_ID,
+        catalog_item_id: catalogItemId,
+        merchant: null,
+        unit_price: event.pricePerBaseUnit,
+        observed_at: event.occurredAt,
+        qty_base: event.qtyBase,
+        price_per_base_unit: event.pricePerBaseUnit,
+        price_basis: 'per_base_unit',
+      });
     }
   }
 
@@ -107,11 +126,17 @@ async function seed(supabase: SupabaseAdmin): Promise<void> {
     if (error) throw error;
   }
 
+  for (const batch of chunk(priceRows, 500)) {
+    const { error } = await supabase.from('price_history').insert(batch);
+    if (error) throw error;
+  }
+
   const byCohort = new Map<string, number>();
   for (const item of items) byCohort.set(item.cohort, (byCohort.get(item.cohort) ?? 0) + 1);
 
   console.log(`Seeded demo household ${DEMO_HOUSEHOLD_ID}:`);
   console.log(`  catalog_items: ${items.length}`);
+  console.log(`  price_history: ${priceRows.length}`);
   console.log(`  stock_movements: ${movementRows.length}`);
   console.log('  cohorts:', Object.fromEntries(byCohort));
 }

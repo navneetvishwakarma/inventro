@@ -241,7 +241,7 @@
       "order": 17,
       "vertical": false,
       "estimate": 2,
-      "acceptance": "npm test runs a unit suite covering computeItemStats (EWMA/shrinkage/outlier-rejection/bucketing), canonicalization/alias matching, unit normalization, rate_correction clamping, and backdating-vs-stock_epoch behavior, reproducing the hand-computed S-14a/b/c fixtures already recorded in docs/MANUAL-TESTS.md; npm run test:e2e passes the gate and gets a 200 on every route in this backlog plus one happy-path assertion per section, using accessible roles/names rather than DOM structure.",
+      "acceptance": "npm test runs a unit suite covering computeItemStats (EWMA/shrinkage/outlier-rejection/bucketing), unit normalization, and rate_correction clamping, reproducing the hand-computed S-14a/c fixtures already recorded in docs/MANUAL-TESTS.md; npm run test:e2e passes the gate and gets a 200 on every route in this backlog plus one happy-path assertion per section, using accessible roles/names rather than DOM structure. Alias-hit/trigram matching and backdating-vs-stock_epoch commit behavior need a seeded-DB integration harness (S-47) and are tracked as a deferred follow-up, not silently dropped.",
       "gh_issue": 89
     }
   ],
@@ -1118,7 +1118,7 @@
     },
     {
       "id": "S-46",
-      "title": "E2E smoke suite (gate auth, every route, one happy path per section)",
+      "title": "E2E route smoke suite (gate auth, every route, one happy path per section)",
       "epic": "E-17",
       "prd_ref": "REQ-28",
       "status": "notstarted",
@@ -1127,8 +1127,22 @@
       "blocked_by": [
         "S-42"
       ],
-      "acceptance": "A Playwright suite authenticates through /gate once, then asserts every route in this backlog's shipped epics (Today, Add, Add/manual, Catalog, Insights, Inventory, Inventory/[id], Plan, Review, Review/[id], Settings, Shopping-list, Onboarding) returns 200 and renders its expected heading role/name; one happy-path interaction per section (e.g. Plan: click a bucket tab and see it become active) using accessible roles/names, not CSS selectors, so it survives the REQ-29 redesign; one dedicated test commits a backdated receipt (before household.stock_epoch) through the real review/commit flow and asserts current stock is unaffected without the override checkbox and is affected with it (A18) -- this is the commit_receipt SQL RPC's actual behavior, more faithfully covered here than as a mocked unit test.",
+      "acceptance": "A Playwright suite authenticates through /gate once, then asserts every route in this backlog's shipped epics (Today, Add, Add/manual, Catalog, Insights, Inventory, Inventory/[id], Plan, Review, Review/[id], Settings, Shopping-list, Onboarding) returns 200 and renders its expected heading role/name; one happy-path interaction per section (e.g. Plan: click a bucket tab and see it become active) using accessible roles/names, not CSS selectors, so it survives the REQ-29 redesign. Backdating-vs-stock_epoch (A18) is deferred to S-47 -- it needs a seeded-DB integration harness this story does not build (see epic ledger).",
       "gh_issue": 94
+    },
+    {
+      "id": "S-47",
+      "title": "Seeded-DB integration harness (alias matching + backdating commit)",
+      "epic": "E-17",
+      "prd_ref": "REQ-28",
+      "status": "notstarted",
+      "order": 47,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-42"
+      ],
+      "acceptance": "A test-only Supabase service-role seed/cleanup helper inserts and tears down fixture rows (catalog_items, receipts, receipt_lines, stock_movements, item_aliases) against the household configured in .env.local without corrupting the demo household's row counts that REQ-23's npm run validate:predictions depends on. Covers: matchCatalogItem's exact-alias-hit and pg_trgm fuzzy-match/miss bands (deferred from S-44), and commit_receipt's backdating behavior -- a backdated receipt (purchased_at < household.stock_epoch) committed without the past-order override leaves current stock unaffected; committed with the override, an extra 'initial' movement dated now() makes it affected (A18, deferred from S-46). Both deferred here together since they need the same seeded-DB infrastructure, not two separate harnesses.",
+      "gh_issue": 95
     }
   ]
 }

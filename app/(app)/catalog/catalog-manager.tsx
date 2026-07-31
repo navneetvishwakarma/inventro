@@ -107,8 +107,13 @@ function MergePanel({ itemA, itemB, onDone, onCancel }: { itemA: CatalogManagerI
 
   useEffect(() => {
     startTransition(async () => {
-      const p = await getMergePreviewAction(itemA.id, itemB.id);
-      setPreview(p);
+      setError(null);
+      const result = await getMergePreviewAction(itemA.id, itemB.id);
+      if (result.ok) {
+        setPreview(result.preview);
+      } else {
+        setError(result.error);
+      }
     });
   }, [itemA.id, itemB.id]);
 

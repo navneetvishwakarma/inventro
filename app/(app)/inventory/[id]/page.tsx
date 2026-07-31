@@ -7,6 +7,7 @@ import { getInventoryItem, type ItemDetail } from '@/lib/inventory/data';
 
 type MovementRecord = ItemDetail['movements'][number];
 import { formatBaseQty, formatDaysRemaining, formatCadenceBucket, buildPredictionExplanation } from '@/lib/inventory/format';
+import { formatMoney } from '@/lib/format/money';
 import { Sparkline } from '../sparkline';
 import { ConsumeActions } from './consume-actions';
 
@@ -56,7 +57,7 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
             <Stat label="Predicted" value={formatDaysRemaining(item.daysRemaining)} />
             <Stat label="Cadence" value={formatCadenceBucket(item.cadenceBucket)} />
             <Stat label="Last purchased" value={item.lastPurchasedAt ? new Date(item.lastPurchasedAt).toLocaleDateString() : 'Never'} />
-            <Stat label="Avg price (90d)" value={item.avgUnitPrice90d !== null ? `₹${item.avgUnitPrice90d.toFixed(2)}` : '—'} />
+            <Stat label="Avg price (90d)" value={item.avgUnitPrice90d !== null ? formatMoney(item.avgUnitPrice90d) : '—'} />
             <Stat label="Confidence" value={item.confidence !== null ? `${Math.round(item.confidence * 100)}%` : '—'} />
           </div>
         </CardContent>

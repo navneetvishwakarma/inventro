@@ -15,6 +15,9 @@ import { ListRow } from '@/components/ui/list-row';
 import { cn } from '@/lib/utils';
 import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
 import { toKolkataDateString } from '@/lib/date';
+import { formatBaseQty } from '@/lib/inventory/format';
+import { formatMoney } from '@/lib/format/money';
+import type { BaseUnit } from '@/lib/receipts/canonicalize';
 import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction } from './actions';
 
 function todayString(): string {
@@ -421,7 +424,7 @@ export function ReviewDetail({
                 <ListRow
                   key={line.id}
                   title={lineLabel(line)}
-                  subtitle={`${line.qty_base ?? '—'} · ₹${line.unit_price ?? '—'}`}
+                  subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
                   trailing={<Badge tone="success">Matched</Badge>}
                 />
               ))}

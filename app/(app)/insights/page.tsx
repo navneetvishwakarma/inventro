@@ -5,16 +5,13 @@ import { Alert } from '@/components/ui/alert';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getBudgetSummary, getForwardProjection, getTopSpendItems, getPriceAlerts, getWasteReport } from '@/lib/insights/data';
+import { formatMoney as money } from '@/lib/format/money';
 import { ProgressBar } from './progress-bar';
 
 // Same force-dynamic rationale as app/plan/page.tsx and app/shopping-list/page.tsx
 // -- Insights is a live view over the same underlying state everything else
 // uses (UX doc's own stated success signal), never a cached/static report.
 export const dynamic = 'force-dynamic';
-
-function money(n: number): string {
-  return `₹${n.toFixed(2)}`;
-}
 
 export default async function InsightsPage() {
   const household = await getHousehold();

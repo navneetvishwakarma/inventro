@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getReviewQueue, type ReviewQueueItem } from '@/lib/review/data';
+import { formatMoney } from '@/lib/format/money';
 
 // Same force-dynamic rationale as app/page.tsx and app/add/page.tsx: the
 // review queue must reflect the latest extraction results on every load.
@@ -16,7 +17,7 @@ function formatDate(value: string | null): string {
 }
 
 function formatTotal(value: number | null): string {
-  return value !== null ? `₹${value}` : '—';
+  return value !== null ? formatMoney(value) : '—';
 }
 
 export default async function ReviewQueuePage() {

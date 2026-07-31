@@ -83,7 +83,7 @@ type ReceiptLineRow = {
   matched_item_id: string | null;
   match_confidence: number | null;
   review_state: string;
-  catalog_items: { canonical_name: string; brand: string | null } | null;
+  catalog_items: { canonical_name: string; brand: string | null; base_unit: string } | null;
 };
 
 export type ReceiptLineForReview = ReceiptLineRow;
@@ -93,7 +93,7 @@ export async function getReceiptLines(receiptId: string): Promise<ReceiptLineFor
   const { data, error } = await supabase
     .from('receipt_lines')
     .select(
-      'id, line_no, raw_text, item_name, brand, category_slug, qty_display, unit_display, pack_size, unit_price, line_total, qty_base, matched_item_id, match_confidence, review_state, catalog_items(canonical_name, brand)',
+      'id, line_no, raw_text, item_name, brand, category_slug, qty_display, unit_display, pack_size, unit_price, line_total, qty_base, matched_item_id, match_confidence, review_state, catalog_items(canonical_name, brand, base_unit)',
     )
     .eq('receipt_id', receiptId)
     .order('line_no');

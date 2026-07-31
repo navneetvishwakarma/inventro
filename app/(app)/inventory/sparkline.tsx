@@ -20,7 +20,7 @@ export function Sparkline({ points, width = 80, height = 24 }: { points: { unitP
     .join(' ');
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="inline-block text-primary" role="img" aria-label="Price trend">
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="inline-block text-foreground-subtle" role="img" aria-label="Price trend">
       <polyline points={coords} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   );

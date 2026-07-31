@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { formatMoney } from '@/lib/format/money';
 import { setCheckedAction, logPurchaseAction } from './actions';
 
 // Matches PlanItemActions' convention -- no local optimistic state for the
@@ -60,7 +61,7 @@ export function ShoppingListItemRow({
         label={<span className={cn(checked && 'text-muted-foreground line-through')}>{label}</span>}
       />
       {purchaseLoggedAt !== null ? (
-        <span className="ml-[26px] text-xs text-muted-foreground">Logged: ₹{loggedPrice}</span>
+        <span className="ml-[26px] text-xs text-muted-foreground">Logged: {loggedPrice !== null ? formatMoney(loggedPrice) : '—'}</span>
       ) : (
         <div className="ml-[26px] flex items-center gap-2">
           <Input

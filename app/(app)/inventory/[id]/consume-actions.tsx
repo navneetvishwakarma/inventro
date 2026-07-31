@@ -59,16 +59,18 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
           <Button
             size="sm"
             variant="ghost"
-            disabled={isPending || amount.trim() === '' || Number.isNaN(Number(amount))}
+            disabled={isPending || !(Number.isFinite(Number(amount)) && Number(amount) > 0)}
             onClick={() => {
               const n = Number(amount);
-              if (!Number.isFinite(n) || n <= 0) return;
               run(() => usedSomeAmountAction(catalogItemId, n));
               setAmount('');
             }}
           >
             Log
           </Button>
+          {amount.trim() !== '' && !(Number.isFinite(Number(amount)) && Number(amount) > 0) && (
+            <p className="w-full text-xs text-error">Enter an amount greater than 0.</p>
+          )}
         </div>
       )}
 

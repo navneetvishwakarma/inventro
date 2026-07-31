@@ -32,3 +32,15 @@ export function currentKolkataMonthRange(nowIso: string = new Date().toISOString
   const endDateString = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
   return { start: kolkataDateStringToInstant(startDateString), end: kolkataDateStringToInstant(endDateString) };
 }
+
+// S-34: [start, end) instants for today's Kolkata calendar day -- same
+// derive-from-toKolkataDateString approach as currentKolkataMonthRange, one
+// day wide instead of one month, for the 100/day loop-bug guard (working
+// spec Sec13) so "today" always means the Kolkata day, not a raw UTC one.
+export function currentKolkataDayRange(nowIso: string = new Date().toISOString()): { start: string; end: string } {
+  const start = kolkataDateStringToInstant(toKolkataDateString(nowIso));
+  // IST has no DST, so exactly +24h from Kolkata midnight is always the
+  // next Kolkata midnight -- no need to re-derive via toKolkataDateString.
+  const end = new Date(new Date(start).getTime() + 86_400_000).toISOString();
+  return { start, end };
+}

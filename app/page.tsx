@@ -67,6 +67,9 @@ export default async function TodayPage() {
           <Link href="/insights" className="underline">
             View insights
           </Link>
+          <Link href="/settings" className="underline">
+            Settings
+          </Link>
         </CardContent>
       </Card>
 

@@ -844,7 +844,11 @@
         "S-02"
       ],
       "acceptance": "Data export produces valid CSV/JSON; demo-data wipe only touches is_demo-flagged rows.",
-      "gh_issue": 69
+      "gh_issue": 69,
+      "verify": {
+        "ci": "pass",
+        "commit": "b1f4ac9"
+      }
     },
     {
       "id": "S-34",
@@ -858,7 +862,11 @@
         "S-06"
       ],
       "acceptance": "Ingestion actually halts at the daily threshold; Settings shows month-to-date LLM spend, per-receipt average, count by model tier.",
-      "gh_issue": 70
+      "gh_issue": 70,
+      "verify": {
+        "ci": "pass",
+        "commit": "b1f4ac9"
+      }
     },
     {
       "id": "S-35",

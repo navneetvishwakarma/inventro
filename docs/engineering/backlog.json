@@ -881,7 +881,11 @@
         "S-05"
       ],
       "acceptance": "App is installable; offline shell caches but data does not sync offline.",
-      "gh_issue": 73
+      "gh_issue": 73,
+      "verify": {
+        "ci": "pass",
+        "commit": "4f6d7ca"
+      }
     },
     {
       "id": "S-36a",
@@ -896,7 +900,11 @@
         "S-31"
       ],
       "acceptance": "Every screen defines an error, empty, and loading state (no blank/broken renders); full mobile-viewport pass; dark mode functional across the app.",
-      "gh_issue": 74
+      "gh_issue": 74,
+      "verify": {
+        "ci": "pass",
+        "commit": "8688b3c"
+      }
     },
     {
       "id": "S-36b",

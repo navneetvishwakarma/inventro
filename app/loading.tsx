@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // S-36a/REQ-26: root-level Suspense fallback. Next applies the nearest
 // loading.tsx up the route tree to every segment beneath it that doesn't
@@ -11,13 +12,13 @@ export default function Loading() {
   return (
     <main style={{ maxWidth: 480, margin: '10vh auto', padding: '0 1rem' }} className="flex flex-col gap-4" aria-busy="true" aria-live="polite">
       <Card>
-        <CardHeader className="animate-pulse">
-          <div className="h-4 w-1/3 rounded bg-muted" />
-          <div className="h-3 w-2/3 rounded bg-muted" />
+        <CardHeader className="gap-2">
+          <Skeleton width="33%" height={16} />
+          <Skeleton width="66%" height={12} />
         </CardHeader>
-        <CardContent className="flex animate-pulse flex-col gap-2">
-          <div className="h-8 rounded bg-muted" />
-          <div className="h-8 rounded bg-muted" />
+        <CardContent className="flex flex-col gap-2">
+          <Skeleton height={32} />
+          <Skeleton height={32} />
         </CardContent>
       </Card>
       <span className="sr-only">Loading…</span>

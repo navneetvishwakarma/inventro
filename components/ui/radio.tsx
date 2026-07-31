@@ -24,7 +24,7 @@ function Radio({ checked, onChange, label, name, disabled, id, className }: Radi
         className
       )}
     >
-      <span className="relative flex size-[18px] shrink-0 items-center justify-center">
+      <span className="relative flex size-11 shrink-0 items-center justify-center">
         <input
           id={radioId}
           type="radio"
@@ -35,12 +35,14 @@ function Radio({ checked, onChange, label, name, disabled, id, className }: Radi
           className="peer absolute inset-0 m-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
         />
         <span
+          aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute inset-0 rounded-full border transition-colors peer-focus-visible:[box-shadow:var(--ring-focus)]",
+            "pointer-events-none relative size-[18px] shrink-0 rounded-full border transition-colors peer-focus-visible:[box-shadow:var(--ring-focus)]",
             checked ? "border-primary" : "border-border-strong"
           )}
-        />
-        {checked ? <span className="pointer-events-none absolute size-[9px] rounded-full bg-primary" /> : null}
+        >
+          {checked ? <span className="pointer-events-none absolute inset-0 m-auto size-[9px] rounded-full bg-primary" /> : null}
+        </span>
       </span>
       {label}
     </label>

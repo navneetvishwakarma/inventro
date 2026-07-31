@@ -3,6 +3,14 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import {
+  CalendarDays,
+  ChartNoAxesColumn,
+  House,
+  type LucideIcon,
+  Package,
+  Plus,
+} from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -17,9 +25,14 @@ export interface TabBarProps {
   className?: string
 }
 
-// No per-item icon is defined anywhere in the design system export (the
-// prototype uses a plain bullet placeholder) -- flagged rather than
-// invented; swap in real icons once the design system specifies them.
+const TAB_ICONS: Record<string, LucideIcon> = {
+  today: House,
+  inventory: Package,
+  add: Plus,
+  plan: CalendarDays,
+  insights: ChartNoAxesColumn,
+}
+
 function TabBar({ items, className }: TabBarProps) {
   const pathname = usePathname()
   return (
@@ -33,6 +46,7 @@ function TabBar({ items, className }: TabBarProps) {
       {items.map((item) => {
         const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
         const isCenter = item.key === "add"
+        const Icon = TAB_ICONS[item.key] ?? House
         return (
           <Link
             key={item.key}
@@ -45,11 +59,11 @@ function TabBar({ items, className }: TabBarProps) {
           >
             <span
               className={cn(
-                "flex items-center justify-center text-[15px] font-bold",
+                "flex items-center justify-center",
                 isCenter ? "size-[34px] rounded-full bg-primary text-primary-foreground" : "size-[22px]"
               )}
             >
-              {isCenter ? "+" : "•"}
+              <Icon className="size-[18px]" strokeWidth={isActive || isCenter ? 2.25 : 2} aria-hidden="true" />
             </span>
             <span className={cn("text-[10.5px]", isActive && "font-semibold")}>{item.label}</span>
           </Link>

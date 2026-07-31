@@ -206,7 +206,7 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="flex flex-wrap items-end gap-2">
-            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search catalog…" size="sm" className="w-full sm:w-[260px]" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search catalog" placeholder="Search catalog…" size="sm" className="w-full sm:w-[260px]" />
             <Checkbox checked={showArchived} onChange={(c) => setShowArchived(c)} label="Show archived" />
             {selectedItems.length === 2 && !merging && (
               <Button type="button" size="sm" className="hidden md:inline-flex" onClick={() => setMerging(true)}>

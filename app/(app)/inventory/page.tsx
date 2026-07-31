@@ -152,7 +152,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
             <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
           </form>
           <details className="md:hidden">
-            <summary className="flex h-9 w-fit cursor-pointer list-none items-center rounded-md border border-border px-3 text-sm font-medium text-foreground">
+            <summary className="flex h-11 w-fit cursor-pointer list-none items-center rounded-md border border-border px-3 text-sm font-medium text-foreground">
               Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
             </summary>
             <form method="get" className="mt-3 flex flex-col items-start gap-2">

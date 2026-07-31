@@ -50,6 +50,7 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
             type="number"
             min="0"
             step="any"
+            aria-label={`Amount used (${baseUnit})`}
             placeholder={`Amount (${baseUnit})`}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}

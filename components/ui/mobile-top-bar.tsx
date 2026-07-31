@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -20,10 +21,8 @@ function MobileTopBar({ title, backHref, className }: MobileTopBarProps) {
       )}
     >
       {backHref ? (
-        <Link href={backHref} aria-label="Back" className="flex size-6 shrink-0 items-center justify-center text-foreground-muted no-underline">
-          <span aria-hidden="true" className="text-base leading-none">
-            &larr;
-          </span>
+        <Link href={backHref} aria-label="Back" className="-ml-2 flex size-11 shrink-0 items-center justify-center text-foreground-muted no-underline">
+          <ArrowLeft className="size-5" aria-hidden="true" />
         </Link>
       ) : null}
       <span className="truncate [font:var(--text-h6)] text-foreground">{title}</span>

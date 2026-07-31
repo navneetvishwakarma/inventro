@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
 export type AlertTone = "info" | "warning" | "success" | "error"
 
 const TONE_CLASSES: Record<AlertTone, string> = {
-  info: "bg-info-subtle text-info-foreground border-[var(--blue-300)]",
-  warning: "bg-warning-subtle text-warning-foreground border-[var(--gold-300)]",
-  success: "bg-success-subtle text-success-foreground border-[var(--success-300)]",
-  error: "bg-error-subtle text-error-foreground border-[var(--red-300)]",
+  info: "bg-info-subtle text-info-foreground border-info",
+  warning: "bg-warning-subtle text-warning-foreground border-warning",
+  success: "bg-success-subtle text-success-foreground border-success",
+  error: "bg-error-subtle text-error-foreground border-error",
 }
 
 export interface AlertProps {

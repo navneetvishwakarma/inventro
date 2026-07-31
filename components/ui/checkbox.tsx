@@ -32,16 +32,21 @@ function Checkbox({ checked, defaultChecked, onChange, label, disabled, id, name
       disabled={disabled}
       onCheckedChange={onChange}
       className={cn(
-        "peer relative flex size-[18px] shrink-0 items-center justify-center rounded-sm border border-border-strong bg-surface outline-none transition-colors focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 data-checked:border-primary data-checked:bg-primary",
+        "group relative flex size-11 shrink-0 items-center justify-center rounded-sm outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
     >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="grid place-content-center text-primary-foreground [&>svg]:size-3"
+      <span
+        aria-hidden="true"
+        className="flex size-[18px] items-center justify-center rounded-sm border border-border-strong bg-surface transition-colors group-focus-visible:border-primary group-data-checked:border-primary group-data-checked:bg-primary"
       >
-        <CheckIcon />
-      </CheckboxPrimitive.Indicator>
+        <CheckboxPrimitive.Indicator
+          data-slot="checkbox-indicator"
+          className="grid place-content-center text-primary-foreground [&>svg]:size-3"
+        >
+          <CheckIcon />
+        </CheckboxPrimitive.Indicator>
+      </span>
     </CheckboxPrimitive.Root>
   )
   if (!label) return control

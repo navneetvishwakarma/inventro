@@ -6,6 +6,9 @@ import { extensionOf, isAcceptedExtension, isImageExtension, type AcceptedExtens
 import { createIngestJob } from '@/lib/receipts/ingest';
 import { runExtraction } from '@/lib/llm/extract';
 import { hashFileBytes, hashCombinedFileBytes, findDuplicateReceipt } from '@/lib/receipts/dedup';
+import { getTodayReceiptCount, DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
+
+const DAILY_LIMIT_ERROR = `Daily ingestion limit (${DAILY_INGEST_HARD_STOP} receipts) reached -- try again tomorrow`;
 
 export type UploadResult = { fileName: string; ok: true; receiptId: string } | { fileName: string; ok: false; error: string };
 
@@ -24,10 +27,25 @@ export async function uploadReceiptsAction(formData: FormData): Promise<UploadRe
   const files = formData.getAll('files').filter((f): f is File => f instanceof File);
   const results: UploadResult[] = [];
 
+  // S-34/REQ-25: fetched ONCE per batch (not per file) and incremented
+  // locally as files are actually accepted below -- a batch straddling the
+  // 100 boundary partially succeeds rather than all-or-nothing. Duplicate-
+  // rejected files never increment this (they never create a receipts row
+  // or cost anything), matching what the count itself measures.
+  const countBeforeBatch = await getTodayReceiptCount();
+  let acceptedInBatch = 0;
+
   for (const file of files) {
     const ext = extensionOf(file.name);
     if (!isAcceptedExtension(ext)) {
       results.push({ fileName: file.name, ok: false, error: 'Unsupported file type' });
+      continue;
+    }
+
+    // Checked before any hashing/Storage/dedup work -- a blocked file costs
+    // nothing at all, not even a dedup lookup.
+    if (countBeforeBatch + acceptedInBatch >= DAILY_INGEST_HARD_STOP) {
+      results.push({ fileName: file.name, ok: false, error: DAILY_LIMIT_ERROR });
       continue;
     }
 
@@ -44,6 +62,7 @@ export async function uploadReceiptsAction(formData: FormData): Promise<UploadRe
       const { id } = await uploadReceiptFile(bytes, ext, contentHash);
       await createIngestJob(id);
       after(() => runExtraction(id));
+      acceptedInBatch++;
       results.push({ fileName: file.name, ok: true, receiptId: id });
     } catch {
       results.push({ fileName: file.name, ok: false, error: 'Upload failed' });
@@ -73,6 +92,14 @@ export async function uploadGroupedReceiptAction(formData: FormData): Promise<Up
   }
 
   const groupName = files.map((f) => f.name).join(', ');
+
+  // S-34/REQ-25: a grouped upload is still exactly one receipts row/one
+  // extraction call, so a single check against today's count (no local
+  // batch increment needed, unlike uploadReceiptsAction's N-file loop).
+  const countBeforeUpload = await getTodayReceiptCount();
+  if (countBeforeUpload >= DAILY_INGEST_HARD_STOP) {
+    return [{ fileName: groupName, ok: false, error: DAILY_LIMIT_ERROR }];
+  }
 
   try {
     const bytesList = await Promise.all(files.map((f) => f.arrayBuffer()));

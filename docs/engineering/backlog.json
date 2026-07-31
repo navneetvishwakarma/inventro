@@ -828,7 +828,7 @@
       "gh_issue": 66,
       "verify": {
         "ci": "pass",
-        "commit": "e395724"
+        "commit": "fda30d6"
       }
     },
     {

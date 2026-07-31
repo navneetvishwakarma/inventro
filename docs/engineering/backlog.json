@@ -837,7 +837,7 @@
       "title": "Settings screen: household config, category management pointer, CSV/JSON export, demo-data wipe",
       "epic": "E-14",
       "prd_ref": "REQ-21",
-      "status": "notstarted",
+      "status": "done",
       "order": 33,
       "estimate": 0.3,
       "blocked_by": [
@@ -855,7 +855,7 @@
       "title": "Cost meter + loop-bug guard (100 receipts/day hard stop, alert at 50, per-receipt token/cost accounting)",
       "epic": "E-14",
       "prd_ref": "REQ-25",
-      "status": "notstarted",
+      "status": "done",
       "order": 34,
       "estimate": 0.25,
       "blocked_by": [

@@ -946,10 +946,12 @@
       "title": "Mobile reachability + focus-ring/functional blockers",
       "epic": "E-16",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 37,
       "estimate": 0.4,
-      "blocked_by": ["S-36a"],
+      "blocked_by": [
+        "S-36a"
+      ],
       "gh_issue": 81,
       "acceptance": "Settings and Shopping List gain a direct link reachable from Today (or another always-visible surface) on mobile; Catalog and Review remain reachable even when their conditional link is absent (empty review queue); Switch and Radio both show a visible focus-visible ring on keyboard Tab; the gate passcode cookie works on http://localhost; a catalog merge-preview RPC failure surfaces a visible error instead of leaving Confirm merge silently disabled forever.",
       "verify": {
@@ -962,10 +964,12 @@
       "title": "Mobile top bar component + rollout",
       "epic": "E-16",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 38,
       "estimate": 0.4,
-      "blocked_by": ["S-37"],
+      "blocked_by": [
+        "S-37"
+      ],
       "gh_issue": 82,
       "acceptance": "A new components/ui MobileTopBar (title + optional back button) renders below the lg breakpoint on every app/(app) route with the screen's title; Review Detail and Inventory Detail show a working back button.",
       "verify": {
@@ -978,10 +982,12 @@
       "title": "Documented mobile responsive collapses (filter bar, tabs, sticky bars)",
       "epic": "E-16",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 39,
       "estimate": 0.4,
-      "blocked_by": ["S-36a"],
+      "blocked_by": [
+        "S-36a"
+      ],
       "gh_issue": 83,
       "verify": {
         "ci": "pass",
@@ -994,10 +1000,12 @@
       "title": "Shared money formatter + consume/display bug fixes",
       "epic": "E-16",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 40,
       "estimate": 0.35,
-      "blocked_by": ["S-36a"],
+      "blocked_by": [
+        "S-36a"
+      ],
       "gh_issue": 84,
       "verify": {
         "ci": "pass",
@@ -1010,10 +1018,12 @@
       "title": "Component/token fidelity pass (Button, Table/ListRow typography, labels, a11y, reduced motion)",
       "epic": "E-16",
       "prd_ref": "REQ-26",
-      "status": "notstarted",
+      "status": "done",
       "order": 41,
       "estimate": 0.4,
-      "blocked_by": ["S-36a"],
+      "blocked_by": [
+        "S-36a"
+      ],
       "gh_issue": 85,
       "verify": {
         "ci": "pass",

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Claude Design export: reference spec, not app source. Has its own
+    // lint contract (design/_adherence.oxlintrc.json via oxlint).
+    "design/**",
   ]),
 ]);
 

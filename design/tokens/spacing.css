@@ -1,0 +1,9 @@
+:root{
+--space-0:0;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;--space-20:80px;--space-24:96px;
+--touch-target-min:44px;
+--container-mobile:480px;--container-tablet:720px;--container-desktop:1024px;--container-wide:1280px;
+--bp-tablet:768px;--bp-desktop:1024px;--bp-wide:1440px;
+--grid-columns-mobile:4/* @kind other */;--grid-columns-tablet:8/* @kind other */;--grid-columns-desktop:12/* @kind other */;
+--gutter:16px;
+--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom);--safe-left:env(safe-area-inset-left);--safe-right:env(safe-area-inset-right);
+}

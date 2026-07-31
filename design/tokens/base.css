@@ -1,0 +1,5 @@
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--color-background);color:var(--color-foreground);font:var(--text-body);-webkit-font-smoothing:antialiased}
+::selection{background:var(--color-primary-subtle);color:var(--color-primary-subtle-foreground)}
+:focus-visible{outline:none;box-shadow:var(--ring-focus);border-radius:var(--radius-sm)}

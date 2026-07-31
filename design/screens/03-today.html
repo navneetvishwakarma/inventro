@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inventro &middot; Today &mdash; High-fidelity</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- @screen id="today" name="Today" subtitle="Home / landing" -->
+<link rel="stylesheet" href="../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../_ds_bundle.js"></script>
+<style>
+  body{margin:0;background:var(--color-surface-sunken);}
+  #root{padding:var(--space-8) var(--space-6);font-family:var(--font-sans);}
+  .screens-row{display:flex;gap:var(--space-8);align-items:flex-start;flex-wrap:wrap;}
+  .page-head{max-width:1180px;margin:0 auto var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);}
+  .page-head h2{font:var(--text-h2);letter-spacing:var(--ls-h2);color:var(--color-foreground);margin:0;}
+  .page-head p{font:var(--text-body-sm);color:var(--color-foreground-muted);margin:0;max-width:760px;}
+  .back-link{font:600 13px/1 var(--font-sans);color:var(--color-link);text-decoration:none;}
+  .center-wrap{max-width:1180px;margin:0 auto;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { Sidebar, TabBar, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Button, ListRow, Badge } = window.InventroDesignSystem_2cd99f;
+
+  // --- Composed from tokens only -- NOT first-class design-system
+  // components. See CHANGELOG "Components with no design-system match".
+  function Sparkline({ points, tone = 'var(--color-foreground-subtle)', width = 76, height = 24 }) {
+    const min = Math.min(...points), max = Math.max(...points), range = (max - min) || 1;
+    const step = width / (points.length - 1);
+    const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${(i * step).toFixed(1)},${(height - ((p - min) / range) * height).toFixed(1)}`).join(' ');
+    return (<svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Price trend"><path d={d} fill="none" stroke={tone} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>);
+  }
+  function StepDots({ step, total = 3 }) {
+    return (<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', justifyContent: 'center' }}>
+      {Array.from({ length: total }).map((_, i) => (
+        <React.Fragment key={i}>
+          <span style={{
+            width: 24, height: 24, borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', justifyContent: 'center', font: '600 12px/1 var(--font-sans)',
+            background: i + 1 === step ? 'var(--color-primary)' : i + 1 < step ? 'var(--color-primary-subtle)' : 'var(--color-surface-sunken)',
+            color: i + 1 === step ? 'var(--color-primary-foreground)' : i + 1 < step ? 'var(--color-primary-subtle-foreground)' : 'var(--color-foreground-subtle)',
+          }}>{i + 1}</span>
+          {i < total - 1 && <span style={{ width: 30, height: 1.5, background: 'var(--color-border-strong)' }} />}
+        </React.Fragment>
+      ))}
+    </div>);
+  }
+  function ProgressBar({ value, max, tone = 'var(--color-primary)' }) {
+    const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+    return (<div style={{ height: 8, borderRadius: 'var(--radius-full)', background: 'var(--color-surface-sunken)', overflow: 'hidden' }}>
+      <div style={{ width: pct + '%', height: '100%', background: tone, borderRadius: 'var(--radius-full)' }} />
+    </div>);
+  }
+  function ImagePreview({ label, height = 220 }) {
+    return (<div style={{
+      height, borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--color-surface-sunken)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 'var(--space-4)',
+      font: 'var(--text-caption)', color: 'var(--color-foreground-subtle)',
+    }}>{label}</div>);
+  }
+  function Dropzone({ children, dragging }) {
+    return (<div style={{
+      border: `1.5px dashed ${dragging ? 'var(--color-primary)' : 'var(--color-border-strong)'}`, borderRadius: 'var(--radius-lg)',
+      padding: 'var(--space-5)', background: dragging ? 'var(--color-primary-subtle)' : 'var(--color-surface-sunken)',
+    }}>{children}</div>);
+  }
+  function Frame({ label, width, children }) {
+    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', minWidth: 0 }}>
+      <div style={{ font: 'var(--text-overline)', textTransform: 'uppercase', letterSpacing: 'var(--ls-overline)', color: 'var(--color-foreground-subtle)' }}>{label}</div>
+      <div style={{ width, maxWidth: '100%', background: 'var(--color-background)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>{children}</div>
+    </div>);
+  }
+  function ScreenTitle({ children, description }) {
+    return (<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+      <h1 style={{ font: 'var(--text-h3)', letterSpacing: 'var(--ls-h3)', color: 'var(--color-foreground)', margin: 0 }}>{children}</h1>
+      {description && <p style={{ font: 'var(--text-body-sm)', color: 'var(--color-foreground-muted)', margin: 0 }}>{description}</p>}
+    </div>);
+  }
+  function MobileTopBar({ title, back }) {
+    return (<div style={{ height: 48, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 'var(--space-2)', padding: '0 var(--space-4)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+      <span style={{ font: '600 13px/1 var(--font-sans)', color: 'var(--color-foreground-muted)' }}>{back ? '\u2190' : '\u2261'}</span>
+      <span style={{ font: 'var(--text-h6)', color: 'var(--color-foreground)' }}>{title}</span>
+    </div>);
+  }
+
+const SIDEBAR_ITEMS = [
+    { key: 'today', label: 'Today' },
+    { key: 'add', label: 'Add' },
+    { key: 'review', label: 'Review', count: 4 },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'plan', label: 'Plan' },
+    { key: 'shopping-list', label: 'Shopping list' },
+    { key: 'insights', label: 'Insights' },
+    { key: 'catalog', label: 'Catalog' },
+    { key: 'settings', label: 'Settings' },
+  ];
+const TABBAR_ITEMS = [
+    { key: 'today', label: 'Today' },
+    { key: 'inventory', label: 'Inventory' },
+    { key: 'add', label: 'Add' },
+    { key: 'shop', label: 'Shop' },
+    { key: 'more', label: 'More' },
+  ];
+
+function HouseholdCard() {
+  return (
+    <Card>
+      <CardHeader><CardTitle>The Sharmas</CardTitle><CardDescription>3 items due soon, 2 need attention.</CardDescription></CardHeader>
+      <CardContent>
+        <p style={{ font: 'var(--text-body-sm)', color: 'var(--color-foreground-muted)', margin: 0 }}>Add your first receipt to start tracking what&rsquo;s in stock.</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+          <Button variant="tertiary" size="sm">4 receipts waiting for review</Button>
+        </div>
+      </CardContent>
+      <CardFooter style={{ flexWrap: 'wrap' }}>
+        <Button variant="ghost" size="sm">View plan (3)</Button>
+        <Button variant="ghost" size="sm">View inventory</Button>
+        <Button variant="ghost" size="sm">Add manually</Button>
+        <Button variant="ghost" size="sm">Manage catalog</Button>
+        <Button variant="ghost" size="sm">View insights</Button>
+      </CardFooter>
+    </Card>
+  );
+}
+function DueSoonCard() {
+  return (
+    <Card>
+      <CardHeader><CardTitle>Due soon</CardTitle><CardDescription>Due or overdue in the next 3 days, across all cadences.</CardDescription></CardHeader>
+      <CardContent>
+        <ListRow title="Amul toned milk (Amul)" subtitle="Suggested: 2 packs" meta={['Due today']} />
+        <ListRow title="Toor dal" subtitle="Suggested: 1kg" meta={['Due tomorrow']} />
+        <ListRow title="Onions" subtitle="Suggested: 2kg" meta={['Due in 2 days']} />
+      </CardContent>
+    </Card>
+  );
+}
+function NeedsAttentionCard() {
+  return (
+    <Card>
+      <CardHeader><CardTitle>Needs attention</CardTitle><CardDescription>Out of stock, based on recorded usage.</CardDescription></CardHeader>
+      <CardContent>
+        <ListRow title="Sunflower oil (Fortune)" trailing={<Badge tone="error">Out of stock</Badge>} />
+        <ListRow title="Eggs (Local dairy)" trailing={<Badge tone="error">Out of stock</Badge>} />
+      </CardContent>
+    </Card>
+  );
+}
+function Demo(){
+  return (<div>
+    <div className="page-head">
+      <a className="back-link" href="index.html">&larr; All screens</a>
+      <h2>Today &middot; Home / landing</h2>
+      <p>Default landing screen. Answers &ldquo;do we need anything&rdquo; in the first five seconds &mdash; a hub, not a chart dashboard.</p>
+    </div>
+    <div className="screens-row">
+      <Frame label="Web &middot; 1280px viewport" width={1100}>
+        <div style={{ display: 'flex', minHeight: 640 }}>
+          <Sidebar active="today" items={SIDEBAR_ITEMS} householdName="The Sharmas" />
+          <div style={{ flex: 1, minWidth: 0, padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', background: 'var(--color-background)' }}>
+            <div style={{ maxWidth: 640, display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              <HouseholdCard /><DueSoonCard /><NeedsAttentionCard />
+            </div>
+          </div>
+        </div>
+      </Frame>
+      <Frame label="Mobile &middot; 375px viewport" width={375}>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: 640 }}>
+          <MobileTopBar title="Today" />
+          <div style={{ flex: 1, padding: 'var(--space-4)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', background: 'var(--color-background)' }}>
+            <HouseholdCard /><DueSoonCard /><NeedsAttentionCard />
+          </div>
+          <TabBar active="today" items={TABBAR_ITEMS} />
+        </div>
+      </Frame>
+    </div>
+  </div>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script>
+</body>
+</html>

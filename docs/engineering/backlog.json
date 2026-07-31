@@ -184,7 +184,8 @@
       "prd_ref": "REQ-20",
       "order": 13,
       "estimate": 0.25,
-      "acceptance": "Daily digest fires only when something is due within 3 days."
+      "acceptance": "Daily digest fires only when something is due within 3 days.",
+      "gh_issue": 65
     },
     {
       "id": "E-14",
@@ -823,7 +824,8 @@
       "blocked_by": [
         "S-21"
       ],
-      "acceptance": "Digest only fires when something is actually due within 3 days."
+      "acceptance": "Digest only fires when something is actually due within 3 days.",
+      "gh_issue": 66
     },
     {
       "id": "S-33",

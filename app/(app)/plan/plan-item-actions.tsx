@@ -66,7 +66,7 @@ export function PlanItemActions({
             <Button size="sm" variant="outline" disabled={isPending} onClick={() => run(() => skipOnceAction(catalogItemId))}>
               Skip once
             </Button>
-            <Button size="sm" variant="destructive" disabled={isPending} className="hidden md:inline-flex" onClick={() => run(() => excludeItemAction(catalogItemId))}>
+            <Button size="sm" variant="ghost" disabled={isPending} className="hidden md:inline-flex" onClick={() => run(() => excludeItemAction(catalogItemId))}>
               Always exclude
             </Button>
           </>
@@ -101,7 +101,7 @@ export function PlanItemActions({
           </summary>
           <div className="mt-2 flex flex-col items-start gap-2">
             {planState === 'pending' && (
-              <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run(() => excludeItemAction(catalogItemId))}>
+              <Button size="sm" variant="ghost" disabled={isPending} onClick={() => run(() => excludeItemAction(catalogItemId))}>
                 Always exclude
               </Button>
             )}

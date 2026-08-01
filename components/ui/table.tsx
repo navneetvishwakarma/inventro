@@ -65,7 +65,7 @@ function TableRowMobile({ primary, secondary, meta }: TableRowMobileProps) {
   return (
     <div className="flex flex-col gap-1 border-b border-border px-1 py-3">
       <div className="flex justify-between text-sm font-medium">
-        <span>{primary}</span>
+        <span className="text-foreground">{primary}</span>
         {secondary ? <span className="font-mono tabular-nums">{secondary}</span> : null}
       </div>
       {meta ? <span className="text-xs text-muted-foreground">{meta}</span> : null}

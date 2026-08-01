@@ -23,6 +23,7 @@ export interface BadgeProps {
 function Badge({ children, tone = "neutral", className }: BadgeProps) {
   return (
     <span
+      data-slot="badge"
       className={cn(
         "inline-flex h-[22px] items-center rounded-full px-2 text-[11px] font-semibold whitespace-nowrap tracking-[0.01em]",
         TONE_CLASSES[tone],

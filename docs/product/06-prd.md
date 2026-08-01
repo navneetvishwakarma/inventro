@@ -67,7 +67,8 @@ instead, REQ-22).
 | REQ-26 | Single-household tenancy scaffolding: `household_id` on every table sourced from `DEFAULT_HOUSEHOLD_ID`, all DB access server-side, RLS policies written-but-disabled, shared-passcode gate (`middleware.ts` + signed HTTP-only cookie) | P0 | Anon Supabase key absent from client bundle; unauthenticated request without the gate cookie returns 401 (A26) — **flagged: no real authentication, explicitly scoped to grocery data only until the multi-tenant phase (see `docs/product/10-gtm-strategy.md`)** |
 | REQ-27 | PWA installability (manifest, icons); Android Web Share Target only, no offline data sync | P2 | App is installable; offline shell caches but data does not sync offline |
 | REQ-28 | Automated regression coverage: unit tests for the pure domain logic (`computeItemStats` EWMA/shrinkage/outlier-rejection/bucketing, canonicalization/alias matching, unit normalization, `rate_correction` clamping, backdating vs `stock_epoch`) plus an E2E smoke suite covering the gate and every route, using accessible roles/names rather than DOM structure so it survives REQ-29's redesign | P0 | `npm test` runs the unit suite and reproduces the hand-computed S-14a/b/c fixtures already recorded in `docs/MANUAL-TESTS.md` (day 0/7/14/21 → weekly, confidence ~0.50, next ≈ day 28; day 0/7/60/67 rejects the 60-day outlier; 2-purchase item → unpredictable, confidence ~0.25); `npm run test:e2e` passes the gate and gets a 200 on every route in `backlog.json` plus one happy-path assertion per section |
-| REQ-29 | Design system v2: an audited, modernized token set and component/page reference screens (`docs/design/`) replacing ad-hoc per-page styling drift, applied consistently across every existing screen — semantic token indirection (`--color-primary` → `--primary` → `--red-600`) preserved so future re-theming stays additive, not a rewrite | P1 | Every page under `app/(app)/**`, `app/onboarding/**`, and `app/gate/**` renders using only `docs/design/` v2 tokens and updated `components/ui` primitives (no hardcoded hex/spacing values); each page matches its `docs/design/pages/*.md` reference screen with no unaddressed gap in the epic's own gap-list |
+| REQ-29 | Design system v2: an audited, modernized token set and component/page reference screens (`docs/design/`) replacing ad-hoc per-page styling drift, applied consistently across every existing screen — semantic token indirection (`--color-primary` → `--primary` → `--red-600`) preserved so future re-theming stays additive, not a rewrite | P1 | Every page under `app/(app)/**`, `app/onboarding/**`, and `app/gate/**` renders using only `docs/design/` v2 tokens and updated `components/ui` primitives (no hardcoded hex/spacing values); each page matches its `docs/design/pages/*.md` reference screen with no unaddressed gap in the epic's own gap-list. **Sequenced after REQ-30** — a v2 redesign on top of an unverified fidelity baseline risks re-encoding the same drift; superseded to a later, separately-scoped cycle. |
+| REQ-30 | Design fidelity remediation: every live screen matches its already-approved reference (`design/screens/01-gate.html` … `14-settings.html`, built from the real design-system component bundle) — the reference this app was originally built against, not a new one | P0 | A full-audit diff (live screenshot vs. reference screenshot, mobile + desktop) shows no unaddressed high/medium-severity mismatch; deviations confirmed as deliberate product decisions (e.g. the 5-item mobile tab bar vs. the reference's proposed Shop/More folding scheme, per the E-16 IA decision) are excluded, not silently re-implemented |
 
 **PII / compliance flag:** REQ-26 is the one requirement touching access
 control, and it explicitly does *not* implement real authentication — this is
@@ -103,3 +104,17 @@ per-page styling that accumulated across E-1–E-16). REQ-28 is sequenced
 first — a redesign without a regression net risks silently breaking the
 prediction/matching/commit logic that's already correct. Both requirements
 are additive; no existing REQ-01–REQ-27 changes.
+
+**Same-day addendum:** REQ-29 initially assumed no reference design existed
+and proposed authoring a new one (`docs/design/`, status draft, never
+implemented). That assumption was wrong — `design/screens/*.html` is a
+real, already-approved reference the app was originally built against.
+Added REQ-30 (fidelity remediation against that existing reference) and
+resequenced REQ-29 after it. A full audit against `design/screens/*.html`
+also surfaced two live P0 bugs, unrelated to REQ-29/30's scope, fixed
+immediately rather than queued: an unlayered CSS reset (`* { padding: 0;
+margin: 0; }` in `app/globals.css`) was silently beating every Tailwind
+spacing utility app-wide in both themes (same bug class as a prior fix in
+PR #79 for an unlayered color rule), and an unhandled rejection on a
+missing receipt Storage object hung `/review/[id]` indefinitely for the
+affected receipt. Both shipped (PRs #97, #98) ahead of this reconcile.

@@ -49,3 +49,4 @@ Thumbs.db
 .codegraph/
 .vercel
 .env*
+.audit-shots/

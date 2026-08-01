@@ -1,10 +1,18 @@
 ---
 doc: design
 project: Inventro
-status: draft        # draft | approved — G3 gate, set by the user
+status: deferred      # draft | approved | deferred — G3 gate, set by the user
 req: REQ-29
 updated: 2026-08-01
 ---
+
+> **Deferred (2026-08-01).** This proposal assumed no reference design
+> existed. That was wrong — `design/screens/*.html` is a real, already-
+> approved reference the app was originally built against, and a full
+> audit against it found real, fixable drift (plus two unrelated P0 bugs,
+> already shipped). REQ-30 (fidelity remediation against `design/`) is
+> now the priority; this v2 direction is preserved here for later
+> reconsideration once REQ-30 is done, not discarded.
 
 # Inventro — Design System v2 (REQ-29)
 

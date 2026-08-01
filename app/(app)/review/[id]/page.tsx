@@ -48,8 +48,17 @@ export default async function ReviewDetailPage({ params, searchParams }: { param
     getStockEpoch(),
     // S-25: every storage_paths entry gets a signed URL (a grouped receipt
     // has 2-3; a plain receipt has exactly one, unchanged from before).
-    isTextReceipt ? Promise.resolve([]) : Promise.all(receipt.storage_paths.map((p) => getDocumentPreviewUrl(p))),
-    isTextReceipt && receipt.storage_paths[0] ? getDocumentPreviewText(receipt.storage_paths[0]) : Promise.resolve(null),
+    // A missing/deleted storage object must not take down the whole page --
+    // the review-lines panel (the actual work) has nothing to do with the
+    // document preview, so a preview failure degrades to the existing "No
+    // preview available." state (review-detail.tsx:374) instead of an
+    // unhandled rejection stalling the entire request.
+    isTextReceipt
+      ? Promise.resolve([])
+      : Promise.all(receipt.storage_paths.map((p) => getDocumentPreviewUrl(p).catch(() => null))).then((urls) =>
+          urls.filter((u): u is string => u !== null),
+        ),
+    isTextReceipt && receipt.storage_paths[0] ? getDocumentPreviewText(receipt.storage_paths[0]).catch(() => null) : Promise.resolve(null),
   ]);
 
   const session = parseSession(sessionParam, id);

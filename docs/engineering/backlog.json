@@ -262,7 +262,8 @@
       "prd_ref": "REQ-30",
       "order": 19,
       "estimate": 1,
-      "acceptance": "Full-audit diff (live vs. design/screens/*.html reference, mobile + desktop) shows no unaddressed high/medium mismatch, excluding confirmed-intentional deviations (5-item mobile tab bar, Today's extra reachability quick-links, both from the E-16 IA decision)."
+      "acceptance": "Full-audit diff (live vs. design/screens/*.html reference, mobile + desktop) shows no unaddressed high/medium mismatch, excluding confirmed-intentional deviations (5-item mobile tab bar, Today's extra reachability quick-links, both from the E-16 IA decision).",
+      "gh_issue": 99
     }
   ],
   "stories": [
@@ -1177,7 +1178,10 @@
       "order": 48,
       "estimate": 0.1,
       "acceptance": "app/globals.css's `* { padding: 0; margin: 0; }` reset moved inside @layer base so it no longer unconditionally beats every Tailwind spacing utility; verified via computed-style inspection (MobileTopBar's px-4: 0px -> 16px) in both themes, and visually across Today/Add/Review/Insights/Catalog/Settings.",
-      "verify": { "ci": "pass", "commit": "97f7692" }
+      "verify": {
+        "ci": "pass",
+        "commit": "97f7692"
+      }
     },
     {
       "id": "S-49",
@@ -1188,7 +1192,10 @@
       "order": 49,
       "estimate": 0.1,
       "acceptance": "The document/text preview fetch in app/(app)/review/[id]/page.tsx degrades to the existing 'No preview available.' fallback on failure instead of an unhandled rejection stalling the whole page; reproduced pre-fix (60s+, never resolved) and confirmed resolved post-fix (~4s, renders correctly).",
-      "verify": { "ci": "pass", "commit": "caead90" }
+      "verify": {
+        "ci": "pass",
+        "commit": "caead90"
+      }
     },
     {
       "id": "S-50",
@@ -1198,7 +1205,8 @@
       "status": "notstarted",
       "order": 50,
       "estimate": 0.3,
-      "acceptance": "app/(app)/inventory/page.tsx's filter bar no longer wraps in an extra Card with a duplicate 'Inventory' title/description (design/screens/08-inventory-list.html has FilterBarWeb/FilterTriggerMobile unwrapped, directly on the page background). Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline (matching OutOfStockCard in the reference). The extra third meta line on item rows (vs. the reference's two-item meta) is removed or justified in the story's own notes if kept."
+      "acceptance": "app/(app)/inventory/page.tsx's filter bar no longer wraps in an extra Card with a duplicate 'Inventory' title/description (design/screens/08-inventory-list.html has FilterBarWeb/FilterTriggerMobile unwrapped, directly on the page background). Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline (matching OutOfStockCard in the reference). The extra third meta line on item rows (vs. the reference's two-item meta) is removed or justified in the story's own notes if kept.",
+      "gh_issue": 100
     },
     {
       "id": "S-51",
@@ -1208,7 +1216,8 @@
       "status": "notstarted",
       "order": 51,
       "estimate": 0.1,
-      "acceptance": "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button uses variant=\"ghost\" (matching design/screens/10-plan.html:127), not variant=\"destructive\" -- a low-emphasis action should not carry primary/destructive visual weight."
+      "acceptance": "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button uses variant=\"ghost\" (matching design/screens/10-plan.html:127), not variant=\"destructive\" -- a low-emphasis action should not carry primary/destructive visual weight.",
+      "gh_issue": 101
     },
     {
       "id": "S-52",
@@ -1218,7 +1227,8 @@
       "status": "notstarted",
       "order": 52,
       "estimate": 0.2,
-      "acceptance": "settings-form.tsx's Save button is a direct flex-col child of its Card (matching the reference's full-width primary CTA) instead of wrapped in a horizontal flex row that prevents it from stretching. The 'Manage catalog' link's self-start alignment (settings/page.tsx) is reconciled against the reference's centered/full-width tertiary-button treatment -- if self-start turns out to be a deliberate app-wide convention used consistently elsewhere, this story documents that finding instead of changing it blind."
+      "acceptance": "settings-form.tsx's Save button is a direct flex-col child of its Card (matching the reference's full-width primary CTA) instead of wrapped in a horizontal flex row that prevents it from stretching. The 'Manage catalog' link's self-start alignment (settings/page.tsx) is reconciled against the reference's centered/full-width tertiary-button treatment -- if self-start turns out to be a deliberate app-wide convention used consistently elsewhere, this story documents that finding instead of changing it blind.",
+      "gh_issue": 102
     },
     {
       "id": "S-53",
@@ -1228,7 +1238,8 @@
       "status": "notstarted",
       "order": 53,
       "estimate": 0.2,
-      "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed (both findings were flagged before that fix; likely already resolved). Fix only what's still actually wrong post-verification, don't re-fix what S-48 already handled."
+      "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed (both findings were flagged before that fix; likely already resolved). Fix only what's still actually wrong post-verification, don't re-fix what S-48 already handled.",
+      "gh_issue": 103
     }
   ]
 }

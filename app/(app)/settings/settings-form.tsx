@@ -63,12 +63,10 @@ export function SettingsForm({
         helperText="Where the daily/weekly due-soon digest is sent, once email delivery is configured."
       />
 
-      <div className="flex items-center gap-2">
-        <Button onClick={save} disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save'}
-        </Button>
-        {saved && !error && <span className="text-sm text-success">Saved.</span>}
-      </div>
+      <Button onClick={save} disabled={isPending}>
+        {isPending ? 'Saving…' : 'Save'}
+      </Button>
+      {saved && !error && <span className="text-sm text-success">Saved.</span>}
 
       {error && <Alert tone="error">{error}</Alert>}
     </div>

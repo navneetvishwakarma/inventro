@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -134,33 +134,26 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     <>
       <MobileTopBar title="Inventory" />
       <div className="flex w-full flex-col gap-4 p-4 md:p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Inventory</CardTitle>
-          <CardDescription>
-            {items.length} item{items.length === 1 ? '' : 's'} tracked.{' '}
-            <Link href="/catalog" className="text-link hover:text-link-hover">
-              Seeing a duplicate? Manage the catalog.
-            </Link>{' '}
-            <Link href="/insights" className="text-link hover:text-link-hover">
-              View budget &amp; insights.
-            </Link>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form method="get" className="hidden flex-wrap items-end gap-2 md:flex">
-            <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
-          </form>
-          <details className="md:hidden">
-            <summary className="flex h-11 w-fit cursor-pointer list-none items-center rounded-md border border-border px-3 text-sm font-medium text-foreground">
-              Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
-            </summary>
-            <form method="get" className="mt-3 flex flex-col items-start gap-2">
-              <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
-            </form>
-          </details>
-        </CardContent>
-      </Card>
+      <p className="[font:var(--text-body-sm)] text-muted-foreground">
+        {items.length} item{items.length === 1 ? '' : 's'} tracked.{' '}
+        <Link href="/catalog" className="text-link hover:text-link-hover">
+          Seeing a duplicate? Manage the catalog.
+        </Link>{' '}
+        <Link href="/insights" className="text-link hover:text-link-hover">
+          View budget &amp; insights.
+        </Link>
+      </p>
+      <form method="get" className="hidden flex-wrap items-end gap-2 md:flex">
+        <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
+      </form>
+      <details className="md:hidden">
+        <summary className="flex h-11 w-fit cursor-pointer list-none items-center rounded-md border border-border px-3 text-sm font-medium text-foreground">
+          Filters{activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}
+        </summary>
+        <form method="get" className="mt-3 flex flex-col items-start gap-2">
+          <FilterFields q={q} category={category} cadence={cadence} stock={stock} staplesOnly={staplesOnly} allCategories={allCategories} allCadences={allCadences} />
+        </form>
+      </details>
 
       {outOfStock.length > 0 && (
         <Card>
@@ -169,7 +162,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
           </CardHeader>
           <CardContent>
             {outOfStock.map((item) => (
-              <ItemCard key={item.id} item={item} />
+              <ItemCard key={item.id} item={item} outOfStock />
             ))}
           </CardContent>
         </Card>

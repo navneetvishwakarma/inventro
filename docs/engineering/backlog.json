@@ -1170,6 +1170,28 @@
       "gh_issue": 95
     },
     {
+      "id": "S-54",
+      "title": "pdf-parse's DOMMatrix ReferenceError breaks the native-PDF-text fast path",
+      "epic": "E-17",
+      "prd_ref": "REQ-24",
+      "status": "notstarted",
+      "order": 54,
+      "estimate": 0.4,
+      "acceptance": "Confirmed via production runtime-error logs: 'Failed to load external module pdf-parse-...: ReferenceError: DOMMatrix is not defined' on /add, because pdf-parse's dependency expects a browser DOM API not present in the serverless Node runtime. extractPdfText() catches the error and returns null (no crash), but looksLikeRealDocument(null) is always false, so every native-text PDF silently falls back to the more expensive multimodal path -- violating REQ-24's stated fast-path behavior (verifiable via parse_path, A22). Needs a Node-compatible PDF text extraction path (e.g. pdfjs-dist's legacy Node build, or a DOMMatrix polyfill) -- found during the REQ-30 audit, not yet fixed.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-55",
+      "title": "Notifications (REQ-20) are configured-off: RESEND_API_KEY unset",
+      "epic": "E-17",
+      "prd_ref": "REQ-20",
+      "status": "notstarted",
+      "order": 55,
+      "estimate": 0.1,
+      "acceptance": "This is a credential/config gap, not a code bug -- digest.ts already handles the unset case gracefully (returns {sent:false, reason:'RESEND_API_KEY not configured'}). Confirmed RESEND_API_KEY and RESEND_FROM_EMAIL are blank in .env.local and were already noted as unconfigured in production in E-14's own ledger. Needs a real Resend account + API key from the user -- not something to build around.",
+      "gh_issue": null
+    },
+    {
       "id": "S-48",
       "title": "Unlayered CSS reset was zeroing every padding/margin utility app-wide",
       "epic": "E-18",

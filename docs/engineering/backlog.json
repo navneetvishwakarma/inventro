@@ -243,6 +243,26 @@
       "estimate": 2,
       "acceptance": "npm test runs a unit suite covering computeItemStats (EWMA/shrinkage/outlier-rejection/bucketing), unit normalization, and rate_correction clamping, reproducing the hand-computed S-14a/c fixtures already recorded in docs/MANUAL-TESTS.md; npm run test:e2e passes the gate and gets a 200 on every route in this backlog plus one happy-path assertion per section, using accessible roles/names rather than DOM structure. Alias-hit/trigram matching and backdating-vs-stock_epoch commit behavior need a seeded-DB integration harness (S-47) and are tracked as a deferred follow-up, not silently dropped.",
       "gh_issue": 89
+    },
+    {
+      "id": "E-18",
+      "title": "Critical rendering hotfixes (found during REQ-30 audit)",
+      "phase": "D5",
+      "prd_ref": "REQ-30",
+      "order": 18,
+      "vertical": false,
+      "estimate": 0.2,
+      "acceptance": "Two P0 bugs found while auditing against design/screens/*.html, fixed same-day ahead of the formal audit epic since both were live, app-wide/severe: an unlayered CSS reset silently zeroing every Tailwind padding/margin utility in both themes, and an unhandled rejection hanging /review/[id] indefinitely for any receipt with a missing Storage object.",
+      "gh_issue": null
+    },
+    {
+      "id": "E-19",
+      "title": "Design fidelity remediation vs design/screens/*.html",
+      "phase": "D5",
+      "prd_ref": "REQ-30",
+      "order": 19,
+      "estimate": 1,
+      "acceptance": "Full-audit diff (live vs. design/screens/*.html reference, mobile + desktop) shows no unaddressed high/medium mismatch, excluding confirmed-intentional deviations (5-item mobile tab bar, Today's extra reachability quick-links, both from the E-16 IA decision)."
     }
   ],
   "stories": [
@@ -1147,6 +1167,68 @@
       ],
       "acceptance": "A test-only Supabase service-role seed/cleanup helper inserts and tears down fixture rows (catalog_items, receipts, receipt_lines, stock_movements, item_aliases) against the household configured in .env.local without corrupting the demo household's row counts that REQ-23's npm run validate:predictions depends on. Covers: matchCatalogItem's exact-alias-hit and pg_trgm fuzzy-match/miss bands (deferred from S-44), and commit_receipt's backdating behavior -- a backdated receipt (purchased_at < household.stock_epoch) committed without the past-order override leaves current stock unaffected; committed with the override, an extra 'initial' movement dated now() makes it affected (A18, deferred from S-46). Both deferred here together since they need the same seeded-DB infrastructure, not two separate harnesses.",
       "gh_issue": 95
+    },
+    {
+      "id": "S-48",
+      "title": "Unlayered CSS reset was zeroing every padding/margin utility app-wide",
+      "epic": "E-18",
+      "prd_ref": "REQ-30",
+      "status": "done",
+      "order": 48,
+      "estimate": 0.1,
+      "acceptance": "app/globals.css's `* { padding: 0; margin: 0; }` reset moved inside @layer base so it no longer unconditionally beats every Tailwind spacing utility; verified via computed-style inspection (MobileTopBar's px-4: 0px -> 16px) in both themes, and visually across Today/Add/Review/Insights/Catalog/Settings.",
+      "verify": { "ci": "pass", "commit": "97f7692" }
+    },
+    {
+      "id": "S-49",
+      "title": "Missing receipt Storage object hung /review/[id] indefinitely",
+      "epic": "E-18",
+      "prd_ref": "REQ-30",
+      "status": "done",
+      "order": 49,
+      "estimate": 0.1,
+      "acceptance": "The document/text preview fetch in app/(app)/review/[id]/page.tsx degrades to the existing 'No preview available.' fallback on failure instead of an unhandled rejection stalling the whole page; reproduced pre-fix (60s+, never resolved) and confirmed resolved post-fix (~4s, renders correctly).",
+      "verify": { "ci": "pass", "commit": "caead90" }
+    },
+    {
+      "id": "S-50",
+      "title": "Inventory list: remove duplicate title wrapper, restore out-of-stock badge",
+      "epic": "E-19",
+      "prd_ref": "REQ-30",
+      "status": "notstarted",
+      "order": 50,
+      "estimate": 0.3,
+      "acceptance": "app/(app)/inventory/page.tsx's filter bar no longer wraps in an extra Card with a duplicate 'Inventory' title/description (design/screens/08-inventory-list.html has FilterBarWeb/FilterTriggerMobile unwrapped, directly on the page background). Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline (matching OutOfStockCard in the reference). The extra third meta line on item rows (vs. the reference's two-item meta) is removed or justified in the story's own notes if kept."
+    },
+    {
+      "id": "S-51",
+      "title": "Plan: fix 'Always exclude' button variant",
+      "epic": "E-19",
+      "prd_ref": "REQ-30",
+      "status": "notstarted",
+      "order": 51,
+      "estimate": 0.1,
+      "acceptance": "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button uses variant=\"ghost\" (matching design/screens/10-plan.html:127), not variant=\"destructive\" -- a low-emphasis action should not carry primary/destructive visual weight."
+    },
+    {
+      "id": "S-52",
+      "title": "Settings: full-width Save button, resolve Manage catalog alignment",
+      "epic": "E-19",
+      "prd_ref": "REQ-30",
+      "status": "notstarted",
+      "order": 52,
+      "estimate": 0.2,
+      "acceptance": "settings-form.tsx's Save button is a direct flex-col child of its Card (matching the reference's full-width primary CTA) instead of wrapped in a horizontal flex row that prevents it from stretching. The 'Manage catalog' link's self-start alignment (settings/page.tsx) is reconciled against the reference's centered/full-width tertiary-button treatment -- if self-start turns out to be a deliberate app-wide convention used consistently elsewhere, this story documents that finding instead of changing it blind."
+    },
+    {
+      "id": "S-53",
+      "title": "Review queue: verify row density and mobile merchant-name color post-hotfix",
+      "epic": "E-19",
+      "prd_ref": "REQ-30",
+      "status": "notstarted",
+      "order": 53,
+      "estimate": 0.2,
+      "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed (both findings were flagged before that fix; likely already resolved). Fix only what's still actually wrong post-verification, don't re-fix what S-48 already handled."
     }
   ]
 }

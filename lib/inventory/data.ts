@@ -1,6 +1,5 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { resolveHouseholdContext, type HouseholdContext } from '@/lib/household';
 import { computeVirtualStockBase } from './virtualStock';
 import type { BaseUnit } from '@/lib/receipts/canonicalize';
 import type { CadenceBucket } from '@/lib/predictions/types';
@@ -65,9 +64,8 @@ export type InventoryItem = {
 // S-19: batched fetch (one query per table, matches recomputeAllItemsForHousehold's
 // precedent) -- never per-item N+1. At "a few hundred items" household scale this
 // is one page load's worth of round trips, not one per item.
-export async function getInventoryItems(): Promise<InventoryItem[]> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+export async function getInventoryItems(context?: HouseholdContext): Promise<InventoryItem[]> {
+  const { supabase, householdId } = await resolveHouseholdContext(context);
 
   const [itemsRes, stockRes, statsRes, aliasesRes, pricesRes] = await Promise.all([
     supabase
@@ -179,11 +177,12 @@ export type ItemDetail = InventoryItem & {
 };
 
 export async function getInventoryItem(catalogItemId: string): Promise<ItemDetail | null> {
-  const items = await getInventoryItems();
+  const context = await resolveHouseholdContext();
+  const items = await getInventoryItems(context);
   const item = items.find((i) => i.id === catalogItemId);
   if (!item) return null;
 
-  const supabase = createServiceClient();
+  const { supabase } = context;
   const [movementsRes, pricesRes] = await Promise.all([
     supabase
       .from('stock_movements')

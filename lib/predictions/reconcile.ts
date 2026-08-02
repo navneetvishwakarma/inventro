@@ -1,7 +1,5 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-
-type SupabaseClient = ReturnType<typeof createServiceClient>;
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Working spec Sec5/F9.3 -- implemented as the literal condition->multiplier
 // mapping the spec states, not re-derived from first principles (the

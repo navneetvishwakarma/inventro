@@ -1,4 +1,5 @@
 import 'server-only';
+import type { HouseholdContext } from '@/lib/household';
 import { getDueSoonItems, type PlanItem } from '@/lib/plan/data';
 import { formatDueDate } from '@/lib/inventory/format';
 
@@ -16,8 +17,14 @@ function formatItemLine(item: PlanItem): string {
 // F14: daily digest, due within 3 days -- reuses S-22's getDueSoonItems()
 // verbatim rather than re-deriving "due soon" (it already excludes
 // snoozed/skipped-active/excluded plan states).
-export async function buildDailyDigest(): Promise<Digest> {
-  const items = await getDueSoonItems(3);
+//
+// S-63/ADR-0006: context is required, not optional, here -- unlike
+// getInventoryItems/getPlanItems/getDueSoonItems (which default to the
+// request-scoped session for their real, user-facing callers), this
+// function has exactly one caller (the cron routes), which always
+// enumerates households explicitly and never has a session to default to.
+export async function buildDailyDigest(context: HouseholdContext): Promise<Digest> {
+  const items = await getDueSoonItems(3, context);
   return {
     dueCount: items.length,
     subject: `${items.length} item${items.length === 1 ? '' : 's'} due soon`,
@@ -27,8 +34,8 @@ export async function buildDailyDigest(): Promise<Digest> {
 
 // F14: weekly "next week's list ready" digest, same due-soon data at a
 // 7-day window rather than a second "what's coming up" computation.
-export async function buildWeeklyDigest(): Promise<Digest> {
-  const items = await getDueSoonItems(7);
+export async function buildWeeklyDigest(context: HouseholdContext): Promise<Digest> {
+  const items = await getDueSoonItems(7, context);
   return {
     dueCount: items.length,
     subject: "Next week's shopping list is ready",

@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { getInventoryItems } from '@/lib/inventory/data';
 import { getPlanItems } from '@/lib/plan/data';
 import { currentKolkataMonthRange } from '@/lib/date';
@@ -33,8 +33,8 @@ export type BudgetSummary = {
 // no write path anywhere in the app today (S-33/E-14 not built), so a null
 // budget is the expected common case, not an error).
 export async function getBudgetSummary(): Promise<BudgetSummary> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { start, end } = currentKolkataMonthRange();
 
   const [householdRes, spendRes] = await Promise.all([
@@ -95,8 +95,8 @@ export type ForwardProjection = {
 // check (dailyRateBase=30, intervalEstDays=10, defaultPackSize=1000: the
 // single-formula version gives 3x the dailyRateBase-direct answer).
 export async function getForwardProjection(): Promise<ForwardProjection> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const [planItems, pricesRes] = await Promise.all([getPlanItems(), supabase.rpc('get_latest_prices', { p_household_id: householdId })]);
   if (pricesRes.error) throw pricesRes.error;
@@ -137,8 +137,8 @@ export type TopSpendItem = {
 
 // Top-10 by total spend over the trailing 90 days, aggregated in SQL.
 export async function getTopSpendItems(limit: number = TOP_SPEND_LIMIT): Promise<TopSpendItem[]> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data, error } = await supabase.rpc('get_top_spend_items', { p_household_id: householdId, p_since: daysAgoIso(TOP_SPEND_LOOKBACK_DAYS), p_limit: limit });
   if (error) throw error;
@@ -165,8 +165,8 @@ export type PriceAlert = {
 // state rather than a misleading number built on 1-2 data points") --
 // entirely computed server-side (window functions), see the migration.
 export async function getPriceAlerts(): Promise<PriceAlert[]> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data, error } = await supabase.rpc('get_price_alerts', { p_household_id: householdId });
   if (error) throw error;
@@ -201,8 +201,8 @@ export type WasteReport = {
 // invariant, ADR-0001) -- the RPC already applies abs(), never doubled or
 // shown negative here.
 export async function getWasteReport(): Promise<WasteReport> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { start, end } = currentKolkataMonthRange();
 
   const [wasteRes, inventoryItems] = await Promise.all([supabase.rpc('get_waste_report', { p_household_id: householdId, p_start: start, p_end: end }), getInventoryItems()]);

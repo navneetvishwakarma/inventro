@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import type { BaseUnit } from '@/lib/receipts/canonicalize';
 
 export type ShoppingListItem = {
@@ -46,8 +46,8 @@ type ShoppingListItemRow = {
 // active list before inserting a new one). Joined with catalog_items so
 // display/export never need a second round trip per item.
 export async function getActiveShoppingList(): Promise<ShoppingList | null> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
 
   const { data: list, error: listError } = await supabase
     .from('shopping_lists')

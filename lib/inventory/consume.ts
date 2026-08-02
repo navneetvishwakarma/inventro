@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { getInventoryItem } from './data';
 import { recomputeOneItem } from '@/lib/predictions/recompute';
 
@@ -42,8 +42,9 @@ export async function recordConsumption(catalogItemId: string, action: ConsumeAc
   const amount = Math.min(Math.max(requestedAmount, 0), item.rawStockBase);
   if (amount <= 0) return;
 
-  const householdId = getDefaultHouseholdId();
-  const { error } = await createServiceClient()
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
+  const { error } = await supabase
     .from('stock_movements')
     .insert({
       household_id: householdId,

@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { normalizeText, type BaseUnit } from '@/lib/receipts/canonicalize';
 
 export type CatalogSearchResult = {
@@ -23,8 +23,8 @@ const SEARCH_LIMIT = 8;
 // is normalized the same way item_aliases.normalized_text is stored, so the
 // comparison basis matches what S-09's matching ladder itself uses.
 export async function searchCatalogItems(query: string): Promise<CatalogSearchResult[]> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const normalized = normalizeText(query);
 
   const { data, error } = await supabase.rpc('search_catalog_items', { p_household_id: householdId, p_query: normalized, p_limit: SEARCH_LIMIT });

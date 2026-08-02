@@ -1,6 +1,5 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { resolveHouseholdContext, type HouseholdContext } from '@/lib/household';
 import { getInventoryItems, type InventoryItem } from '@/lib/inventory/data';
 import { toKolkataDateString } from '@/lib/date';
 
@@ -73,11 +72,12 @@ function resolvePlanState(row: PlanEntryRow | undefined, dueDate: string | null,
 // rather than a bespoke query -- same tradeoff S-20's getItemsNeedingAttention
 // already made: one extra query cost beats a second, drifting definition of
 // item state at this household scale.
-export async function getPlanItems(): Promise<PlanItem[]> {
-  const householdId = getDefaultHouseholdId();
+export async function getPlanItems(context?: HouseholdContext): Promise<PlanItem[]> {
+  const resolved = await resolveHouseholdContext(context);
+  const { supabase, householdId } = resolved;
   const [items, planRes] = await Promise.all([
-    getInventoryItems(),
-    createServiceClient().from('plan_entries').select('catalog_item_id, due_date, state, snoozed_until').eq('household_id', householdId),
+    getInventoryItems(resolved),
+    supabase.from('plan_entries').select('catalog_item_id, due_date, state, snoozed_until').eq('household_id', householdId),
   ]);
   if (planRes.error) throw planRes.error;
 
@@ -107,8 +107,8 @@ const DEFAULT_DUE_SOON_DAYS = 3;
 // inventing a second due-window definition. Suppressed items (snoozed,
 // skipped-and-still-active, excluded) never appear here even if their
 // underlying dueDate would qualify.
-export async function getDueSoonItems(daysThreshold: number = DEFAULT_DUE_SOON_DAYS): Promise<PlanItem[]> {
-  const planItems = await getPlanItems();
+export async function getDueSoonItems(daysThreshold: number = DEFAULT_DUE_SOON_DAYS, context?: HouseholdContext): Promise<PlanItem[]> {
+  const planItems = await getPlanItems(context);
   const thresholdMs = Date.now() + daysThreshold * 86_400_000;
 
   return planItems

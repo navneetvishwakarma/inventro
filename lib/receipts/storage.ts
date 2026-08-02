@@ -1,17 +1,25 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { contentTypeFor, type AcceptedExtension } from '@/lib/receipts/formats';
 
 const BUCKET = 'receipts';
 
+// S-62/ADR-0006: storage.objects has zero RLS policies for this bucket by
+// design (20260729020232) -- "private bucket + signed URLs" is the access
+// control, not per-role RLS. Every function below uses createServiceClient()
+// for the .storage.* calls specifically (a request-scoped client would get
+// a permission error) and createRequestClient() for the `receipts` table
+// operations, so those still go through real RLS.
+
 export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtension, contentHash: string): Promise<{ id: string; storagePath: string }> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const storageClient = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
   const storagePath = `${householdId}/${randomUUID()}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, bytes, {
+  const { error: uploadError } = await storageClient.storage.from(BUCKET).upload(storagePath, bytes, {
     contentType: contentTypeFor(ext),
     upsert: false,
   });
@@ -31,7 +39,7 @@ export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtensi
 
   if (insertError) {
     // Don't leave an orphaned Storage object behind an insert we know failed.
-    await supabase.storage.from(BUCKET).remove([storagePath]);
+    await storageClient.storage.from(BUCKET).remove([storagePath]);
     throw insertError;
   }
 
@@ -46,14 +54,15 @@ export async function uploadReceiptFile(bytes: ArrayBuffer, ext: AcceptedExtensi
 // ALL of them before rethrowing (extends uploadReceiptFile's single-object
 // no-orphans cleanup to the plural case).
 export async function uploadGroupedReceiptFiles(files: { bytes: ArrayBuffer; ext: AcceptedExtension }[], contentHash: string): Promise<{ id: string; storagePaths: string[] }> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const storageClient = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
   const storagePaths: string[] = [];
 
   try {
     for (const file of files) {
       const storagePath = `${householdId}/${randomUUID()}.${file.ext}`;
-      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file.bytes, {
+      const { error: uploadError } = await storageClient.storage.from(BUCKET).upload(storagePath, file.bytes, {
         contentType: contentTypeFor(file.ext),
         upsert: false,
       });
@@ -76,14 +85,14 @@ export async function uploadGroupedReceiptFiles(files: { bytes: ArrayBuffer; ext
 
     return { id: data.id, storagePaths };
   } catch (err) {
-    if (storagePaths.length > 0) await supabase.storage.from(BUCKET).remove(storagePaths);
+    if (storagePaths.length > 0) await storageClient.storage.from(BUCKET).remove(storagePaths);
     throw err;
   }
 }
 
 export async function getSignedReceiptUrl(storagePath: string, expiresInSeconds = 60): Promise<string> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, expiresInSeconds);
+  const storageClient = createServiceClient();
+  const { data, error } = await storageClient.storage.from(BUCKET).createSignedUrl(storagePath, expiresInSeconds);
   if (error) throw error;
   return data.signedUrl;
 }

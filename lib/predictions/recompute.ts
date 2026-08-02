@@ -1,9 +1,8 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
 import { computeItemStats } from './computeItemStats';
 import type { CadenceBucket, ItemStats, PreviousBucketState, PurchaseEvent } from './types';
-
-type SupabaseClient = ReturnType<typeof createServiceClient>;
 
 type ItemInputs = {
   events: PurchaseEvent[];
@@ -103,8 +102,14 @@ export async function persistItemStats(
 // item. rateCorrectionOverride, when given, is S-15's freshly-reconciled
 // value; omitted, the item's existing rate_correction carries forward
 // unchanged (the nightly path never reconciles, per S-15's scope).
+//
+// S-63/ADR-0006: always called from a request-triggered path (commit,
+// consume, manual entry, catalog merge, shopping-list checkoff -- never
+// from cron), so this uses the request-scoped client. Contrast with
+// recomputeAllItemsForHousehold below, which is cron-only and stays on
+// service-role.
 export async function recomputeOneItem(catalogItemId: string, householdId: string, rateCorrectionOverride?: number): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const inputs = await fetchInputs(supabase, catalogItemId);
   if (inputs.events.length === 0) return; // nothing to compute; no null-stats row is more useful than none
 
@@ -129,6 +134,10 @@ export async function recomputeOneItem(catalogItemId: string, householdId: strin
 // trips -- at "a few hundred items" scale, N individual fetches risks the
 // serverless function timeout. Never reconciles (no single "this purchase"
 // anchor exists in a whole-household sweep; S-15 is on-commit only).
+//
+// S-63/ADR-0006: cron has no user session, and legitimately sweeps every
+// household -- stays on the service-role client, one of the two documented
+// exceptions (ADR-0006), not migrated like recomputeOneItem above.
 export async function recomputeAllItemsForHousehold(householdId: string): Promise<{ recomputed: number; skipped: number }> {
   const supabase = createServiceClient();
 

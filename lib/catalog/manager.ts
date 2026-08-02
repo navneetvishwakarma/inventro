@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { recomputeOneItem } from '@/lib/predictions/recompute';
 import type { BaseUnit } from '@/lib/receipts/canonicalize';
 
@@ -31,8 +31,8 @@ export type CatalogManagerItem = {
 // ever needed bounded to two items at a time (getMergePreview, below),
 // which the acceptance criteria actually require; the full list doesn't.
 export async function getCatalogManagerItems(): Promise<CatalogManagerItem[]> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const [itemsRes, aliasesRes, statsRes] = await Promise.all([
     supabase.from('catalog_items').select('id, canonical_name, brand, category_id, base_unit, is_staple, is_archived, categories(name)').eq('household_id', householdId),
@@ -78,8 +78,8 @@ export type MergePreview = {
 // UX journey doc's explicit friction point: merge must show a low-risk
 // preview ("combine N purchases and M aliases") before the user commits.
 export async function getMergePreview(itemAId: string, itemBId: string): Promise<MergePreview> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const [aliasesRes, movementsRes] = await Promise.all([
     supabase.from('item_aliases').select('catalog_item_id').eq('household_id', householdId).in('catalog_item_id', [itemAId, itemBId]),
@@ -110,8 +110,8 @@ export type MergeResult = { survivorId: string; reassignedMovements: number; rea
 // is already handled inside the RPC itself (see its own comment) since
 // recompute structurally cannot derive it.
 export async function mergeCatalogItems(survivorId: string, loserId: string): Promise<MergeResult> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data, error } = await supabase.rpc('merge_catalog_items', { p_household_id: householdId, p_survivor_id: survivorId, p_loser_id: loserId }).single();
   if (error) throw error;
@@ -123,8 +123,8 @@ export async function mergeCatalogItems(survivorId: string, loserId: string): Pr
 }
 
 export async function archiveItem(catalogItemId: string, archived: boolean): Promise<void> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { error } = await supabase.from('catalog_items').update({ is_archived: archived }).eq('id', catalogItemId).eq('household_id', householdId);
   if (error) throw error;
 }
@@ -139,8 +139,8 @@ export async function recategorizeItem(catalogItemId: string, categorySlug: stri
     throw new Error('an item must have a real category, not uncategorized');
   }
 
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data: category, error: categoryError } = await supabase.from('categories').select('id').eq('slug', categorySlug).not('parent_id', 'is', null).single();
   if (categoryError || !category) throw categoryError ?? new Error(`unresolved category_slug ${categorySlug}`);

@@ -1,5 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createRequestClient } from '@/lib/supabase/server';
 import { normalizeUnitToBase, type BaseUnit } from '@/lib/receipts/canonicalize';
 import { reconcileRateCorrection } from '@/lib/predictions/reconcile';
 import { recomputeOneItem } from '@/lib/predictions/recompute';
@@ -19,7 +20,7 @@ type NewItemLine = {
 // base_unit comes from the resolved category's default_base_unit (seeded
 // data, working spec Sec6), not re-derived ad hoc from unit_display.
 async function computeNewItemQtyBase(receiptId: string): Promise<Record<string, number>> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
 
   const { data: lines, error: linesError } = await supabase
     .from('receipt_lines')
@@ -49,7 +50,7 @@ async function computeNewItemQtyBase(receiptId: string): Promise<Record<string, 
 // household) -- keeps commit latency bounded by receipt size. Runs strictly
 // after commit_receipt() succeeds, never before or in parallel with it, so a
 // guard rejection or atomicity rollback means recompute never runs at all.
-async function recomputeAffectedItems(supabase: ReturnType<typeof createServiceClient>, receiptId: string, householdId: string, purchasedAt: string): Promise<void> {
+async function recomputeAffectedItems(supabase: SupabaseClient, receiptId: string, householdId: string, purchasedAt: string): Promise<void> {
   const { data: lines, error } = await supabase
     .from('receipt_lines')
     .select('matched_item_id')
@@ -68,7 +69,7 @@ async function recomputeAffectedItems(supabase: ReturnType<typeof createServiceC
 export async function commitReceipt(receiptId: string, pastOrderOverride: boolean): Promise<void> {
   const newItemQtyBase = await computeNewItemQtyBase(receiptId);
 
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
 
   const { data: receipt, error: receiptError } = await supabase.from('receipts').select('household_id, purchased_at').eq('id', receiptId).single();
   if (receiptError) throw receiptError;

@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { getPlanItems, getDueSoonItems } from '@/lib/plan/data';
 import { formatCadenceBucket } from '@/lib/inventory/format';
 import type { CadenceBucket } from '@/lib/predictions/types';
@@ -19,8 +19,8 @@ function nameForSource(source: ShoppingListSource): string {
 // the bucket source does it here) -- an item the user snoozed/skipped/
 // excluded on /plan must not silently reappear on a generated list.
 export async function generateShoppingList(source: ShoppingListSource): Promise<{ id: string }> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
 
   const candidates =
     source.type === 'bucket' ? (await getPlanItems()).filter((i) => i.cadenceBucket === source.bucket && i.planState === 'pending') : await getDueSoonItems(source.days);

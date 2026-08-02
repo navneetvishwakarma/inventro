@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 
 // Simple RFC-5322-ish check, not a full validator library (none installed
 // in this app) -- good enough to reject obvious garbage without pretending
@@ -27,10 +27,10 @@ export async function updateHouseholdSettings(name: string, monthlyBudget: numbe
     throw new Error('Notification email is not a valid email address');
   }
 
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { error } = await supabase
     .from('households')
     .update({ name: trimmedName, monthly_budget: monthlyBudget, notify_email: trimmedEmail })
-    .eq('id', getDefaultHouseholdId());
+    .eq('id', await getCurrentHouseholdId());
   if (error) throw error;
 }

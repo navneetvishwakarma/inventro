@@ -1,7 +1,7 @@
 import 'server-only';
 import { createHash } from 'node:crypto';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 
 export function hashFileBytes(bytes: ArrayBuffer): string {
   return createHash('sha256').update(Buffer.from(bytes)).digest('hex');
@@ -21,11 +21,11 @@ export function hashCombinedFileBytes(byteList: ArrayBuffer[]): string {
 // Runs before any Storage write or DB insert (invariant: a rejected
 // duplicate must not leave orphaned Storage objects or partial rows).
 export async function findDuplicateReceipt(contentHash: string): Promise<string | null> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipts')
     .select('id')
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', await getCurrentHouseholdId())
     .eq('content_hash', contentHash)
     .limit(1)
     .maybeSingle();
@@ -40,11 +40,11 @@ export async function findDuplicateReceipt(contentHash: string): Promise<string 
 export async function flagNearDuplicateIfAny(receiptId: string, merchant: string | null, purchasedAt: string | null, totalAmount: number | null): Promise<void> {
   if (!merchant || !purchasedAt || totalAmount === null) return;
 
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipts')
     .select('id')
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', await getCurrentHouseholdId())
     .eq('merchant', merchant)
     .eq('purchased_at', purchasedAt)
     .eq('total_amount', totalAmount)

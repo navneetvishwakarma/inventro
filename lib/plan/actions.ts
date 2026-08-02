@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { toKolkataDateString } from '@/lib/date';
 import type { CadenceBucket } from '@/lib/predictions/types';
 
@@ -9,8 +9,8 @@ import type { CadenceBucket } from '@/lib/predictions/types';
 // touches it. null reverts to the computed cadence_bucket (A9's "revert to
 // auto").
 export async function setCadenceOverride(catalogItemId: string, bucket: CadenceBucket | null): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
   const { error } = await supabase.from('item_stats').update({ cadence_override: bucket }).eq('catalog_item_id', catalogItemId).eq('household_id', householdId);
   if (error) throw error;
 }
@@ -22,8 +22,8 @@ type PlanEntryPatch = {
 };
 
 async function upsertPlanEntry(catalogItemId: string, patch: PlanEntryPatch): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
   const { error } = await supabase
     .from('plan_entries')
     .upsert({ household_id: householdId, catalog_item_id: catalogItemId, ...patch }, { onConflict: 'household_id,catalog_item_id' });
@@ -45,8 +45,8 @@ export async function unsnoozeItem(catalogItemId: string): Promise<void> {
 // auto-expires this once a later re-estimate pushes the due date forward
 // (a new cycle), never on a date that merely moved earlier.
 export async function skipOnce(catalogItemId: string): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase.from('item_stats').select('predicted_next_purchase_at').eq('catalog_item_id', catalogItemId).eq('household_id', householdId).maybeSingle();
   if (error) throw error;
 
@@ -72,8 +72,8 @@ export async function includeItem(catalogItemId: string): Promise<void> {
 // 'excluded' is left untouched: that is a deliberate, stronger "never plan
 // this item" signal a stray purchase log must not silently override.
 export async function resetSuppressionAfterPurchase(catalogItemId: string): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase.from('plan_entries').select('state').eq('household_id', householdId).eq('catalog_item_id', catalogItemId).maybeSingle();
   if (error) throw error;
   if (!data || data.state === 'excluded' || data.state === 'pending') return;

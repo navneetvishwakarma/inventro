@@ -1386,7 +1386,10 @@
         "S-56"
       ],
       "acceptance": "New migration (supabase/migrations/..._rls_household_members.sql, not an edit to the disabled-policy migration) drops the current_setting-keyed policies and creates 'household_id in (select household_id from household_members where user_id = auth.uid())' policies for every table in the original disabled-policy migration's scope, then ALTER TABLE ... ENABLE ROW LEVEL SECURITY on each. categories stays exempt (no household_id column).",
-      "gh_issue": 111
+      "gh_issue": 111,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-61",
@@ -1401,7 +1404,10 @@
         "S-60"
       ],
       "acceptance": "lib/supabase/server.ts gains createRequestClient() (@supabase/ssr server client bound to cookies()) alongside the existing createServiceClient(). lib/household.ts's getDefaultHouseholdId() is replaced by getCurrentHouseholdId(), sourced from the signed-in user's household_members row via createRequestClient(), not DEFAULT_HOUSEHOLD_ID.",
-      "gh_issue": 112
+      "gh_issue": 112,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-62",
@@ -1415,7 +1421,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/add/**, app/(app)/review/**, and the ingest pipeline (lib/ingest/**) uses createRequestClient() + getCurrentHouseholdId() instead of createServiceClient()/DEFAULT_HOUSEHOLD_ID. Existing REQ-02..REQ-12/REQ-22/REQ-24 acceptance tests still pass unmodified.",
-      "gh_issue": 113
+      "gh_issue": 113,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-63",
@@ -1429,7 +1438,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/inventory/**, app/(app)/plan/**, app/(app)/shopping-list/**, and app/(app)/insights/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-13..REQ-19 acceptance tests still pass unmodified.",
-      "gh_issue": 114
+      "gh_issue": 114,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-64",
@@ -1443,7 +1455,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/settings/**, the catalog manager, and app/onboarding/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-01/REQ-09/REQ-21 acceptance tests still pass unmodified.",
-      "gh_issue": 115
+      "gh_issue": 115,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-65",
@@ -1459,7 +1474,10 @@
         "S-64"
       ],
       "acceptance": "grep for createServiceClient() across app/ and lib/ (excluding api/cron/** and the seeder script) returns zero matches. DEFAULT_HOUSEHOLD_ID env var and lib/household.ts deleted, not kept as an unused fallback.",
-      "gh_issue": 116
+      "gh_issue": 116,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-66",
@@ -1473,7 +1491,10 @@
         "S-65"
       ],
       "acceptance": "New e2e/isolation.spec.ts: seed two households (A, B) each with one item; log in as household A's user; assert every route (inventory, review, plan, shopping-list, insights, settings) shows only household A's data and any direct request for household B's row id (item detail, receipt, etc.) is denied, not just filtered from a list view. This is the hard merge gate for E-21 -- ship-epic does not proceed if it fails.",
-      "gh_issue": 117
+      "gh_issue": 117,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-67",

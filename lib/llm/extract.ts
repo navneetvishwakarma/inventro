@@ -1,6 +1,6 @@
 import 'server-only';
 import { NoObjectGeneratedError } from 'ai';
-import { createServiceClient } from '@/lib/supabase/server';
+import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
 import { geminiProvider } from '@/lib/llm/gemini-provider';
 import { buildReceiptExtractionSchema, type ReceiptExtraction } from '@/lib/llm/schema';
 import { extractPdfText, looksLikeRealDocument } from '@/lib/llm/pdf-text';
@@ -125,7 +125,13 @@ async function attemptExtraction(parts: LlmContentPart[], schema: ReturnType<typ
 }
 
 export async function runExtraction(receiptId: string): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
+  // storage.objects has zero RLS policies for the receipts bucket by
+  // design (20260729020232) -- access control there is "private bucket +
+  // signed URLs", not per-role RLS (docs/architecture/06-security.md).
+  // Only service-role can read/write it; a request-scoped client would
+  // get a permission error on every download.
+  const storageClient = createServiceClient();
 
   const { data: receipt, error: receiptError } = await supabase.from('receipts').select('id, household_id, storage_paths, mime').eq('id', receiptId).single();
   if (receiptError || !receipt) return;
@@ -141,7 +147,7 @@ export async function runExtraction(receiptId: string): Promise<void> {
     // grouped set can mix extensions (e.g. one PNG + one JPEG screenshot).
     const pages = await Promise.all(
       receipt.storage_paths.map(async (storagePath: string) => {
-        const { data: fileData, error: downloadError } = await supabase.storage.from('receipts').download(storagePath);
+        const { data: fileData, error: downloadError } = await storageClient.storage.from('receipts').download(storagePath);
         if (downloadError || !fileData) throw downloadError ?? new Error('download returned no data');
         return { bytes: await fileData.arrayBuffer(), mime: mimeForStoragePath(storagePath, receipt.mime) };
       }),

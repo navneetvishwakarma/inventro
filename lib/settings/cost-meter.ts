@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { currentKolkataMonthRange } from '@/lib/date';
 import { getTodayReceiptCount, DAILY_INGEST_HARD_STOP, DAILY_INGEST_ALERT_THRESHOLD } from '@/lib/receipts/guard';
 
@@ -24,8 +24,8 @@ export type CostMeterSummary = {
 // budget (app/insights/page.tsx's money() helper). Two different
 // currencies, two different helpers, never rendered with the same symbol.
 export async function getCostMeterSummary(): Promise<CostMeterSummary> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { start, end } = currentKolkataMonthRange();
 
   const [receiptsRes, todayCount] = await Promise.all([

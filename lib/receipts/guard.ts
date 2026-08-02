@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { currentKolkataDayRange } from '@/lib/date';
 
 // Working spec Sec13 / PRD REQ-25: loop-bug guard -- hard stop at 100
@@ -13,12 +13,12 @@ export const DAILY_INGEST_ALERT_THRESHOLD = 50;
 // runs (app/add/actions.ts), so this is the same count the guard blocks
 // against and the count Settings displays.
 export async function getTodayReceiptCount(): Promise<number> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { start, end } = currentKolkataDayRange();
   const { count, error } = await supabase
     .from('receipts')
     .select('id', { count: 'exact', head: true })
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', await getCurrentHouseholdId())
     .gte('created_at', start)
     .lt('created_at', end);
   if (error) throw error;

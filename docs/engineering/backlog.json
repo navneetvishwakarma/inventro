@@ -1313,7 +1313,7 @@
       "title": "Supabase Auth + household_members schema migration",
       "epic": "E-20",
       "prd_ref": "REQ-31",
-      "status": "in_progress",
+      "status": "done",
       "order": 56,
       "estimate": 0.3,
       "acceptance": "New migration adds household_members(household_id, user_id, role, created_at), composite PK (household_id, user_id), FKs to households and auth.users. Supabase Auth (email+password provider) confirmed enabled on the project. No RLS changes in this migration (that is E-21/S-60) -- schema only.",
@@ -1328,7 +1328,7 @@
       "title": "Signup: Server Action creates auth user + household + owner membership, redirects into onboarding",
       "epic": "E-20",
       "prd_ref": "REQ-31",
-      "status": "blocked",
+      "status": "done",
       "order": 57,
       "estimate": 0.4,
       "blocked_by": [
@@ -1345,7 +1345,7 @@
       "title": "Login/logout: Server Actions + /login page",
       "epic": "E-20",
       "prd_ref": "REQ-31",
-      "status": "blocked",
+      "status": "done",
       "order": 58,
       "estimate": 0.3,
       "blocked_by": [
@@ -1362,7 +1362,7 @@
       "title": "Session gate: replace passcode proxy.ts/lib/gate.ts with Supabase-session check",
       "epic": "E-20",
       "prd_ref": "REQ-31",
-      "status": "blocked",
+      "status": "done",
       "order": 59,
       "estimate": 0.3,
       "blocked_by": [
@@ -1379,7 +1379,7 @@
       "title": "RLS policy rewrite: key on auth.uid() via household_members, enable RLS",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "in_progress",
       "order": 60,
       "estimate": 0.4,
       "blocked_by": [

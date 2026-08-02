@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { safeNextPath } from '@/lib/safe-redirect';
 
 // S-59/ADR-0006: session gate, replacing the passcode gate (lib/gate.ts,
 // removed this story). /login and /signup are excluded via the matcher
@@ -16,11 +17,6 @@ import { createServerClient } from '@supabase/ssr';
 // api/share-target stays gated (real data-write endpoint, unlike these).
 
 const UNGATED_PWA_ASSETS = new Set(['/manifest.webmanifest', '/sw.js', '/offline.html']);
-
-function safeNextPath(pathname: string): string {
-  if (!pathname.startsWith('/') || pathname.startsWith('//')) return '/';
-  return pathname;
-}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

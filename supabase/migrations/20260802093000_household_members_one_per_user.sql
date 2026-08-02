@@ -1,0 +1,11 @@
+-- S-56/E-20 security-review fix: "one household = one member = its
+-- creator" (ADR-0006) was enforced only by application convention --
+-- create_household_for_user() had no check against calling it twice for
+-- the same user, and getCurrentHouseholdId()'s .single() assumes exactly
+-- one row. A repeat call wouldn't cross-user breach anything, but would
+-- silently break that invariant and 500 every household-scoped query for
+-- the affected user. A unique constraint makes a second call fail loudly
+-- (a Postgres error inside the security-definer RPC, surfaced as a
+-- generic signup error to the client) instead of succeeding into a
+-- broken state.
+alter table household_members add constraint household_members_user_id_unique unique (user_id);

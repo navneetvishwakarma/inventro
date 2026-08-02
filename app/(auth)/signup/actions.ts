@@ -19,14 +19,25 @@ export async function signupAction(_prevState: SignupResult | null, formData: Fo
 
   const supabase = await createRequestClient();
 
+  // Security-review fix: a distinguishing message here ("email already
+  // registered" vs. any other failure) is a deterministic enumeration
+  // oracle -- Supabase Auth returns that distinction explicitly once email
+  // confirmations are disabled (S-56), unlike the obfuscated response it
+  // gives with confirmations on. One generic message for every failure,
+  // matching login's existing anti-enumeration design (S-58); the real
+  // reason is server-logged, never returned to the client.
+  const GENERIC_SIGNUP_ERROR = 'Could not create your account. Try a different email, or log in if you already have one.';
+
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
   if (signUpError) {
-    return { ok: false, error: signUpError.message };
+    console.error('signup: signUp failed', signUpError.message);
+    return { ok: false, error: GENERIC_SIGNUP_ERROR };
   }
   if (!signUpData.session) {
     // Should not happen with email confirmations disabled (S-56) -- fail
     // loudly rather than redirecting into onboarding with no session.
-    return { ok: false, error: 'Could not start a session after signup. Try logging in.' };
+    console.error('signup: signUp succeeded with no session');
+    return { ok: false, error: GENERIC_SIGNUP_ERROR };
   }
 
   // S-57/ADR-0006: household + owner membership created via a
@@ -34,7 +45,8 @@ export async function signupAction(_prevState: SignupResult | null, formData: Fo
   // see that migration for why (RLS-after-S-60 chicken-and-egg).
   const { error: rpcError } = await supabase.rpc('create_household_for_user', { p_household_name: 'My household' });
   if (rpcError) {
-    return { ok: false, error: 'Could not create your household: ' + rpcError.message };
+    console.error('signup: create_household_for_user RPC failed', rpcError.message);
+    return { ok: false, error: GENERIC_SIGNUP_ERROR };
   }
 
   redirect('/onboarding');

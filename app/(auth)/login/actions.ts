@@ -2,20 +2,17 @@
 
 import { redirect } from 'next/navigation';
 import { createRequestClient } from '@/lib/supabase/server';
+import { safeNextPath } from '@/lib/safe-redirect';
 
 export type LoginResult = { ok: true } | { ok: false; error: string };
 
 const GENERIC_ERROR = 'Invalid email or password.';
 
-function safeNextPath(next: FormDataEntryValue | null): string {
-  if (typeof next !== 'string' || !next.startsWith('/') || next.startsWith('//')) return '/';
-  return next;
-}
-
 export async function loginAction(_prevState: LoginResult | null, formData: FormData): Promise<LoginResult> {
   const email = formData.get('email');
   const password = formData.get('password');
-  const next = safeNextPath(formData.get('next'));
+  const rawNext = formData.get('next');
+  const next = safeNextPath(typeof rawNext === 'string' ? rawNext : null);
 
   if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
     return { ok: false, error: GENERIC_ERROR };

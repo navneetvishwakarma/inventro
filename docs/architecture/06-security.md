@@ -89,6 +89,19 @@ unwired). A user who forgets their password in v2 has no self-serve
 recovery path — an accepted, explicit gap for this cycle (ADR-0006
 non-goals), not an oversight to silently work around.
 
+**Unverified email at signup / account squatting.** Email confirmations
+are disabled on the Supabase project (S-56 — the same "no working email
+delivery" reason as the password-reset gap above; confirmations can't
+complete without a delivery path either). `signUp` therefore grants a
+usable session for any syntactically valid email with no proof of
+ownership — someone could register a household against another person's
+email address first, silently blocking that person's real future signup.
+Found during E-20's security review, not closed (fixing it needs the same
+missing email infrastructure REQ-20 is blocked on) — recorded here as an
+accepted residual risk rather than an undocumented side effect of a
+disabled project setting. Revisit together with REQ-20 and password
+reset.
+
 **Cross-tenant data leakage via a missed filter.** This is the risk that
 actually matters now that there's more than one tenant, and it's the one
 RLS is meant to catch even if application code forgets a `WHERE

@@ -1,10 +1,6 @@
 import { Card } from '@/components/ui/card';
+import { safeNextPath } from '@/lib/safe-redirect';
 import { LoginForm } from './login-form';
-
-function safeNextPath(next: string | undefined): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//')) return '/';
-  return next;
-}
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;

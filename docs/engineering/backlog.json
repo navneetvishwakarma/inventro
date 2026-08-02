@@ -1491,7 +1491,10 @@
         "S-65"
       ],
       "acceptance": "New e2e/isolation.spec.ts: seed two households (A, B) each with one item; log in as household A's user; assert every route (inventory, review, plan, shopping-list, insights, settings) shows only household A's data and any direct request for household B's row id (item detail, receipt, etc.) is denied, not just filtered from a list view. This is the hard merge gate for E-21 -- ship-epic does not proceed if it fails.",
-      "gh_issue": 117
+      "gh_issue": 117,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-67",

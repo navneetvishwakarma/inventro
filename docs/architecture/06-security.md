@@ -102,6 +102,18 @@ accepted residual risk rather than an undocumented side effect of a
 disabled project setting. Revisit together with REQ-20 and password
 reset.
 
+**Any authenticated user can wipe the shared demo/validation household.**
+`wipeDemoDataAction` (Settings) always targets the fixed
+`DEMO_HOUSEHOLD_ID` (REQ-23's synthetic prediction-validation household),
+regardless of which household the calling user actually belongs to — it
+runs on the service-role client by necessity (a request-scoped client
+would be correctly denied by RLS, since the caller isn't a member of that
+household). Low severity: the target is regenerable synthetic fixture
+data (`npm run seed:history`), never a real tenant's own data, but at
+founder-only testing scale "any authenticated user" was one person; it no
+longer is. Not restricted — recorded as a known, accepted gap rather than
+silently carried forward.
+
 **Cross-tenant data leakage via a missed filter.** This is the risk that
 actually matters now that there's more than one tenant, and it's the one
 RLS is meant to catch even if application code forgets a `WHERE

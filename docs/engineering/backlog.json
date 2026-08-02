@@ -1455,7 +1455,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/settings/**, the catalog manager, and app/onboarding/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-01/REQ-09/REQ-21 acceptance tests still pass unmodified.",
-      "gh_issue": 115
+      "gh_issue": 115,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-65",

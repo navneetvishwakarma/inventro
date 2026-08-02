@@ -1,9 +1,10 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { toKolkataDateString } from '@/lib/date';
 
-type Supabase = ReturnType<typeof createServiceClient>;
+type Supabase = SupabaseClient;
 
 const PAGE_SIZE = 1000;
 
@@ -87,8 +88,8 @@ type ExportReceipt = {
 // settings. storage_paths deliberately excluded: those are internal
 // Storage object keys, not user-facing data.
 export async function getExportJson(): Promise<string> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const [householdRes, categoriesRes, catalogItems, stockMovements, priceHistory, receipts] = await Promise.all([
     supabase.from('households').select('name, currency, timezone, monthly_budget, notify_email, onboarded_at, created_at').eq('id', householdId).single(),
@@ -135,8 +136,8 @@ type ExportCatalogItemLookup = { id: string; canonical_name: string; category_id
 type ExportReceiptLookup = { id: string; merchant: string | null };
 
 export async function getExportCsv(): Promise<string> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   // catalog_items and receipts both need selectAllPaged too, same as the
   // JSON export -- catalog_items is already at 238 for the real household

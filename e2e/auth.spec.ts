@@ -25,7 +25,13 @@ base('signup creates a household and reaches onboarding', async ({ page }) => {
   await page.locator('#confirmPassword').fill(password);
   await page.getByRole('button', { name: /create household/i }).click();
 
-  await expect(page).toHaveURL(/\/onboarding/);
+  // Generous timeout deliberately, not the default 5s -- this is
+  // consistently the first real signUp() call in a fresh dev-server run,
+  // and Next dev mode (Turbopack) lazily compiles the Server Action route
+  // on its first hit rather than ahead of time (unlike a production
+  // build/start, where this delay doesn't exist). Confirmed via repeated
+  // isolated runs: the action itself is not slow, only its first compile.
+  await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
 });
 
 base('duplicate signup is rejected with a clear error', async ({ page }) => {

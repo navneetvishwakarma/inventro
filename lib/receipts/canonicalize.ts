@@ -1,5 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createRequestClient } from '@/lib/supabase/server';
 
 // F4's confidence bands: >=0.62 auto-matches, 0.40-0.62 is ambiguous
 // ("suggest top 3 in review" — the candidate list itself isn't persisted,
@@ -21,7 +22,7 @@ export type MatchResult =
 // S-12's "Save & match" review action, which re-runs this once against a
 // human-edited line -- never called from S-13's commit path (see
 // commit_receipt's migration comment for why).
-export async function matchCatalogItem(supabase: ReturnType<typeof createServiceClient>, householdId: string, normalizedText: string): Promise<MatchResult> {
+export async function matchCatalogItem(supabase: SupabaseClient, householdId: string, normalizedText: string): Promise<MatchResult> {
   const { data, error } = await supabase.rpc('find_best_alias_match', { p_household_id: householdId, p_normalized_text: normalizedText });
   if (error) throw error;
 
@@ -108,7 +109,7 @@ type ReceiptLineRow = {
 // in that dependency order. Runs after extraction (S-06/S-07) inserts
 // receipt_lines.
 export async function runCanonicalization(receiptId: string): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
 
   const { data: lines, error } = await supabase
     .from('receipt_lines')

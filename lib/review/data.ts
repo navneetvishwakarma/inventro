@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { getSignedReceiptUrl } from '@/lib/receipts/storage';
 import { normalizeText, normalizeUnitToBase, matchCatalogItem, type BaseUnit } from '@/lib/receipts/canonicalize';
 import { toKolkataDateString, kolkataDateStringToInstant } from '@/lib/date';
@@ -18,11 +18,11 @@ export type ReviewQueueItem = {
 // (lib/llm/extract.ts sets it last), so this list is never missing
 // review_state on its lines.
 export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipts')
     .select('id, merchant, purchased_at, total_amount, created_at')
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', await getCurrentHouseholdId())
     .eq('status', 'parsed')
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -42,12 +42,12 @@ export type ReceiptForReview = {
 };
 
 export async function getReceiptForReview(receiptId: string): Promise<ReceiptForReview | null> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipts')
     .select('id, storage_paths, mime, merchant, purchased_at, purchased_at_confirmed, date_source, near_duplicate_of, status')
     .eq('id', receiptId)
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', await getCurrentHouseholdId())
     .maybeSingle();
   if (error) throw error;
   return data;
@@ -59,10 +59,11 @@ export async function getDocumentPreviewUrl(storagePath: string): Promise<string
 
 // S-28: raw text has nothing useful to render via a signed URL + <img>/
 // <embed> -- fetched and decoded server-side, unlike every other mime, which
-// gets a signed URL instead.
+// gets a signed URL instead. storage.objects has no RLS policies for this
+// bucket (20260729020232) -- service-role only, same as getSignedReceiptUrl.
 export async function getDocumentPreviewText(storagePath: string): Promise<string> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.storage.from('receipts').download(storagePath);
+  const storageClient = createServiceClient();
+  const { data, error } = await storageClient.storage.from('receipts').download(storagePath);
   if (error || !data) throw error ?? new Error('download returned no data');
   return Buffer.from(await data.arrayBuffer()).toString('utf-8');
 }
@@ -89,7 +90,7 @@ type ReceiptLineRow = {
 export type ReceiptLineForReview = ReceiptLineRow;
 
 export async function getReceiptLines(receiptId: string): Promise<ReceiptLineForReview[]> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipt_lines')
     .select(
@@ -104,15 +105,15 @@ export async function getReceiptLines(receiptId: string): Promise<ReceiptLineFor
 export type LeafCategory = { slug: string; name: string };
 
 export async function getLeafCategories(): Promise<LeafCategory[]> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase.from('categories').select('slug, name').not('parent_id', 'is', null).order('name');
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getStockEpoch(): Promise<string> {
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.from('households').select('stock_epoch').eq('id', getDefaultHouseholdId()).single();
+  const supabase = await createRequestClient();
+  const { data, error } = await supabase.from('households').select('stock_epoch').eq('id', await getCurrentHouseholdId()).single();
   if (error) throw error;
   return data.stock_epoch;
 }
@@ -130,7 +131,7 @@ function isValidDateString(value: string): boolean {
 export async function confirmPurchaseDate(receiptId: string, dateString: string): Promise<void> {
   if (!isValidDateString(dateString)) throw new Error('Invalid date');
 
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data: existing, error: existingError } = await supabase.from('receipts').select('purchased_at, date_source').eq('id', receiptId).single();
   if (existingError) throw existingError;
 
@@ -159,7 +160,7 @@ export async function saveAndMatchLine(
   lineId: string,
   edits: { itemName: string; brand: string | null; categorySlug: string; qtyDisplay: string | null; unitDisplay: string | null },
 ): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data: line, error: lineError } = await supabase.from('receipt_lines').select('household_id, pack_size').eq('id', lineId).single();
   if (lineError) throw lineError;
 
@@ -206,7 +207,7 @@ export async function confirmAsNewItem(
 ): Promise<void> {
   if (edits.categorySlug === 'uncategorized') throw new Error('Pick a real category before confirming a new item');
 
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { error } = await supabase
     .from('receipt_lines')
     .update({
@@ -224,7 +225,7 @@ export async function confirmAsNewItem(
 }
 
 export async function markLineNonInventory(lineId: string): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { error } = await supabase.from('receipt_lines').update({ is_non_inventory: true, review_state: 'excluded', matched_item_id: null, qty_base: null }).eq('id', lineId);
   if (error) throw error;
 }

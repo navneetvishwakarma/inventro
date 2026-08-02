@@ -1404,7 +1404,10 @@
         "S-60"
       ],
       "acceptance": "lib/supabase/server.ts gains createRequestClient() (@supabase/ssr server client bound to cookies()) alongside the existing createServiceClient(). lib/household.ts's getDefaultHouseholdId() is replaced by getCurrentHouseholdId(), sourced from the signed-in user's household_members row via createRequestClient(), not DEFAULT_HOUSEHOLD_ID.",
-      "gh_issue": 112
+      "gh_issue": 112,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-62",
@@ -1418,7 +1421,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/add/**, app/(app)/review/**, and the ingest pipeline (lib/ingest/**) uses createRequestClient() + getCurrentHouseholdId() instead of createServiceClient()/DEFAULT_HOUSEHOLD_ID. Existing REQ-02..REQ-12/REQ-22/REQ-24 acceptance tests still pass unmodified.",
-      "gh_issue": 113
+      "gh_issue": 113,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-63",

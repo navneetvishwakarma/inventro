@@ -79,3 +79,19 @@ test('Catalog: search input accepts and retains typed text', async ({ page }) =>
   await search.fill('zzz-no-such-item-zzz');
   await expect(search).toHaveValue('zzz-no-such-item-zzz');
 });
+
+// S-62 (E-21) regression check: manual entry's full write path --
+// checkForDuplicateAction -> createNewItemPurchaseAction -> log_manual_purchase
+// RPC -> recomputeOneItem -- exercises canonicalize.ts, manual-entry.ts, and
+// recompute.ts, all migrated off the service-role client this story. A fresh
+// household (this spec's fixture) has zero catalog_items, so this item name
+// is guaranteed not to collide with anything real.
+test('Add manually: create a new item and log a purchase end to end', async ({ page }) => {
+  const itemName = 'zzz-e2e-manual-entry-' + Date.now();
+  await page.goto('/add/manual');
+  await page.getByLabel('Search item name').fill(itemName);
+  await page.getByRole('button', { name: `Add "${itemName}" as a new item` }).click();
+  await page.getByLabel('Category', { exact: true }).selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Create item & log purchase' }).click();
+  await expect(page.getByText('Purchase logged')).toBeVisible();
+});

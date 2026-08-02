@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { normalizeText, normalizeUnitToBase, matchCatalogItem, type BaseUnit } from '@/lib/receipts/canonicalize';
 import { recomputeOneItem } from '@/lib/predictions/recompute';
 
@@ -11,8 +11,8 @@ export type ManualPurchaseResult = { catalogItemId: string; createdNew: boolean 
 // last_qty_base. No matching ladder involved: the human already picked this
 // exact catalog item from a list, there is nothing left to disambiguate.
 export async function logExistingItemPurchase(catalogItemId: string, qtyBase: number, unitPrice: number | null, occurredAt: string): Promise<ManualPurchaseResult> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data, error } = await supabase
     .rpc('log_manual_purchase', {
@@ -45,8 +45,8 @@ export type DuplicateCheckResult = { likelyDuplicate: true; existingItemId: stri
 // live search results before choosing "Add as new item", so this band is a
 // legitimate proceedable case, not a silently-skipped ambiguity.
 export async function checkForDuplicate(name: string, brand: string | null): Promise<DuplicateCheckResult> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const normalized = normalizeText(`${brand ? `${brand} ` : ''}${name}`);
 
   const match = await matchCatalogItem(supabase, householdId, normalized);
@@ -76,8 +76,8 @@ export type NewItemInput = {
 // function does not re-check (kept as two explicit steps so the UI can show
 // the duplicate warning before committing to the create flow).
 export async function createNewItemAndLogPurchase(input: NewItemInput): Promise<ManualPurchaseResult> {
-  const supabase = createServiceClient();
-  const householdId = getDefaultHouseholdId();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
 
   const { data: category, error: categoryError } = await supabase.from('categories').select('default_base_unit').eq('slug', input.categorySlug).not('parent_id', 'is', null).single();
   if (categoryError || !category) throw categoryError ?? new Error(`unresolved category_slug ${input.categorySlug}`);

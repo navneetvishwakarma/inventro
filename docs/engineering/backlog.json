@@ -1474,7 +1474,10 @@
         "S-64"
       ],
       "acceptance": "grep for createServiceClient() across app/ and lib/ (excluding api/cron/** and the seeder script) returns zero matches. DEFAULT_HOUSEHOLD_ID env var and lib/household.ts deleted, not kept as an unused fallback.",
-      "gh_issue": 116
+      "gh_issue": 116,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-66",

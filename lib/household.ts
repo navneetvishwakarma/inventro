@@ -2,19 +2,9 @@ import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createRequestClient } from '@/lib/supabase/server';
 
-export function getDefaultHouseholdId(): string {
-  const id = process.env.DEFAULT_HOUSEHOLD_ID;
-  if (!id) throw new Error('DEFAULT_HOUSEHOLD_ID must be set');
-  return id;
-}
-
-// S-57/S-61/ADR-0006: session-derived household lookup, replacing
-// getDefaultHouseholdId() call site by call site (S-62/S-63/S-64) until
-// the static env-var getter above is deleted entirely (S-65). Built ahead
-// of S-61's original schedule because S-57's signup -> onboarding redirect
-// cannot work correctly against a static DEFAULT_HOUSEHOLD_ID -- a freshly
-// signed-up user's onboarding data would otherwise land on the wrong
-// (old, single-tenant) household.
+// S-57/S-61/ADR-0006: session-derived household lookup. Replaces the old
+// getDefaultHouseholdId()/DEFAULT_HOUSEHOLD_ID env-var getter (deleted in
+// S-65, no fallback kept) call site by call site across E-20/E-21.
 export async function getCurrentHouseholdId(): Promise<string> {
   const supabase = await createRequestClient();
   const {

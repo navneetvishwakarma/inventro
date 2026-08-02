@@ -77,10 +77,28 @@ stays exempt — global reference data, no `household_id` column).
 
 **Split the Supabase client layer instead of replacing it:**
 
-- `createServiceClient()` (existing) — retained, but its use narrows to
-  the two call sites that legitimately act across households with no
-  user session: `/api/cron/*` (digest jobs enumerate every household) and
-  the synthetic seeder (REQ-23, creates `is_demo`-flagged households).
+- `createServiceClient()` (existing) — retained, narrowed to call sites
+  that legitimately act across households with no user session, or on a
+  household the caller isn't a member of. Turned out to be more than the
+  two originally anticipated once implementation surfaced real gaps
+  (E-21's own ledger has the detail on each):
+  - `/api/cron/*` (digest + nightly recompute jobs enumerate every
+    household).
+  - The synthetic seeder (REQ-23, creates `is_demo`-flagged households,
+    via its own separate `scripts/lib/supabaseAdmin.ts` client).
+  - Storage bucket access (`.storage.*` calls in `lib/llm/extract.ts`,
+    `lib/receipts/storage.ts`, `lib/review/data.ts`) — `storage.objects`
+    has zero RLS policies for the receipts bucket by original design
+    (access control there is private-bucket + signed-URLs, not per-role
+    RLS); a request-scoped client gets a permission error on every
+    download/upload.
+  - `wipeDemoHouseholdData` (`lib/settings/demo-data.ts`) — always
+    targets the fixed demo household, which the calling user is never a
+    member of, so RLS would (correctly) deny a request-scoped client.
+  - The compensating cleanup in signup's Server Action
+    (`app/(auth)/signup/actions.ts`) when the household-creation RPC
+    fails after `signUp` already issued a session — there's no user
+    session left to clean up with otherwise.
 - **New** `createRequestClient()` (`@supabase/ssr`'s server client, bound
   to `next/headers` `cookies()`) — used by every user-facing Server
   Action, Route Handler, and Server Component. Its Postgres role is

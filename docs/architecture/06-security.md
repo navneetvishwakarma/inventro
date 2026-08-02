@@ -63,12 +63,19 @@ the app reachable at all."
   request-scoped Supabase client (`createRequestClient()`) carries the
   user's JWT, so the `authenticated` Postgres role and `auth.uid()` are
   real for every user-facing query.
-- **Deliberate exception**: `createServiceClient()` (service-role, bypasses
-  RLS) is retained for exactly two call sites — `/api/cron/*` (digest jobs
-  legitimately enumerate every household) and the synthetic seeder (REQ-23,
-  `is_demo` households). Both are documented exceptions, not leftover scope
-  from the v1 pattern; no user-facing Server Action or Route Handler should
-  use the service-role client after the multi-tenant migration completes.
+- **Deliberate exceptions**: `createServiceClient()` (service-role, bypasses
+  RLS) is retained for a documented, narrow set of call sites, not left as
+  leftover scope from the v1 pattern — `/api/cron/*` (digest + nightly
+  recompute jobs legitimately enumerate every household), the synthetic
+  seeder (REQ-23, `is_demo` households, via its own separate client),
+  Storage bucket access (`storage.objects` has zero RLS policies for the
+  receipts bucket by original design — private-bucket + signed-URLs is the
+  access control there, not per-role RLS), `wipeDemoHouseholdData`
+  (Settings — always targets a household the caller isn't a member of, so
+  RLS would correctly deny a request-scoped client), and signup's
+  compensating cleanup on RPC failure (no session to clean up with
+  otherwise). No other user-facing Server Action or Route Handler uses the
+  service-role client after the multi-tenant migration completes (E-21).
 - **One user, one household, in v2.** No invite flow, no household
   switcher (ADR-0006 non-goals) — this narrows the attack surface
   considerably versus a full multi-member-household model, and is worth
@@ -118,7 +125,7 @@ silently carried forward.
 actually matters now that there's more than one tenant, and it's the one
 RLS is meant to catch even if application code forgets a `WHERE
 household_id = ...` clause — but only for the request-scoped client.
-Service-role code (the two exceptions above) has no such backstop; a bug
+Service-role code (the deliberate exceptions above) has no such backstop; a bug
 there leaks across every household with no RLS safety net. Mitigated by
 keeping the service-role surface intentionally tiny and by the
 cross-household isolation test (two households, assert household A's

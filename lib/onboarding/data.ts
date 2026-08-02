@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { SHOPPING_PRESETS } from '@/lib/onboarding/presets';
 
 export type StapleItem = {
@@ -12,22 +12,24 @@ export type StapleItem = {
 };
 
 export async function getHousehold() {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { data, error } = await supabase
     .from('households')
     .select('id, name, monthly_budget, onboarded_at, notify_email')
-    .eq('id', getDefaultHouseholdId())
+    .eq('id', householdId)
     .single();
   if (error) throw error;
   return data;
 }
 
 export async function getStapleItems(): Promise<StapleItem[]> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
   const { data, error } = await supabase
     .from('catalog_items')
     .select('id, canonical_name, brand, base_unit, default_pack_size')
-    .eq('household_id', getDefaultHouseholdId())
+    .eq('household_id', householdId)
     .eq('is_staple', true)
     .order('canonical_name');
   if (error) throw error;
@@ -44,8 +46,8 @@ export async function getStapleItems(): Promise<StapleItem[]> {
 // so this resolves top -> leaf -> items in two queries rather than a raw
 // SQL join.
 export async function applyPresets(presetIds: string[]): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
 
   const topSlugs = [...new Set(presetIds.flatMap((id) => SHOPPING_PRESETS.find((p) => p.id === id)?.categorySlugs ?? []))];
 
@@ -79,8 +81,8 @@ export async function applyPresets(presetIds: string[]): Promise<void> {
 }
 
 export async function completeOnboarding(name: string, monthlyBudget: number | null, tickedItemIds: string[]) {
-  const householdId = getDefaultHouseholdId();
-  const supabase = createServiceClient();
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
   const now = new Date().toISOString();
 
   if (tickedItemIds.length > 0) {
@@ -106,8 +108,9 @@ export async function completeOnboarding(name: string, monthlyBudget: number | n
   }
 
   // stock_epoch and onboarded_at share `now` with the movements above so
-  // occurred_at >= stock_epoch holds exactly (ADR-0001) — set in place,
-  // never a new households row (S-02's seeded catalog_items point at this id).
+  // occurred_at >= stock_epoch holds exactly (ADR-0001) — updates the
+  // household row create_household_for_user() (S-57) already created at
+  // signup, never inserts a new one here.
   const { error: householdError } = await supabase
     .from('households')
     .update({ name, monthly_budget: monthlyBudget, stock_epoch: now, onboarded_at: now })

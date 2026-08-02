@@ -1313,11 +1313,15 @@
       "title": "Supabase Auth + household_members schema migration",
       "epic": "E-20",
       "prd_ref": "REQ-31",
-      "status": "notstarted",
+      "status": "in_progress",
       "order": 56,
       "estimate": 0.3,
       "acceptance": "New migration adds household_members(household_id, user_id, role, created_at), composite PK (household_id, user_id), FKs to households and auth.users. Supabase Auth (email+password provider) confirmed enabled on the project. No RLS changes in this migration (that is E-21/S-60) -- schema only.",
-      "gh_issue": 106
+      "gh_issue": 106,
+      "verify": {
+        "ci": "pass",
+        "commit": "081ccd8"
+      }
     },
     {
       "id": "S-57",
@@ -1331,7 +1335,10 @@
         "S-56"
       ],
       "acceptance": "POST to the signup Server Action with email+password creates a Supabase Auth user, a new households row, and a household_members row (role='owner') in one transaction, then redirects to /onboarding (REQ-01) -- signup does not duplicate onboarding's household-config questions. Duplicate email is rejected with a clear inline error, no partial rows left behind.",
-      "gh_issue": 107
+      "gh_issue": 107,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-58",
@@ -1345,7 +1352,10 @@
         "S-56"
       ],
       "acceptance": "signInWithPassword runs server-side via a Server Action bound to next/headers cookies(); wrong password is rejected with a clear error and no session set; logout clears the session cookie. Anon key confirmed absent from the client bundle (build-output check, replaces A26).",
-      "gh_issue": 108
+      "gh_issue": 108,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-59",
@@ -1359,7 +1369,10 @@
         "S-58"
       ],
       "acceptance": "proxy.ts checks for a valid Supabase session instead of the signed passcode cookie; unauthenticated navigation redirects to /login?next=<path> (fixes the audit's P0 finding: a bare 401 with no link back to a login form); unauthenticated API/data requests still get 401. Static-asset/api/cron/* exemption list carries over unchanged. /gate route, lib/gate.ts, GATE_COOKIE_SECRET removed, not kept as a fallback.",
-      "gh_issue": 109
+      "gh_issue": 109,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-60",

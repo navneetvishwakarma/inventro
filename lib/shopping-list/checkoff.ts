@@ -1,6 +1,6 @@
 import 'server-only';
-import { createServiceClient } from '@/lib/supabase/server';
-import { getDefaultHouseholdId } from '@/lib/household';
+import { createRequestClient } from '@/lib/supabase/server';
+import { getCurrentHouseholdId } from '@/lib/household';
 import { recomputeOneItem } from '@/lib/predictions/recompute';
 import { resetSuppressionAfterPurchase } from '@/lib/plan/actions';
 
@@ -17,8 +17,9 @@ type LogPurchaseResult = { out_catalog_item_id: string; out_household_id: string
 // logged purchase stays logged even if the box is later unchecked --
 // ADR-0001, history is never reversed by a list-crossing-off toggle).
 export async function setChecked(shoppingListItemId: string, checked: boolean): Promise<void> {
-  const householdId = getDefaultHouseholdId();
-  const { error } = await createServiceClient().from('shopping_list_items').update({ checked }).eq('id', shoppingListItemId).eq('household_id', householdId);
+  const householdId = await getCurrentHouseholdId();
+  const supabase = await createRequestClient();
+  const { error } = await supabase.from('shopping_list_items').update({ checked }).eq('id', shoppingListItemId).eq('household_id', householdId);
   if (error) throw error;
 }
 
@@ -32,7 +33,7 @@ export async function setChecked(shoppingListItemId: string, checked: boolean): 
 // suppression when the RPC actually wrote (already_logged=false) -- a
 // repeat call (double-click) is a pure no-op past the RPC's own guard.
 export async function logShoppingListPurchase(shoppingListItemId: string, unitPrice: number): Promise<void> {
-  const supabase = createServiceClient();
+  const supabase = await createRequestClient();
   const { data, error } = await supabase.rpc('log_shopping_list_purchase', { p_shopping_list_item_id: shoppingListItemId, p_unit_price: unitPrice }).single();
   if (error) throw error;
 

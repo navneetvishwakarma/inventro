@@ -1438,7 +1438,10 @@
         "S-61"
       ],
       "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/inventory/**, app/(app)/plan/**, app/(app)/shopping-list/**, and app/(app)/insights/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-13..REQ-19 acceptance tests still pass unmodified.",
-      "gh_issue": 114
+      "gh_issue": 114,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-64",

@@ -1,4 +1,5 @@
 import 'server-only';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createRequestClient } from '@/lib/supabase/server';
 
 export function getDefaultHouseholdId(): string {
@@ -24,4 +25,20 @@ export async function getCurrentHouseholdId(): Promise<string> {
   const { data, error } = await supabase.from('household_members').select('household_id').eq('user_id', user.id).single();
   if (error || !data) throw new Error('getCurrentHouseholdId: no household_members row for user ' + user.id);
   return data.household_id;
+}
+
+// S-63/ADR-0006: a handful of read functions (getInventoryItems,
+// getPlanItems, getDueSoonItems) are shared between real user requests
+// (default: request-scoped, session-derived) and the digest cron routes
+// (which legitimately enumerate every household, no user session --
+// pass an explicit override sourced from createServiceClient()). Centralizes
+// the "default to the request-scoped session, allow an explicit override"
+// shape so it isn't reimplemented per function.
+export type HouseholdContext = { supabase: SupabaseClient; householdId: string };
+
+export async function resolveHouseholdContext(override?: HouseholdContext): Promise<HouseholdContext> {
+  if (override) return override;
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
+  return { supabase, householdId };
 }

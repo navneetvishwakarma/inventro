@@ -1386,7 +1386,10 @@
         "S-56"
       ],
       "acceptance": "New migration (supabase/migrations/..._rls_household_members.sql, not an edit to the disabled-policy migration) drops the current_setting-keyed policies and creates 'household_id in (select household_id from household_members where user_id = auth.uid())' policies for every table in the original disabled-policy migration's scope, then ALTER TABLE ... ENABLE ROW LEVEL SECURITY on each. categories stays exempt (no household_id column).",
-      "gh_issue": 111
+      "gh_issue": 111,
+      "verify": {
+        "ci": "pass"
+      }
     },
     {
       "id": "S-61",

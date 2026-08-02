@@ -1379,7 +1379,7 @@
       "title": "RLS policy rewrite: key on auth.uid() via household_members, enable RLS",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "in_progress",
+      "status": "done",
       "order": 60,
       "estimate": 0.4,
       "blocked_by": [
@@ -1396,7 +1396,7 @@
       "title": "Request-scoped Supabase client + getCurrentHouseholdId()",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 61,
       "estimate": 0.3,
       "blocked_by": [
@@ -1414,7 +1414,7 @@
       "title": "Migrate capture/review/commit routes to the request-scoped client",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 62,
       "estimate": 0.5,
       "blocked_by": [
@@ -1431,7 +1431,7 @@
       "title": "Migrate inventory/plan/shopping-list/insights routes to the request-scoped client",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 63,
       "estimate": 0.5,
       "blocked_by": [
@@ -1448,7 +1448,7 @@
       "title": "Migrate settings/catalog/onboarding routes to the request-scoped client",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 64,
       "estimate": 0.4,
       "blocked_by": [
@@ -1465,7 +1465,7 @@
       "title": "Narrow service-role usage to cron + seeder; remove DEFAULT_HOUSEHOLD_ID",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 65,
       "estimate": 0.3,
       "blocked_by": [
@@ -1484,7 +1484,7 @@
       "title": "Cross-household isolation E2E test (epic gate)",
       "epic": "E-21",
       "prd_ref": "REQ-32",
-      "status": "blocked",
+      "status": "done",
       "order": 66,
       "estimate": 0.3,
       "blocked_by": [
@@ -1501,7 +1501,7 @@
       "title": "Review queue: surface failed/stuck extractions, block commit on zero-line receipts",
       "epic": "E-22",
       "prd_ref": "REQ-33",
-      "status": "blocked",
+      "status": "in_progress",
       "order": 67,
       "estimate": 0.4,
       "blocked_by": [

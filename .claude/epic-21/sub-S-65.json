@@ -1,0 +1,19 @@
+{
+  "id": "S-65",
+  "title": "Narrow service-role usage to cron + seeder; remove DEFAULT_HOUSEHOLD_ID",
+  "goal": "Close out the migration -- after S-62/S-63/S-64, the only legitimate createServiceClient() callers left should be app/api/cron/* (recompute-stats, and the cron-facing household lookup carved out of onboarding/data.ts in S-64) and scripts/seed-history (which already uses its own scripts/lib/supabaseAdmin.ts, confirmed during planning -- not lib/supabase/server.ts at all, so it needs no change here).",
+  "in_scope": [
+    "grep for createServiceClient() across app/ and lib/ -- confirm the only remaining call sites are app/api/cron/recompute-stats/route.ts and the cron-facing function S-64 carved out of lib/onboarding/data.ts. Anything else left is a missed migration -- fix it, don't document it as an exception.",
+    "Delete lib/household.ts (getDefaultHouseholdId()) and the DEFAULT_HOUSEHOLD_ID env var/reference (including any .env.example entry) -- no fallback kept.",
+    "Confirm scripts/seed-history's scripts/lib/supabaseAdmin.ts is unaffected (separate client, separate concern, per ADR-0006's documented exception) -- no code change expected here, just confirmation in the ledger."
+  ],
+  "out_of_scope": [
+    "Any change to scripts/lib/supabaseAdmin.ts or the seeder's own logic -- already correctly isolated."
+  ],
+  "acceptance": "`grep -rn createServiceClient app lib` returns matches only in app/api/cron/recompute-stats/route.ts and the cron-facing onboarding lookup. lib/household.ts and DEFAULT_HOUSEHOLD_ID are gone from the codebase (including env references).",
+  "invariants": [
+    "This story is a cleanup/verification gate, not new logic -- if it finds a missed call site, that's a sign S-62/S-63/S-64 need a follow-up fix, not that this story should carve out a new exception to accommodate it."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

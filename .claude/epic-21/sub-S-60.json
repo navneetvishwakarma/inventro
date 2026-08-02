@@ -1,0 +1,22 @@
+{
+  "id": "S-60",
+  "title": "RLS policy rewrite: key on auth.uid() via household_members, enable RLS",
+  "goal": "supabase/migrations/20260728131120_rls_policies_disabled.sql's own header says current_setting('app.current_household_id') was 'the plausible future mechanism, not a claim that it's wired up anywhere today' -- nothing ever sets it. This story is the real mechanism: policies keyed on auth.uid() through household_members, actually enabled.",
+  "in_scope": [
+    "New migration (do not edit 20260728131120_rls_policies_disabled.sql -- ADR-0006 is explicit that this is a new migration, the old one stays as a historical record).",
+    "For every table the disabled migration covers (households, catalog_items, item_aliases, receipts, receipt_lines, stock_movements, item_stats, item_stats_history, plan_entries, shopping_lists, shopping_list_items, price_history, ingest_jobs -- confirm the full list against the migration file, it may cover more than the first 100 lines read during planning): `drop policy household_isolation on <table>;` then `create policy household_isolation on <table> for all to authenticated using (household_id in (select household_id from household_members where user_id = auth.uid())) with check (same);`",
+    "`alter table <table> enable row level security;` for each of the same tables.",
+    "categories stays exempt -- global reference data, no household_id column, unchanged from ADR-0004."
+  ],
+  "out_of_scope": [
+    "Any application code change -- this migration alone does nothing until S-61/S-62/S-63/S-64 switch the app off the service-role client. Enabling RLS with the current all-service-role app is a correctness no-op by design (ADR-0006's whole point); do not expect user-visible behavior change from this story alone.",
+    "household_members' own RLS policy -- decide during this story whether it needs one (a user should probably only see their own membership row); write it if the table is ever queried through the request-scoped client, otherwise defer."
+  ],
+  "acceptance": "Every table listed in the disabled-policy migration (except categories) has RLS ENABLED and a policy keyed on `household_id in (select household_id from household_members where user_id = auth.uid())`. Migration applies cleanly against the existing dev database with existing rows (no orphaned household_id values that would make every row invisible -- check against the current DEFAULT_HOUSEHOLD_ID household's data before merging).",
+  "invariants": [
+    "Never edit 20260728131120_rls_policies_disabled.sql in place.",
+    "Policy predicate must be identical for USING and WITH CHECK -- an asymmetric policy is a correctness bug (readable-but-not-writable or vice versa across tenants)."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

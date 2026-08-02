@@ -1,0 +1,22 @@
+{
+  "id": "S-61",
+  "title": "Request-scoped Supabase client + getCurrentHouseholdId()",
+  "goal": "lib/supabase/server.ts (read in full during planning) exports exactly one client factory today, createServiceClient(), which always uses the service-role key and therefore always bypasses RLS regardless of S-60's policies. This story adds the second client -- the one whose Postgres role is actually `authenticated` -- and the household lookup that goes with it.",
+  "in_scope": [
+    "lib/supabase/server.ts: add createRequestClient() using @supabase/ssr's createServerClient, bound to next/headers cookies(), using the (server-only) anon key -- not the service-role key. Keep createServiceClient() as-is, side by side.",
+    "Add @supabase/ssr as a dependency (not currently in package.json).",
+    "Replace lib/household.ts's getDefaultHouseholdId() with getCurrentHouseholdId(): calls createRequestClient(), gets the session user, queries household_members for that user_id, returns household_id. Throws (or redirects, matching the pattern S-59's gate already establishes) if no session or no membership row -- this should be unreachable in practice since S-59's gate already blocks unauthenticated requests, but the function itself must not silently fall back to a default.",
+    "This story only adds the new client/helper -- it does not yet touch any of the ~27 call sites that still call createServiceClient()/getDefaultHouseholdId() (that's S-62/S-63/S-64)."
+  ],
+  "out_of_scope": [
+    "Deleting getDefaultHouseholdId()/DEFAULT_HOUSEHOLD_ID -- stays until every caller has migrated (S-65).",
+    "Any call-site migration."
+  ],
+  "acceptance": "createRequestClient() returns a client whose queries run as the `authenticated` Postgres role with a real auth.uid() when called within a request that has a valid Supabase session (verifiable by querying `select auth.uid()` through it in a test). getCurrentHouseholdId() returns the correct household_id for a signed-in user with a household_members row, and throws for one without.",
+  "invariants": [
+    "createRequestClient() must never use the service-role key -- if it does, RLS is bypassed and S-60's policies are dead code again, exactly the failure mode ADR-0006 exists to close.",
+    "The anon key used here stays a server-only env var (SUPABASE_ANON_KEY, not NEXT_PUBLIC_*) -- createRequestClient() is only ever called from Server Actions/Route Handlers/Server Components, never imported into a 'use client' file."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

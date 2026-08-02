@@ -1,0 +1,23 @@
+{
+  "id": "S-58",
+  "title": "Login/logout: Server Actions + /login page",
+  "goal": "This is the whole of 'simple username/password login' -- a form asking for email + password, submitted server-side, no client-side Supabase call and no anon key shipped to the browser (ADR-0006).",
+  "in_scope": [
+    "app/(auth)/login/page.tsx -- email + password form, Server Action submit.",
+    "Server Action: signInWithPassword({email, password}) via the SSR server client bound to next/headers cookies() -- this is the same client helper S-59 formalizes as createRequestClient(), but login/logout can be built against @supabase/ssr directly here since S-59 is sequenced after (S-58 blocked_by S-56 only, not S-59) and both land on the same underlying pattern.",
+    "Wrong password / unknown email: single generic 'Invalid email or password' error (no user-enumeration signal), no session cookie set.",
+    "Logout Server Action: supabase.auth.signOut(), clears session cookies, redirects to /login."
+  ],
+  "out_of_scope": [
+    "Password reset (ADR-0006 non-goal, blocked on REQ-20's email provider decision).",
+    "Remember-me / session-length configuration beyond Supabase Auth's own defaults.",
+    "Rate limiting beyond Supabase Auth's platform default (docs/architecture/06-security.md's residual-risk note, not a v2 requirement)."
+  ],
+  "acceptance": "Correct email/password reaches an authenticated session and the app's gated routes. Wrong password is rejected with a generic error and sets no session. Logout clears the session; the next request to any gated route redirects to /login. Anon key confirmed absent from the client JS bundle (build-output grep, replaces acceptance test A26).",
+  "invariants": [
+    "signInWithPassword and signOut run only inside Server Actions -- no 'use client' component ever imports a Supabase client directly.",
+    "Error message is identical for 'no such user' and 'wrong password' -- do not leak which one it was."
+  ],
+  "prd_ref": "REQ-31",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

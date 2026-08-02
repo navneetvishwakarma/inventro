@@ -1,0 +1,20 @@
+{
+  "id": "S-72",
+  "title": "Spec-parity polish pass (P2)",
+  "goal": "Four small, low-priority spec-vs-implementation gaps from the audit, bundled into one story since each is individually trivial: Plan page has no running total/estimated cost while planning; item detail page lacks the spec's cadence-override/staple/perishability/archive controls (F8, currently only on the separate Catalog page); Insights' 'no budget set yet' state doesn't link to Settings; the gate/login submit button has no pending/disabled state (double-submit possible on slow networks).",
+  "in_scope": [
+    "Plan page: show a running total/estimated cost across the visible bucket.",
+    "Item detail page: add cadence-override, staple, perishability, and archive controls (currently only reachable via Catalog).",
+    "Insights: 'no budget set yet' state links to Settings.",
+    "Login submit button (S-58's new /login page): disabled/pending state during submission."
+  ],
+  "out_of_scope": [
+    "Any visual/token restyling beyond adding these controls -- REQ-29/E-23 scope."
+  ],
+  "acceptance": "All four sub-items implemented and independently verifiable: Plan shows a total, item detail has the four controls, Insights links to Settings, login button disables during submit.",
+  "invariants": [
+    "This story bundles four unrelated small fixes deliberately (P2, low individual cost) -- if any one turns out to be non-trivial during implementation, split it out rather than blocking the other three."
+  ],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

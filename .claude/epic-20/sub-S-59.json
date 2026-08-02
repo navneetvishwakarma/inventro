@@ -1,0 +1,23 @@
+{
+  "id": "S-59",
+  "title": "Session gate: replace passcode proxy.ts/lib/gate.ts with Supabase-session check",
+  "goal": "proxy.ts today checks a signed cookie with a fixed 'ok' payload (lib/gate.ts) and returns a bare-text 401 with no link back to any form -- the audit's P0 finding. This story replaces the whole mechanism, not just the payload, and fixes that dead end as a side effect of the replacement rather than a separate patch.",
+  "in_scope": [
+    "proxy.ts: replace verifyGateCookie(...)-based check with a Supabase session check (via the SSR client reading the request's cookies) -- valid session passes through, no session redirects.",
+    "Unauthenticated navigation request -> NextResponse.redirect('/login?next=' + pathname), not a 401 body.",
+    "Unauthenticated API/data route request -> keep returning 401 (no redirect makes sense for a fetch/XHR caller).",
+    "Carry over the existing exemption list unchanged: UNGATED_PWA_ASSETS, /icons/, api/cron/* (proxy.ts:24-43) -- these exemptions were reasoned through carefully (S-35/REQ-27 comments) and none of that reasoning changes with the auth mechanism swap.",
+    "Delete app/gate/ (page.tsx, actions.ts), lib/gate.ts, and the GATE_COOKIE_SECRET env var -- not kept as a fallback path alongside the new mechanism."
+  ],
+  "out_of_scope": [
+    "Any change to the PWA-asset/cron exemption logic itself -- only the thing being checked changes (session vs. signed cookie), not what's exempted.",
+    "app/(auth)/login and app/(auth)/signup pages themselves -- those are S-57/S-58, this story only wires the gate to redirect to them."
+  ],
+  "acceptance": "A request to any gated route with no valid session redirects to /login?next=<original path> instead of returning a bare 401 page. A request to a gated API/data route with no valid session still returns 401. app/gate/, lib/gate.ts, GATE_COOKIE_SECRET are removed from the codebase.",
+  "invariants": [
+    "The exemption matcher (static assets, api/cron/*) must remain functionally identical -- a regression here would either re-lock the PWA shell or gate cron routes that authenticate themselves independently.",
+    "next param must be validated as a same-origin relative path before being used in the redirect, to avoid an open-redirect via a crafted next value."
+  ],
+  "prd_ref": "REQ-31",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

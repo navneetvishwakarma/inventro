@@ -1,0 +1,18 @@
+{
+  "id": "S-63",
+  "title": "Migrate inventory/plan/shopping-list/insights routes to the request-scoped client",
+  "goal": "Second slice of the service-role-to-request-scoped migration -- the inventory/consumption/cadence/shopping/budget surface.",
+  "in_scope": [
+    "lib/inventory/consume.ts, lib/inventory/data.ts, lib/plan/actions.ts, lib/plan/data.ts, lib/predictions/recompute.ts, lib/predictions/reconcile.ts, lib/shopping-list/checkoff.ts, lib/shopping-list/data.ts, lib/shopping-list/generate.ts, lib/insights/data.ts -- replace createServiceClient() + getDefaultHouseholdId() with createRequestClient() + getCurrentHouseholdId().",
+    "Re-run REQ-13..REQ-19's acceptance checks (A5-A9, A12) against the migrated code."
+  ],
+  "out_of_scope": [
+    "lib/predictions/recompute.ts and lib/predictions/reconcile.ts's nightly-recompute call path IF it is invoked from app/api/cron/recompute-stats/route.ts rather than per-request -- confirm this during the story: if recompute is cron-triggered (across all households, no user session), it needs to keep using createServiceClient() and stays a documented exception alongside the cron route itself, not migrated to request-scoped. Flag this explicitly rather than assuming; do not migrate a cron-invoked function to a client that requires a session that doesn't exist in that context."
+  ],
+  "acceptance": "Every user-request-triggered path in the listed files uses createRequestClient() + getCurrentHouseholdId(); any cron-invoked path is explicitly identified and left on createServiceClient() with a comment explaining why (cross-household, no session). Existing REQ-13..REQ-19 acceptance tests (A5-A9, A12) pass unmodified against a real authenticated session.",
+  "invariants": [
+    "Do not blindly swap every call site -- lib/predictions/recompute.ts in particular may be shared between a per-request path and the nightly cron job; check its actual callers (app/api/cron/recompute-stats/route.ts) before migrating, per the out-of-scope note above."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "S-66",
+  "title": "Cross-household isolation E2E test (epic gate)",
+  "goal": "The test that proves S-60's RLS policies actually fire once the app connects the right way -- not just that they're declared. This is the hard merge gate for E-21 per ADR-0006 and the ship-epic security gate; it does not get treated as optional or deferred.",
+  "in_scope": [
+    "New e2e/isolation.spec.ts. Test setup: create two households (A, B) via the real signup flow (S-57), each with one distinct seeded item (via manual entry or direct DB insert against each household's own id).",
+    "Log in as household A's user. For every gated route (inventory, review, plan, shopping-list, insights, settings), assert only household A's data is visible -- household B's item never appears in any list.",
+    "Directly probe a household-B-scoped resource by id (item detail URL, receipt id, etc.) while logged in as household A -- assert it's denied (404/403), not silently returned. This is the part a list-filtering bug alone wouldn't catch: RLS must deny it at the query level, not just at the UI's rendering layer.",
+    "Repeat login as household B's user and assert the mirror image (B sees only B's data, A's resources are denied)."
+  ],
+  "out_of_scope": [
+    "Performance/load testing of RLS -- correctness only, not scale."
+  ],
+  "acceptance": "e2e/isolation.spec.ts passes: household A's authenticated session cannot read, list, or write household B's row via any route, verified both by list-view absence and by direct-id-probe denial; same in reverse. This test is required green before ship-epic merges E-21 -- treat a failure here as blocking, not a follow-up.",
+  "invariants": [
+    "This test must exercise the real request-scoped client path (a live authenticated session), not a service-role bypass -- testing against service-role would prove nothing about RLS.",
+    "Do not weaken this test to only check list-view filtering -- the direct-id-probe assertion is the one that actually distinguishes 'RLS enforces this' from 'the UI happens to filter it.'"
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

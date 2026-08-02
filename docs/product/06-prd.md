@@ -3,6 +3,7 @@ doc: prd
 project: Inventro
 status: approved        # draft | approved  — must be `approved` before backlog seeding
 updated: 2026-08-01
+v2-cycle: multi-tenant-auth-activation
 ---
 
 # Inventro — Product Requirements
@@ -28,12 +29,18 @@ rolling budget view, so shopping shifts from reactive to planned.
 ## Non-goals
 
 Placing real orders with retailers · barcode scanning · expiry-date-per-unit
-tracking · recipe/meal planning · multi-tenancy and real auth (invites, roles,
-RLS enabled) · web push · offline sync · seasonality/festival modeling ·
-shared real-time list editing · native app · email auto-forwarding inbox ·
-household-member spend attribution · bulk/batch historical import (mbox,
-CSV — historical orders go through the normal one-at-a-time capture flow
-instead, REQ-22).
+tracking · recipe/meal planning · web push · offline sync ·
+seasonality/festival modeling · shared real-time list editing · native app ·
+email auto-forwarding inbox · household-member spend attribution ·
+bulk/batch historical import (mbox, CSV — historical orders go through the
+normal one-at-a-time capture flow instead, REQ-22).
+
+**v2 additions:** household member invites / multi-member households (one
+account = one household in v2, ADR-0006) · household switching UI (test
+multiple households by creating multiple accounts, not by switching within
+one session) · self-serve password reset (no email delivery configured yet,
+blocked on REQ-20) · OAuth/magic-link/passkey login (REQ-31 is email +
+password only, deliberately, per the "simple" login requirement).
 
 ## Requirements
 
@@ -64,22 +71,28 @@ instead, REQ-22).
 | REQ-23 | Synthetic history seeder + validation harness (`pnpm seed:history` / `pnpm validate:predictions`), 7 cohorts, `is_demo`-flagged household only | P0 | Per-cohort scorecard prints; overall S3 (n≥4) clears ≥70% before shipping the prediction engine |
 | REQ-24 | LLM extraction contract: Gemini Flash primary, native-PDF-text fast path, escalation to Pro on schema/total-mismatch failure, manual-entry fallback with raw response retained | P0 | Malformed JSON escalates to Pro, then to manual entry, never a crash or silent data loss (A11); native-text PDF takes the text-only path, photographed screenshot takes multimodal, verifiable via `parse_path` (A22) |
 | REQ-25 | Cost controls: hard stop at 100 receipts/day (alert at 50), per-receipt token/cost accounting | P1 | Loop-bug guard actually halts ingestion at the threshold |
-| REQ-26 | Single-household tenancy scaffolding: `household_id` on every table sourced from `DEFAULT_HOUSEHOLD_ID`, all DB access server-side, RLS policies written-but-disabled, shared-passcode gate (`middleware.ts` + signed HTTP-only cookie) | P0 | Anon Supabase key absent from client bundle; unauthenticated request without the gate cookie returns 401 (A26) — **flagged: no real authentication, explicitly scoped to grocery data only until the multi-tenant phase (see `docs/product/10-gtm-strategy.md`)** |
+| REQ-26 | Single-household tenancy scaffolding: `household_id` on every table sourced from `DEFAULT_HOUSEHOLD_ID`, all DB access server-side, RLS policies written-but-disabled, shared-passcode gate (`proxy.ts` + signed HTTP-only cookie). **Superseded by REQ-31/REQ-32 this cycle** — the scaffolding this requirement shipped is exactly what made REQ-31/32 cheap (ADR-0004); left as-is below, unedited, as the historical record of what v1 actually shipped | P0 | Anon Supabase key absent from client bundle; unauthenticated request without the gate cookie returns 401 (A26) — **flagged: no real authentication, explicitly scoped to grocery data only until the multi-tenant phase (see `docs/product/10-gtm-strategy.md`)** |
 | REQ-27 | PWA installability (manifest, icons); Android Web Share Target only, no offline data sync | P2 | App is installable; offline shell caches but data does not sync offline |
 | REQ-28 | Automated regression coverage: unit tests for the pure domain logic (`computeItemStats` EWMA/shrinkage/outlier-rejection/bucketing, canonicalization/alias matching, unit normalization, `rate_correction` clamping, backdating vs `stock_epoch`) plus an E2E smoke suite covering the gate and every route, using accessible roles/names rather than DOM structure so it survives REQ-29's redesign | P0 | `npm test` runs the unit suite and reproduces the hand-computed S-14a/b/c fixtures already recorded in `docs/MANUAL-TESTS.md` (day 0/7/14/21 → weekly, confidence ~0.50, next ≈ day 28; day 0/7/60/67 rejects the 60-day outlier; 2-purchase item → unpredictable, confidence ~0.25); `npm run test:e2e` passes the gate and gets a 200 on every route in `backlog.json` plus one happy-path assertion per section |
-| REQ-29 | Design system v2: an audited, modernized token set and component/page reference screens (`docs/design/`) replacing ad-hoc per-page styling drift, applied consistently across every existing screen — semantic token indirection (`--color-primary` → `--primary` → `--red-600`) preserved so future re-theming stays additive, not a rewrite | P1 | Every page under `app/(app)/**`, `app/onboarding/**`, and `app/gate/**` renders using only `docs/design/` v2 tokens and updated `components/ui` primitives (no hardcoded hex/spacing values); each page matches its `docs/design/pages/*.md` reference screen with no unaddressed gap in the epic's own gap-list. **Sequenced after REQ-30** — a v2 redesign on top of an unverified fidelity baseline risks re-encoding the same drift; superseded to a later, separately-scoped cycle. |
+| REQ-29 | Design system v2: an audited, modernized token set and component/page reference screens (`docs/design/`) replacing ad-hoc per-page styling drift, applied consistently across every existing screen plus the new v2 auth screens (`/login`, `/signup`) — semantic token indirection (`--color-primary` → `--primary` → `--red-600`) preserved so future re-theming stays additive, not a rewrite | P1 | Every page under `app/(app)/**`, `app/onboarding/**`, and `app/(auth)/**` renders using only `docs/design/` v2 tokens and updated `components/ui` primitives (no hardcoded hex/spacing values); each page matches its `docs/design/pages/*.md` reference screen with no unaddressed gap in the epic's own gap-list. **Activated this cycle** — REQ-30's fidelity baseline is now solid, so this is no longer sequenced behind an unverified baseline; sequenced after REQ-31/32 instead, so auth screens exist before they're styled. |
 | REQ-30 | Design fidelity remediation: every live screen matches its already-approved reference (`design/screens/01-gate.html` … `14-settings.html`, built from the real design-system component bundle) — the reference this app was originally built against, not a new one | P0 | A full-audit diff (live screenshot vs. reference screenshot, mobile + desktop) shows no unaddressed high/medium-severity mismatch; deviations confirmed as deliberate product decisions (e.g. the 5-item mobile tab bar vs. the reference's proposed Shop/More folding scheme, per the E-16 IA decision) are excluded, not silently re-implemented |
+| REQ-31 | Real authentication: Supabase Auth email + password signup/login/logout, replacing the shared passcode gate. Signup creates a household and its creator as `owner` in the same transaction — no invite flow (ADR-0006) | P0 | New email/password signup reaches a non-broken Today screen for a brand-new, empty household; wrong password is rejected with a clear error and no session; logout clears the session and the next request re-gates to `/login`, not a 401 page; Supabase anon key remains absent from the client bundle (replaces A26 under the new mechanism) |
+| REQ-32 | Multi-tenant data isolation: `household_members` join table, RLS enabled and rewritten to key off `auth.uid()` (replacing the disabled, speculative `app.current_household_id` policies), every user-facing Server Action/Route Handler/Server Component reads its household from the signed-in session via a request-scoped Supabase client — not `DEFAULT_HOUSEHOLD_ID` — with the service-role client narrowed to exactly two call sites (`api/cron/*`, the REQ-23 synthetic seeder) | P0 | Two households, each with one seeded item: household A's authenticated session cannot read, list, or write household B's row via any route (new cross-household isolation test, the hard gate on this requirement); RLS is `ENABLE`d (not just written) on every `household_id`-scoped table; no user-facing code path still calls the service-role client |
+| REQ-33 | Usability and flow-completeness fixes identified by the v2 UX audit (see epic backlog for the itemized list) — dead ends, missing feedback/error states, and incomplete edge-case handling across capture, review, inventory, planning, and shopping-list flows | P1 | Each fix traces to a specific audit finding and its own acceptance line in the backlog; no visual/token changes bundled into this requirement (that's REQ-29's scope) |
 
-**PII / compliance flag:** REQ-26 is the one requirement touching access
-control, and it explicitly does *not* implement real authentication — this is
-accepted as an intentional v1 risk ([working spec](../00-working-spec.md) §2, §14), scoped to grocery
-data only, with the schema already shaped so enabling real auth + RLS later is
-additive, not a rewrite. Receipt images may incidentally contain address or
-payment-instrument fragments; storage is private with 60s-TTL signed URLs, and
-raw files are purged after 12 months (parsed data is retained) — see
-`docs/architecture/07-infrastructure.md`. Full residual-risk picture
-(passcode brute-force, cookie-key rotation, leak blast radius) consolidated
-in `docs/architecture/06-security.md`.
+**PII / compliance flag:** REQ-31 and REQ-32 are this cycle's requirements
+touching auth and PII — REQ-31 introduces real user credentials (email +
+password, held by Supabase Auth, not this codebase) for the first time;
+REQ-32 is the tenant-isolation boundary that makes those credentials mean
+anything. (REQ-26, superseded above, was the v1-era flag for the same
+section of the PRD — no real authentication, an accepted v1 risk scoped to
+grocery data only.) Receipt images may incidentally contain address or
+payment-instrument fragments; storage is private with 60s-TTL signed URLs,
+and raw files are purged after 12 months (parsed data is retained) — see
+`docs/architecture/07-infrastructure.md`, unchanged this cycle. Full
+threat-model picture (credential stuffing, no password reset, cross-tenant
+leakage, compromised-account blast radius) consolidated in
+`docs/architecture/06-security.md`.
 
 **Acceptance test numbering:** the table above cites acceptance tests by id
 (A1–A26); the full list is working spec §11. Ids A10, A14–A17, A19–A20, and
@@ -95,6 +108,10 @@ to at least one REQ-xx above.
 ## Open questions
 
 - [ ] None blocking backlog seeding. Astryx-vs-shadcn is an implementation-time decision documented as ADR-0002, not a product requirement.
+- [ ] REQ-31/32: none blocking backlog seeding either. Password-reset and
+      login-rate-limiting gaps are tracked as residual risk in
+      `docs/architecture/06-security.md`, not product blockers for this
+      cycle (see ADR-0006 non-goals).
 
 ## v2 reconcile (2026-08-01)
 
@@ -118,3 +135,37 @@ spacing utility app-wide in both themes (same bug class as a prior fix in
 PR #79 for an unlayered color rule), and an unhandled rejection on a
 missing receipt Storage object hung `/review/[id]` indefinitely for the
 affected receipt. Both shipped (PRs #97, #98) ahead of this reconcile.
+
+## v2 reconcile — multi-tenant auth activation (2026-08-01)
+
+E-17 through E-19 are shipped (REQ-28 regression coverage, REQ-30 fidelity
+remediation). This reconcile adds REQ-31 (real authentication), REQ-32
+(multi-tenant data isolation), and REQ-33 (usability/flow-completeness
+fixes), and activates REQ-29 (design system v2, previously sequenced out
+to "a later, separately-scoped cycle" — that later cycle is now).
+Triggered by the explicit need to create and test multiple households
+under real tenant isolation, not by a GTM decision (`docs/product/
+10-gtm-strategy.md`'s v2 addendum is explicit about that distinction).
+
+**Sequencing, and why:** REQ-31 (auth) → REQ-32 (isolation) → REQ-33
+(usability fixes, mostly independent, can build in parallel with 31/32)
+→ REQ-29 (design v2, last — it needs the login/signup screens REQ-31
+creates and the fidelity baseline REQ-30 already secured; redesigning
+before the isolation work would mean re-styling the same screens twice).
+Full rationale for the auth/isolation architecture is ADR-0006, not
+repeated here — this PRD entry exists to make the product-level
+commitment explicit and testable, ADR-0006 carries the "why this
+mechanism."
+
+**REQ-33's provenance:** contents are a UX/interaction-quality and
+flow-completeness audit across every major flow (capture → review →
+commit, cadence planning, shopping list, catalog management, settings),
+explicitly scoped away from REQ-29/30's visual-fidelity concerns — this
+audit looks for dead ends, missing feedback, and incomplete edge-case
+handling, not color/spacing drift. Itemized findings live in the backlog
+epic this requirement maps to, not duplicated here.
+
+**No existing REQ-01–REQ-30 acceptance criteria change.** REQ-26 is
+marked superseded (see its row) but left textually intact as the
+historical record of what v1 shipped, per this project's own "never
+renumber or silently rewrite a shipped requirement" rule.

@@ -1,0 +1,17 @@
+{
+  "id": "S-69",
+  "title": "Consistent confirmation for destructive/ledger-writing actions",
+  "goal": "Audit finding: three different confirmation patterns exist for logically similar 'this changes real data' actions -- native window.confirm (Settings wipe), a full inline confirm panel with preview (Catalog merge), and no confirmation at all (consume-actions.tsx's 'used it up'/'wasted', and shopping-list generate.ts's list regeneration, which silently archives the active list per ~L28-31 with no warning even when it has checked-off items mid-trip).",
+  "in_scope": [
+    "Pick one confirmation pattern (the Catalog merge inline-confirm-with-preview is the closest existing design-system-native pattern -- prefer extending it over introducing a fourth) and apply it consistently to: consume actions (used it up / wasted), shopping-list regeneration, and Settings wipe.",
+    "Replace the native window.confirm on Settings wipe with the chosen in-app pattern -- window.confirm is itself inconsistent with the rest of the app's visual language, independent of REQ-29's scope."
+  ],
+  "out_of_scope": [
+    "Undo functionality for these actions -- confirmation prevents the accidental case; a full undo/adjustment-movement UI is a larger feature, not bundled here.",
+    "Any token/color change to the confirm component itself beyond what's needed for consistency -- REQ-29/E-23 scope."
+  ],
+  "acceptance": "Consume actions, shopping-list regeneration, and Settings wipe all use the same confirmation pattern. Regenerating a shopping list with checked-off items warns before archiving the active list, rather than discarding it silently.",
+  "invariants": [],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

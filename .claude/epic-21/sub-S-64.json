@@ -1,0 +1,20 @@
+{
+  "id": "S-64",
+  "title": "Migrate settings/catalog/onboarding routes to the request-scoped client",
+  "goal": "Third slice -- settings, catalog manager, onboarding. This slice has a real cross-cutting risk found during planning: app/api/cron/digest-daily/route.ts and digest-weekly/route.ts call getHousehold() from lib/onboarding/data.ts (confirmed by reading digest-daily/route.ts), which is in the service-role-client file list. If lib/onboarding/data.ts's exports become request-scoped-only, the two digest cron routes -- which have no user session -- break.",
+  "in_scope": [
+    "lib/catalog/manager.ts, lib/catalog/search.ts, lib/settings/cost-meter.ts, lib/settings/data.ts, lib/settings/demo-data.ts, lib/settings/export.ts -- replace createServiceClient() + getDefaultHouseholdId() with createRequestClient() + getCurrentHouseholdId().",
+    "lib/onboarding/data.ts needs a split, not a blind swap: the user-facing onboarding wizard call sites move to createRequestClient() + getCurrentHouseholdId(); getHousehold() (or whatever function digest-daily/digest-weekly actually call) needs a service-role variant that takes household_id as a parameter instead of deriving it from a session, so the cron routes can keep enumerating every household. Resolve this by giving the cron-facing function a distinct name/signature rather than overloading one function for two different trust contexts.",
+    "Re-run REQ-01, REQ-09, REQ-21's acceptance checks (A4, A12, A13) against the migrated code, plus a manual check that digest-daily/digest-weekly still build and run (even though REQ-20 is currently non-functional due to unset RESEND_API_KEY, per the open S-55 bug -- this story must not make that worse by breaking the code path)."
+  ],
+  "out_of_scope": [
+    "Fixing S-55 (RESEND_API_KEY unset) -- unrelated, pre-existing, needs a Resend account from the user, not code.",
+    "Any invite/multi-member settings UI (ADR-0006 non-goal)."
+  ],
+  "acceptance": "Every user-request-triggered path in the listed files uses createRequestClient() + getCurrentHouseholdId(). digest-daily/route.ts and digest-weekly/route.ts still compile and their household-lookup path is explicitly service-role, parameterized by household_id, not silently broken by the onboarding/data.ts split. Existing REQ-01/REQ-09/REQ-21 acceptance tests pass unmodified.",
+  "invariants": [
+    "lib/onboarding/data.ts must not end up with a single function silently switching client type based on caller -- two distinct functions (or a client parameter) is the safer shape; an implicit branch is a bug waiting to leak the wrong household."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

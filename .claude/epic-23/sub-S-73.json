@@ -1,0 +1,21 @@
+{
+  "id": "S-73",
+  "title": "define-design G3 pass for REQ-29 v2 tokens + mockups",
+  "goal": "REQ-29 was sequenced out to 'a later, separately-scoped cycle' pending REQ-30's fidelity baseline (now solid, shipped E-19) -- that cycle is this one. This story is the define-design skill's own deliverable (tokens + primitives + mockups + self-review), not implementation -- per-page implementation stories can't be written with testable acceptance until mockups exist to reference, the same reason REQ-30/E-19 worked against an already-approved reference rather than one authored in the same pass.",
+  "in_scope": [
+    "Run define-design for REQ-29: docs/design/ v2 -- tokens.md (or JSON), updated component primitives, key-screen mockups covering every app/(app)/**, app/onboarding/** screen plus the new /login and /signup screens E-20 introduces.",
+    "Preserve the semantic token indirection (--color-primary -> --primary -> --red-600) so re-theming stays additive, per REQ-29's own acceptance line.",
+    "Design-critique + WCAG AA accessibility self-review pass before presenting for G3.",
+    "Microcopy + empty states for the screens covered."
+  ],
+  "out_of_scope": [
+    "Any implementation against these mockups -- that's a follow-up backlog reconcile once G3 is approved and mockups are concrete enough to write testable per-page stories against.",
+    "Redesigning IA/navigation decisions already made in E-16 (5-item mobile tab bar, etc.) -- REQ-29 is a visual/token modernization, not a structural redesign."
+  ],
+  "acceptance": "docs/design/ v2 tokens, primitives, and mockups exist for every listed screen; design-critique and WCAG AA self-review pass with issues resolved; G3 approved by human review (per define-design's own gate).",
+  "invariants": [
+    "Do not let this story slide into building implementation code -- define-design's own failure mode note is explicit: scope creep into screens beyond what's needed, or into implementation itself, is a failure mode, not initiative."
+  ],
+  "prd_ref": "REQ-29",
+  "adr_ref": null
+}

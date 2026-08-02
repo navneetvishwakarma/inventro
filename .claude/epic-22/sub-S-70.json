@@ -1,0 +1,15 @@
+{
+  "id": "S-70",
+  "title": "Inventory: distinct empty state for cold-start vs. filtered-to-nothing",
+  "goal": "Audit finding: app/(app)/inventory/page.tsx (~L184-190) shows 'No items match these filters' + 'Clear filters' for a brand-new household with zero items ever tracked (A13's cold-start case) -- the same copy used for a real filter dead-end, which is actively wrong when there's nothing to clear.",
+  "in_scope": [
+    "app/(app)/inventory/page.tsx: branch the empty state on whether the household has zero items ever tracked vs. zero items matching the current filters -- distinct copy and, for the cold-start case, a next-action pointing at capture (Add) rather than 'Clear filters'."
+  ],
+  "out_of_scope": [
+    "Any visual/token restyling of the empty state beyond the copy/branching logic -- REQ-29/E-23 scope."
+  ],
+  "acceptance": "A brand-new household (A13, zero items ever tracked) sees copy distinct from the filtered-to-nothing case, with no 'Clear filters' action when there are no active filters.",
+  "invariants": [],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

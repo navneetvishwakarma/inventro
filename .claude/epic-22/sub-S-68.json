@@ -1,0 +1,16 @@
+{
+  "id": "S-68",
+  "title": "Review queue: correction path for confidently-wrong auto-matched lines",
+  "goal": "Audit finding: trigram-matched lines (>=0.62 confidence) render in review-detail.tsx (~L421-433) as inert, unclickable ListRows ('Matched -- ready to commit') -- only needs_review lines are editable. A confidently-wrong auto-match commits silently; the only correction path afterward is the much heavier Catalog merge flow, which the user has no reason to discover.",
+  "in_scope": [
+    "review-detail.tsx: give matched (not just needs_review) lines the same edit affordance -- tapping/clicking a matched line opens the same reassignment control needs_review lines already have, so a wrong match can be corrected before commit."
+  ],
+  "out_of_scope": [
+    "Changing the trigram-match confidence threshold (0.62) itself -- that's REQ-09's matching algorithm, not a UI completeness gap.",
+    "The Catalog merge flow -- stays as the after-the-fact correction path for items already committed; this story is about catching it before commit."
+  ],
+  "acceptance": "A matched line in review-detail.tsx is clickable/editable, using the same interaction pattern as a needs_review line, and reassigning it updates which catalog item the line will commit against.",
+  "invariants": [],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

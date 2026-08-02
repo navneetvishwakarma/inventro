@@ -1,0 +1,20 @@
+{
+  "id": "S-67",
+  "title": "Review queue: surface failed/stuck extractions, block commit on zero-line receipts",
+  "goal": "Two compounding audit findings in the same file cluster: getReviewQueue() (lib/review/data.ts) filters .eq('status','parsed'), so a receipt stuck in processing or permanently failed vanishes from the queue with no trace, no retry, and no manual-entry fallback -- and separately, review-detail.tsx renders the full editable/committable UI regardless of status, so a receipt with 0 extracted lines can be committed (canCommit is trivially true when needsReviewLines.length === 0), and commit_receipt() (SQL) doesn't check status or line count either, so it silently marks 'committed' with zero movements written.",
+  "in_scope": [
+    "lib/review/data.ts's getReviewQueue(): stop filtering to status='parsed' only -- include processing and failed receipts with their status surfaced to the caller.",
+    "review-detail.tsx: render an explicit processing state (spinner, 'still parsing') and an explicit failed state ('extraction failed -- retry or enter manually', with an actual retry or manual-entry action) instead of the full editable review UI for non-parsed receipts.",
+    "commit_receipt() (SQL function) and the Commit button: both refuse when status != 'parsed' or when the receipt has zero lines -- surface a clear reason, don't silently succeed with no movements written."
+  ],
+  "out_of_scope": [
+    "Building a new retry-extraction pipeline from scratch if one doesn't exist -- if REQ-24's escalation/manual-entry fallback already covers this at the ingest-job level, this story's job is to make the review UI reflect that state accurately, not to invent a new retry mechanism.",
+    "Any visual/token restyling of the review queue -- REQ-29/E-23 scope."
+  ],
+  "acceptance": "A receipt stuck in processing or permanently failed appears in the review queue with its actual state, not silently absent. review-detail.tsx shows a spinner or an actionable failed-state message instead of an empty editable form. Attempting to commit a zero-line or non-parsed receipt is blocked with a clear reason, both in the UI and at the commit_receipt() function itself (defense in depth -- not just a disabled button).",
+  "invariants": [
+    "The fix must exist at the commit_receipt() level, not just the UI -- a disabled button alone doesn't stop a direct Server Action call or a future UI regression from re-introducing the silent-commit bug."
+  ],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

@@ -1,0 +1,15 @@
+{
+  "id": "S-71",
+  "title": "Mobile back navigation for non-tabbed pages",
+  "goal": "Audit finding: Shopping list, Catalog manager, Settings, and Review-queue have no entry in layout.tsx's TABBAR_ITEMS and no backHref set on their MobileTopBar -- reachable only via inbound links, with no in-app way back except the OS back gesture.",
+  "in_scope": [
+    "Set backHref on MobileTopBar for the shopping-list, catalog-manager, settings, and review-queue pages, pointing at the logical parent screen each is actually reached from."
+  ],
+  "out_of_scope": [
+    "Adding these pages to the bottom tab bar -- that's an IA decision already made deliberately for the 5-item tab bar (E-16), not reopened here; this story is about a back affordance, not tab-bar placement."
+  ],
+  "acceptance": "Shopping list, Catalog manager, Settings, and Review-queue each show a working back action on mobile that returns to their logical parent screen.",
+  "invariants": [],
+  "prd_ref": "REQ-33",
+  "adr_ref": null
+}

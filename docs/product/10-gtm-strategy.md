@@ -2,7 +2,7 @@
 doc: Go-to-Market Strategy
 project: Inventro
 status: approved
-updated: 2026-07-28
+updated: 2026-08-01
 ---
 
 # Go-to-Market Strategy
@@ -41,4 +41,18 @@ made.
 
 ## Open questions
 
-- [ ] Revisit this entire document, not just update it, if/when multi-tenancy is greenlit — the deployment model (§2 of the working spec) and this GTM stub are the two things that change together.
+- [ ] Revisit this entire document, not just update it, if/when a real GTM
+      motion is greenlit — the deployment model (§2 of the working spec)
+      and this GTM stub are the two things that change together.
+
+## v2 addendum (2026-08-01)
+
+Precondition 1 above (multi-tenancy + real auth) is being built this
+cycle — but as a **testing capability**, not a GTM decision. The trigger
+was "create multiple households to test," i.e. validating that tenant
+isolation actually works (ADR-0006), not a decision to distribute this
+product to other households. Precondition 3 (whether this becomes a
+distributed product at all) remains explicitly undecided and is not
+this cycle's call to make — that's a go/kill/pivot decision, reserved
+separately. This document stays a stub; multi-tenancy landing in the
+codebase does not, by itself, change anything written above.

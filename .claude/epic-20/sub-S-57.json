@@ -1,0 +1,23 @@
+{
+  "id": "S-57",
+  "title": "Signup: Server Action creates auth user + household + owner membership, redirects into onboarding",
+  "goal": "Signup is what makes 'create multiple households to test' real -- each account creates its own household. It must not duplicate REQ-01's onboarding wizard (household name/currency/budget/presets already exists at app/onboarding/); signup's only job is identity + a bare household row, then handing off.",
+  "in_scope": [
+    "app/(auth)/signup/page.tsx -- email + password + confirm-password form, Server Action submit (no client-side Supabase call, consistent with ADR-0006's 'anon key never ships to the client' decision).",
+    "Server Action: createRequestClient()-equivalent-for-signup calls supabase.auth.signUp({email, password}); on success, insert a households row (name can be a placeholder like 'My household' -- onboarding, REQ-01, is where the real name/currency/budget get set) and a household_members row (user_id, household_id, role='owner') in the same transaction/RPC.",
+    "On success, redirect to /onboarding.",
+    "Duplicate email: Supabase Auth's own signUp error surfaces as a clear inline error, no partial household/membership row left behind (wrap the household+membership insert so it never runs if signUp itself failed)."
+  ],
+  "out_of_scope": [
+    "Household name/currency/budget/presets collection -- stays in app/onboarding/wizard.tsx (REQ-01), unchanged.",
+    "Email verification flow -- Supabase Auth supports it but ADR-0006 scoped v2 to the simplest working path; if enabled by default on the Supabase project, note it in the ledger as an operational fact, don't build custom UI for it.",
+    "Any invite-a-second-member affordance (ADR-0006 non-goal)."
+  ],
+  "acceptance": "New email/password signup creates exactly one auth user, one households row, and one household_members row (role=owner), then lands on /onboarding for that new, empty household. A second signup with the same email is rejected with a clear error and creates no rows at all.",
+  "invariants": [
+    "The households + household_members insert must not happen if supabase.auth.signUp() itself failed -- no orphaned household rows with no matching auth user.",
+    "Password validation (minimum length etc.) delegates to Supabase Auth's own policy, not a hand-rolled rule."
+  ],
+  "prd_ref": "REQ-31",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

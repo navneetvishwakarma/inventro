@@ -1,0 +1,19 @@
+{
+  "id": "S-62",
+  "title": "Migrate capture/review/commit routes to the request-scoped client",
+  "goal": "First slice of the ~27-file service-role-to-request-scoped migration (grep-confirmed file list, planning session), grouped by app area so each story stays reviewable. This slice is the capture -> review -> commit pipeline.",
+  "in_scope": [
+    "lib/llm/extract.ts, lib/receipts/canonicalize.ts, lib/receipts/dedup.ts, lib/receipts/guard.ts, lib/receipts/ingest.ts, lib/receipts/storage.ts, lib/review/commit.ts, lib/review/data.ts, lib/catalog/manual-entry.ts -- replace createServiceClient() + getDefaultHouseholdId() with createRequestClient() + getCurrentHouseholdId() (S-61) in every one.",
+    "Re-run REQ-02..REQ-12, REQ-22, REQ-24's acceptance checks (A1-A4, A11, A18, A21, A22, A24, A25) against the migrated code -- these must still pass unmodified; this story is a client swap, not a behavior change."
+  ],
+  "out_of_scope": [
+    "app/api/cron/recompute-stats/route.ts -- legitimate service-role exception (ADR-0006), not part of this migration.",
+    "Any file in the inventory/plan/shopping-list/insights or settings/catalog/onboarding groups -- those are S-63/S-64."
+  ],
+  "acceptance": "None of the 9 listed files call createServiceClient() or getDefaultHouseholdId() after this story (grep returns zero matches within this file set). Existing capture/review/commit E2E and acceptance tests (A1-A4, A11, A18, A21, A22, A24, A25) pass unmodified against a real authenticated session.",
+  "invariants": [
+    "Server Actions in this slice must run in a context where a request-scoped client is actually available (i.e. within a real request, not a background job) -- confirm none of these 9 files are invoked from a cron route or script before assuming this is safe (lib/llm/extract.ts and lib/receipts/ingest.ts are the ones most likely to be called from an async job context; verify their call sites)."
+  ],
+  "prd_ref": "REQ-32",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

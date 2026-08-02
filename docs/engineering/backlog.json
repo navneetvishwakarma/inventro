@@ -30,6 +30,11 @@
       "id": "D5",
       "name": "V2: regression coverage + design system",
       "order": 5
+    },
+    {
+      "id": "D6",
+      "name": "V2: multi-tenant auth activation",
+      "order": 6
     }
   ],
   "epics": [
@@ -264,6 +269,46 @@
       "estimate": 1,
       "acceptance": "Full-audit diff (live vs. design/screens/*.html reference, mobile + desktop) shows no unaddressed high/medium mismatch, excluding confirmed-intentional deviations (5-item mobile tab bar, Today's extra reachability quick-links, both from the E-16 IA decision).",
       "gh_issue": 99
+    },
+    {
+      "id": "E-20",
+      "title": "Authentication foundation",
+      "phase": "D6",
+      "prd_ref": "REQ-31",
+      "order": 20,
+      "estimate": 1,
+      "acceptance": "New email/password signup creates a household + owner household_members row and reaches onboarding (REQ-01) for a brand-new household; login/logout work via Supabase Auth server-side sessions; proxy.ts redirects unauthenticated navigation to /login with a 'next' param (resolves the audit's P0 gate dead-end -- a bare-text 401 with no way back to a login form) instead of a bare 401; anon Supabase key stays absent from the client bundle.",
+      "gh_issue": 105
+    },
+    {
+      "id": "E-21",
+      "title": "Multi-tenant data isolation",
+      "phase": "D6",
+      "prd_ref": "REQ-32",
+      "order": 21,
+      "estimate": 2,
+      "acceptance": "RLS policies rewritten (new migration, disabled-policy migration left as historical record) to key off auth.uid() via household_members and ENABLEd on every household_id-scoped table; every user-facing Server Action/Route Handler/Server Component reads its household from a request-scoped client, not DEFAULT_HOUSEHOLD_ID; service-role client narrowed to api/cron/* and the REQ-23 seeder only; the cross-household isolation test (two households, one seeded item each, assert household A cannot read/write household B via any route) passes as the hard gate on this epic.",
+      "gh_issue": 110
+    },
+    {
+      "id": "E-22",
+      "title": "Usability & flow-completeness fixes",
+      "phase": "D6",
+      "prd_ref": "REQ-33",
+      "order": 22,
+      "estimate": 1.2,
+      "acceptance": "Every P0/P1 finding from the v2 UX/flow-completeness audit is fixed with its own story acceptance below; no visual/token changes bundled here (REQ-29/E-23 scope).",
+      "gh_issue": 118
+    },
+    {
+      "id": "E-23",
+      "title": "Design system v2 (tokens + mockups, G3)",
+      "phase": "D6",
+      "prd_ref": "REQ-29",
+      "order": 23,
+      "estimate": 0.4,
+      "acceptance": "docs/design/ v2 token set, updated component primitives, and key-screen mockups (covering every existing app/(app)/** and app/onboarding/** screen plus the new /login and /signup screens from E-20) exist and pass define-design's self-review (design-critique + WCAG AA a11y pass); G3 approved. Per-page implementation stories are seeded in a follow-up backlog reconcile once mockups exist -- writing testable per-page acceptance against mockups that do not exist yet would violate Definition of Ready, the same reason REQ-30 (E-19) worked against an already-approved reference rather than one authored in the same pass.",
+      "gh_issue": 125
     }
   ],
   "stories": [
@@ -1262,6 +1307,240 @@
       "estimate": 0.2,
       "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed (both findings were flagged before that fix; likely already resolved). Fix only what's still actually wrong post-verification, don't re-fix what S-48 already handled.",
       "gh_issue": 103
+    },
+    {
+      "id": "S-56",
+      "title": "Supabase Auth + household_members schema migration",
+      "epic": "E-20",
+      "prd_ref": "REQ-31",
+      "status": "notstarted",
+      "order": 56,
+      "estimate": 0.3,
+      "acceptance": "New migration adds household_members(household_id, user_id, role, created_at), composite PK (household_id, user_id), FKs to households and auth.users. Supabase Auth (email+password provider) confirmed enabled on the project. No RLS changes in this migration (that is E-21/S-60) -- schema only.",
+      "gh_issue": 106
+    },
+    {
+      "id": "S-57",
+      "title": "Signup: Server Action creates auth user + household + owner membership, redirects into onboarding",
+      "epic": "E-20",
+      "prd_ref": "REQ-31",
+      "status": "blocked",
+      "order": 57,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-56"
+      ],
+      "acceptance": "POST to the signup Server Action with email+password creates a Supabase Auth user, a new households row, and a household_members row (role='owner') in one transaction, then redirects to /onboarding (REQ-01) -- signup does not duplicate onboarding's household-config questions. Duplicate email is rejected with a clear inline error, no partial rows left behind.",
+      "gh_issue": 107
+    },
+    {
+      "id": "S-58",
+      "title": "Login/logout: Server Actions + /login page",
+      "epic": "E-20",
+      "prd_ref": "REQ-31",
+      "status": "blocked",
+      "order": 58,
+      "estimate": 0.3,
+      "blocked_by": [
+        "S-56"
+      ],
+      "acceptance": "signInWithPassword runs server-side via a Server Action bound to next/headers cookies(); wrong password is rejected with a clear error and no session set; logout clears the session cookie. Anon key confirmed absent from the client bundle (build-output check, replaces A26).",
+      "gh_issue": 108
+    },
+    {
+      "id": "S-59",
+      "title": "Session gate: replace passcode proxy.ts/lib/gate.ts with Supabase-session check",
+      "epic": "E-20",
+      "prd_ref": "REQ-31",
+      "status": "blocked",
+      "order": 59,
+      "estimate": 0.3,
+      "blocked_by": [
+        "S-58"
+      ],
+      "acceptance": "proxy.ts checks for a valid Supabase session instead of the signed passcode cookie; unauthenticated navigation redirects to /login?next=<path> (fixes the audit's P0 finding: a bare 401 with no link back to a login form); unauthenticated API/data requests still get 401. Static-asset/api/cron/* exemption list carries over unchanged. /gate route, lib/gate.ts, GATE_COOKIE_SECRET removed, not kept as a fallback.",
+      "gh_issue": 109
+    },
+    {
+      "id": "S-60",
+      "title": "RLS policy rewrite: key on auth.uid() via household_members, enable RLS",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 60,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-56"
+      ],
+      "acceptance": "New migration (supabase/migrations/..._rls_household_members.sql, not an edit to the disabled-policy migration) drops the current_setting-keyed policies and creates 'household_id in (select household_id from household_members where user_id = auth.uid())' policies for every table in the original disabled-policy migration's scope, then ALTER TABLE ... ENABLE ROW LEVEL SECURITY on each. categories stays exempt (no household_id column).",
+      "gh_issue": 111
+    },
+    {
+      "id": "S-61",
+      "title": "Request-scoped Supabase client + getCurrentHouseholdId()",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 61,
+      "estimate": 0.3,
+      "blocked_by": [
+        "S-58",
+        "S-60"
+      ],
+      "acceptance": "lib/supabase/server.ts gains createRequestClient() (@supabase/ssr server client bound to cookies()) alongside the existing createServiceClient(). lib/household.ts's getDefaultHouseholdId() is replaced by getCurrentHouseholdId(), sourced from the signed-in user's household_members row via createRequestClient(), not DEFAULT_HOUSEHOLD_ID.",
+      "gh_issue": 112
+    },
+    {
+      "id": "S-62",
+      "title": "Migrate capture/review/commit routes to the request-scoped client",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 62,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-61"
+      ],
+      "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/add/**, app/(app)/review/**, and the ingest pipeline (lib/ingest/**) uses createRequestClient() + getCurrentHouseholdId() instead of createServiceClient()/DEFAULT_HOUSEHOLD_ID. Existing REQ-02..REQ-12/REQ-22/REQ-24 acceptance tests still pass unmodified.",
+      "gh_issue": 113
+    },
+    {
+      "id": "S-63",
+      "title": "Migrate inventory/plan/shopping-list/insights routes to the request-scoped client",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 63,
+      "estimate": 0.5,
+      "blocked_by": [
+        "S-61"
+      ],
+      "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/inventory/**, app/(app)/plan/**, app/(app)/shopping-list/**, and app/(app)/insights/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-13..REQ-19 acceptance tests still pass unmodified.",
+      "gh_issue": 114
+    },
+    {
+      "id": "S-64",
+      "title": "Migrate settings/catalog/onboarding routes to the request-scoped client",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 64,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-61"
+      ],
+      "acceptance": "Every Server Action/Route Handler/Server Component under app/(app)/settings/**, the catalog manager, and app/onboarding/** uses createRequestClient() + getCurrentHouseholdId(). Existing REQ-01/REQ-09/REQ-21 acceptance tests still pass unmodified.",
+      "gh_issue": 115
+    },
+    {
+      "id": "S-65",
+      "title": "Narrow service-role usage to cron + seeder; remove DEFAULT_HOUSEHOLD_ID",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 65,
+      "estimate": 0.3,
+      "blocked_by": [
+        "S-62",
+        "S-63",
+        "S-64"
+      ],
+      "acceptance": "grep for createServiceClient() across app/ and lib/ (excluding api/cron/** and the seeder script) returns zero matches. DEFAULT_HOUSEHOLD_ID env var and lib/household.ts deleted, not kept as an unused fallback.",
+      "gh_issue": 116
+    },
+    {
+      "id": "S-66",
+      "title": "Cross-household isolation E2E test (epic gate)",
+      "epic": "E-21",
+      "prd_ref": "REQ-32",
+      "status": "blocked",
+      "order": 66,
+      "estimate": 0.3,
+      "blocked_by": [
+        "S-65"
+      ],
+      "acceptance": "New e2e/isolation.spec.ts: seed two households (A, B) each with one item; log in as household A's user; assert every route (inventory, review, plan, shopping-list, insights, settings) shows only household A's data and any direct request for household B's row id (item detail, receipt, etc.) is denied, not just filtered from a list view. This is the hard merge gate for E-21 -- ship-epic does not proceed if it fails.",
+      "gh_issue": 117
+    },
+    {
+      "id": "S-67",
+      "title": "Review queue: surface failed/stuck extractions, block commit on zero-line receipts",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "blocked",
+      "order": 67,
+      "estimate": 0.4,
+      "blocked_by": [
+        "S-66"
+      ],
+      "acceptance": "getReviewQueue() (lib/review/data.ts) lists receipts outside status='parsed' (processing/failed) with an explicit state, not silently filtering them out; review-detail.tsx renders a spinner for processing and a 'extraction failed -- retry or enter manually' state for failed, instead of the full editable UI; commit_receipt() and the Commit button both refuse a receipt with zero lines instead of marking it committed with no movements written.",
+      "gh_issue": 119
+    },
+    {
+      "id": "S-68",
+      "title": "Review queue: correction path for confidently-wrong auto-matched lines",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "notstarted",
+      "order": 68,
+      "estimate": 0.3,
+      "acceptance": "Trigram-matched lines (>=0.62 confidence) in review-detail.tsx are no longer inert -- they get the same edit affordance needs_review lines already have, so a wrong auto-match can be corrected before commit without the user having to discover the heavier Catalog-merge flow after the fact.",
+      "gh_issue": 120
+    },
+    {
+      "id": "S-69",
+      "title": "Consistent confirmation for destructive/ledger-writing actions",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "notstarted",
+      "order": 69,
+      "estimate": 0.3,
+      "acceptance": "Consume actions (used it up/wasted) and shopping-list regeneration get an explicit confirm step consistent with the rest of the app's pattern (not a raw window.confirm, not silent) -- one confirmation component/pattern reused across Settings wipe, Catalog merge, consume actions, and list regeneration instead of three inconsistent ones.",
+      "gh_issue": 121
+    },
+    {
+      "id": "S-70",
+      "title": "Inventory: distinct empty state for cold-start vs. filtered-to-nothing",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "notstarted",
+      "order": 70,
+      "estimate": 0.15,
+      "acceptance": "app/(app)/inventory/page.tsx shows a distinct cold-start empty state (household has zero items ever tracked, A13) instead of reusing 'No items match these filters / Clear filters', which is actively misleading when there are no filters active to clear.",
+      "gh_issue": 122
+    },
+    {
+      "id": "S-71",
+      "title": "Mobile back navigation for non-tabbed pages",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "notstarted",
+      "order": 71,
+      "estimate": 0.2,
+      "acceptance": "Shopping list, Catalog manager, Settings, and Review-queue pages set backHref on their MobileTopBar (none currently do) -- each is reachable only via inbound links today with no in-app way back except the OS gesture.",
+      "gh_issue": 123
+    },
+    {
+      "id": "S-72",
+      "title": "Spec-parity polish pass (P2)",
+      "epic": "E-22",
+      "prd_ref": "REQ-33",
+      "status": "notstarted",
+      "order": 72,
+      "estimate": 0.3,
+      "acceptance": "Plan page shows a running total/estimated cost across the visible bucket; item detail page gains cadence-override, staple, perishability, and archive controls (F8, currently only on the separate Catalog page); Insights' 'no budget set yet' state links to Settings; the gate/login submit button gets a disabled/pending state to prevent double-submit on slow networks.",
+      "gh_issue": 124
+    },
+    {
+      "id": "S-73",
+      "title": "define-design G3 pass for REQ-29 v2 tokens + mockups",
+      "epic": "E-23",
+      "prd_ref": "REQ-29",
+      "status": "notstarted",
+      "order": 73,
+      "estimate": 0.4,
+      "acceptance": "docs/design/ (v2) contains tokens.md, updated component primitive specs, and key-screen mockups for every app/(app)/**, app/onboarding/**, and the new /login + /signup screens; design-critique + WCAG AA a11y self-review pass; G3 approved by human review. This story is the enabler -- per-page implementation stories follow in a separate backlog reconcile once mockups exist.",
+      "gh_issue": 126
     }
   ]
 }

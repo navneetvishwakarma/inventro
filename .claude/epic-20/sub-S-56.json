@@ -1,0 +1,21 @@
+{
+  "id": "S-56",
+  "title": "Supabase Auth + household_members schema migration",
+  "goal": "There is no identity concept in the schema today -- household_id is sourced from a static env var (lib/household.ts:3 getDefaultHouseholdId()), and RLS's own migration comment (supabase/migrations/20260728131120_rls_policies_disabled.sql) says explicitly no household_members/auth model exists yet. This story adds the join table everything downstream (S-57..S-64) depends on.",
+  "in_scope": [
+    "New migration: household_members(household_id uuid references households(id), user_id uuid references auth.users(id), role text not null default 'owner', created_at timestamptz not null default now(), primary key (household_id, user_id)).",
+    "Confirm Supabase Auth's email+password provider is enabled on the project (dashboard setting, not a migration -- record confirmation in the ledger).",
+    "No RLS policy changes in this migration -- that is S-60's scope. This migration is schema only, and household_members itself does not need RLS yet since nothing queries it through the request-scoped client until S-60."
+  ],
+  "out_of_scope": [
+    "Any invite/multi-member flow -- role exists so a later migration isn't needed when invites land (ADR-0006 non-goals), but no invite logic here.",
+    "Backfilling a household_members row for the existing DEFAULT_HOUSEHOLD_ID household -- that data-migration question belongs to whoever owns the running deployment's existing data at S-59/S-63 time, not this schema story."
+  ],
+  "acceptance": "Migration applies cleanly against a fresh database and against the existing dev database. household_members table exists with the stated columns/PK/FKs. Supabase Auth email+password provider confirmed enabled.",
+  "invariants": [
+    "Do not edit supabase/migrations/20260728131120_rls_policies_disabled.sql -- ADR-0006 is explicit that RLS gets rewritten in a NEW migration, that one stays as a historical record.",
+    "household_members.role is a plain text column, not an enum, so v2's single-value ('owner') doesn't require a migration to add a second role later."
+  ],
+  "prd_ref": "REQ-31",
+  "adr_ref": "ADR-0006-multi-tenant-auth-activation"
+}

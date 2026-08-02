@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   // Found via full E2E testing (the fast-path silently fell back to
   // multimodal on every PDF, not just scanned ones), not by build success.
   serverExternalPackages: ['pdf-parse'],
+  // e2e/playwright.config.ts's baseURL is 127.0.0.1, not localhost -- Next's
+  // dev-mode HMR websocket rejects that as a cross-origin request by
+  // default, which was silently resetting client-side wizard state
+  // (app/onboarding/wizard.tsx's step) mid-test on every HMR reconnect
+  // attempt. Dev-only; has no effect on a production build.
+  allowedDevOrigins: ['127.0.0.1'],
   experimental: {
     // Default ~1MB is too small for uncompressed PDFs/HTML captures
     // (images are already downscaled to <=1.5MB client-side by S-05).

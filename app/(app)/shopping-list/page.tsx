@@ -1,14 +1,12 @@
 import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getActiveShoppingList } from '@/lib/shopping-list/data';
 import { formatShoppingListAsText } from '@/lib/shopping-list/format';
-import { formatBaseQty, formatCadenceBucket, CADENCE_BUCKET_ORDER } from '@/lib/inventory/format';
-import { generateShoppingListAction, generateDueInDaysAction } from './actions';
+import { formatBaseQty } from '@/lib/inventory/format';
+import { GenerateListPanel } from './generate-list-panel';
 import { CopyListButton } from './copy-list-button';
 import { ShoppingListItemRow } from './shopping-list-item-row';
 
@@ -22,34 +20,13 @@ export default async function ShoppingListPage() {
 
   const list = await getActiveShoppingList();
   const listText = list ? formatShoppingListAsText(list) : '';
+  const hasCheckedItems = list ? list.items.some((item) => item.checked) : false;
 
   return (
     <>
       <MobileTopBar title="Shopping list" />
       <div className="flex w-full flex-col gap-4 p-4 md:p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Generate a shopping list</CardTitle>
-          <CardDescription>From a cadence bucket, or everything due soon.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
-            {CADENCE_BUCKET_ORDER.map((bucket) => (
-              <form key={bucket} action={generateShoppingListAction.bind(null, { type: 'bucket', bucket })}>
-                <Button type="submit" size="sm" variant="outline">
-                  {formatCadenceBucket(bucket)}
-                </Button>
-              </form>
-            ))}
-          </div>
-          <form action={generateDueInDaysAction} className="flex items-end gap-2">
-            <Input id="days" name="days" type="number" min={1} defaultValue={3} label="Due within (days)" size="sm" className="w-[90px]" />
-            <Button type="submit" size="sm">
-              Generate
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <GenerateListPanel hasCheckedItems={hasCheckedItems} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2">

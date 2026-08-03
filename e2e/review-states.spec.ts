@@ -146,3 +146,61 @@ test('review detail: a parsed receipt with zero committable lines blocks commit 
 
   await admin.from('receipts').delete().eq('id', receipt.id);
 });
+
+// S-68: a matched line used to render as an inert ListRow -- only
+// needs_review lines were clickable/editable. Proves the affordance (click
+// opens the same reassignment control) and that an action taken there
+// actually persists, using "Mark non-inventory" as the simplest
+// deterministic action available (reassigning to a different catalog item
+// depends on the live trigram-match algorithm's exact score, which isn't
+// something this test should have to reproduce to prove the UI wiring).
+test('review detail: a matched line is clickable and opens the same reassignment control as needs_review', async ({ page }) => {
+  const email = await signUpAndOnboard(page, 'matched');
+  const householdId = await householdIdForEmail(email);
+  const admin = serviceClient();
+
+  const { data: category, error: categoryError } = await admin.from('categories').select('id, slug, default_base_unit').not('parent_id', 'is', null).limit(1).single();
+  if (categoryError || !category) throw categoryError;
+
+  const { data: catalogItem, error: catalogItemError } = await admin
+    .from('catalog_items')
+    .insert({ household_id: householdId, canonical_name: 'S-68 fixture item', category_id: category.id, base_unit: category.default_base_unit })
+    .select('id')
+    .single();
+  if (catalogItemError || !catalogItem) throw catalogItemError;
+
+  const { data: receipt, error: receiptError } = await admin
+    .from('receipts')
+    .insert({ household_id: householdId, status: 'parsed', storage_paths: [], purchased_at: new Date().toISOString(), purchased_at_confirmed: true })
+    .select('id')
+    .single();
+  if (receiptError || !receipt) throw receiptError;
+
+  const { error: lineError } = await admin.from('receipt_lines').insert({
+    household_id: householdId,
+    receipt_id: receipt.id,
+    line_no: 1,
+    raw_text: 'S-68 fixture item',
+    item_name: 'S-68 fixture item',
+    category_slug: category.slug,
+    qty_base: 1,
+    matched_item_id: catalogItem.id,
+    match_confidence: 0.9,
+    review_state: 'matched',
+  });
+  if (lineError) throw lineError;
+
+  await page.goto(`/review/${receipt.id}`);
+  await expect(page.getByText('S-68 fixture item').first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save & match' })).toHaveCount(0);
+
+  await page.getByText('S-68 fixture item').first().click();
+  await expect(page.getByRole('button', { name: 'Save & match' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Mark non-inventory' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Mark non-inventory' }).click();
+  await expect(page.getByText('1 non-inventory row(s) excluded.')).toBeVisible();
+
+  await admin.from('receipts').delete().eq('id', receipt.id);
+  await admin.from('catalog_items').delete().eq('id', catalogItem.id);
+});

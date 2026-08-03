@@ -69,7 +69,12 @@ function EditableLineFields({
       <Select
         value={categorySlug}
         onChange={(e) => setCategorySlug(e.target.value)}
-        options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        // 'uncategorized' is itself a real seeded leaf category (working
+        // spec: the deliberate escape hatch for an unresolved line) --
+        // filtered out of the fetched list since it's already the
+        // hardcoded first option below; keeping both produced two
+        // options with the same value/key.
+        options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.filter((c) => c.slug !== 'uncategorized').map((c) => ({ value: c.slug, label: c.name }))]}
         label="Category"
       />
       <div className="flex gap-2">
@@ -148,6 +153,32 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
       </div>
     </div>
   );
+}
+
+// S-68: a matched line (>=0.62 trigram confidence) used to render as an
+// inert ListRow -- only needs_review lines were clickable. A confidently
+// -wrong auto-match then committed silently, with the only correction path
+// afterward being the much heavier Catalog merge flow. Reuses
+// NeedsReviewRow's exact reassignment form once expanded, rather than
+// building a second edit UI -- the interaction (Save & match / Confirm as
+// new item / Mark non-inventory) is identical, only the entry point
+// (collapsed ListRow vs. always-open) differs.
+function MatchedLineRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!expanded) {
+    return (
+      <button type="button" onClick={() => setExpanded(true)} className="block w-full cursor-pointer text-left">
+        <ListRow
+          title={lineLabel(line)}
+          subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
+          trailing={<Badge tone="success">Matched</Badge>}
+        />
+      </button>
+    );
+  }
+
+  return <NeedsReviewRow receiptId={receiptId} line={line} categories={categories} />;
 }
 
 function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
@@ -508,14 +539,9 @@ export function ReviewDetail({
 
           {matchedLines.length > 0 && (
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold">Matched ({matchedLines.length}) — ready to commit</p>
+              <p className="text-sm font-semibold">Matched ({matchedLines.length}) — ready to commit, tap to correct</p>
               {matchedLines.map((line) => (
-                <ListRow
-                  key={line.id}
-                  title={lineLabel(line)}
-                  subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
-                  trailing={<Badge tone="success">Matched</Badge>}
-                />
+                <MatchedLineRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} />
               ))}
             </div>
           )}

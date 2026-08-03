@@ -137,10 +137,15 @@ test('Item detail: staple toggle, perishability, cadence override, and archive a
   await stapleCheckbox.click();
   await expect(stapleCheckbox).toBeChecked();
 
-  // Perishability.
+  // Perishability. The input's displayed value is local useState seeded
+  // from the perishabilityDays prop at mount -- it wouldn't reset even if
+  // the write silently failed, so a page reload (fresh mount, fresh prop
+  // from the server) is the only way to prove the write actually persisted.
   await page.getByLabel('Perishability (days, optional)').fill('14');
   await page.getByRole('button', { name: 'Save' }).click();
-  await expect(page.getByText('Save')).toBeVisible(); // form still present, no error thrown
+  await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
+  await page.reload();
+  await expect(page.getByLabel('Perishability (days, optional)')).toHaveValue('14');
 
   // Cadence override: move to a bucket, then revert.
   await page.getByLabel('Cadence').selectOption({ label: 'Weekly' });

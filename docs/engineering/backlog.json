@@ -1583,7 +1583,11 @@
       "order": 72,
       "estimate": 0.3,
       "acceptance": "Plan page shows a running total/estimated cost across the visible bucket; item detail page gains cadence-override, staple, perishability, and archive controls (F8, currently only on the separate Catalog page); Insights' 'no budget set yet' state links to Settings; the gate/login submit button gets a disabled/pending state to prevent double-submit on slow networks.",
-      "gh_issue": 124
+      "gh_issue": 124,
+      "verify": {
+        "ci": "pass",
+        "commit": "fe7e7d1"
+      }
     },
     {
       "id": "S-73",

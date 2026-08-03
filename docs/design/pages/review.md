@@ -2,7 +2,7 @@
 doc: design-page
 page: review
 req: REQ-08, REQ-09, REQ-10, REQ-11, REQ-12
-status: draft
+status: approved
 ---
 
 # Review queue (`app/(app)/review/*`)

@@ -2,7 +2,7 @@
 doc: design-page
 page: inventory
 req: REQ-13, REQ-14
-status: draft
+status: approved
 ---
 
 # Inventory (`app/(app)/inventory/*`)

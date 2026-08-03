@@ -1,9 +1,9 @@
 ---
 doc: design-tokens
 project: Inventro
-status: draft
+status: approved
 req: REQ-29
-updated: 2026-08-01
+updated: 2026-08-03
 ---
 
 # Tokens v2

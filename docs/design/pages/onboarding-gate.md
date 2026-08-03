@@ -2,7 +2,7 @@
 doc: design-page
 page: onboarding-gate
 req: REQ-01, REQ-26
-status: draft
+status: approved
 ---
 
 # Onboarding + Gate (`app/onboarding/*`, `app/gate/*`)

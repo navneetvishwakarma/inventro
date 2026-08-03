@@ -2,7 +2,7 @@
 doc: design-page
 page: today
 req: REQ-01, REQ-13, REQ-17
-status: draft
+status: approved
 ---
 
 # Today (`app/(app)/page.tsx`)

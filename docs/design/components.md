@@ -1,9 +1,9 @@
 ---
 doc: design-components
 project: Inventro
-status: draft
+status: approved
 req: REQ-29
-updated: 2026-08-01
+updated: 2026-08-03
 ---
 
 # Component deltas v2

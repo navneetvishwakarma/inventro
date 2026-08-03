@@ -2,7 +2,7 @@
 doc: design-page
 page: settings-catalog
 req: REQ-21
-status: draft
+status: approved
 ---
 
 # Settings + Catalog manager (`app/(app)/settings/*`, `app/(app)/catalog/*`)

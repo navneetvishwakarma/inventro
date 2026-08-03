@@ -1,24 +1,21 @@
 ---
 doc: design
 project: Inventro
-status: deferred      # draft | approved | deferred — G3 gate, set by the user
+status: approved      # draft | approved | deferred — G3 gate, set by the user
 req: REQ-29
-updated: 2026-08-01
+updated: 2026-08-03
 ---
 
-> **Deferred (2026-08-01).** This proposal assumed no reference design
-> existed. That was wrong — `design/screens/*.html` is a real, already-
-> approved reference the app was originally built against, and a full
-> audit against it found real, fixable drift (plus two unrelated P0 bugs,
-> already shipped). REQ-30 (fidelity remediation against `design/`) is
-> now the priority; this v2 direction is preserved here for later
-> reconsideration once REQ-30 is done, not discarded.
+> **Approved (2026-08-03).** Deferred on 2026-08-01 pending REQ-30
+> (fidelity remediation against the already-approved `design/screens/*.html`
+> reference) — that shipped as E-16. Direction below is unchanged from the
+> original proposal; reconsidered and approved as-is. Unblocks Phase F
+> (per-page gap-list -> implementation epics).
 
 # Inventro — Design System v2 (REQ-29)
 
-> Gate G3 (throughline). Direction + mockups below; awaiting approval. On
-> approval, flip `status` to `approved` — that unblocks Phase F (per-page
-> gap-list -> epics).
+> Gate G3 (throughline) — approved. See `tokens.md` and `components.md` for
+> the implementation contract; `pages/` for per-screen briefs.
 
 ## Direction: "Warm Utility" — evolve, don't rebrand
 

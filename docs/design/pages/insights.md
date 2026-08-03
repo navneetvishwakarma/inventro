@@ -2,7 +2,7 @@
 doc: design-page
 page: insights
 req: REQ-19
-status: draft
+status: approved
 ---
 
 # Insights (`app/(app)/insights/*`)

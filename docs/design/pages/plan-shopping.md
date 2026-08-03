@@ -2,7 +2,7 @@
 doc: design-page
 page: plan-shopping
 req: REQ-17, REQ-18
-status: draft
+status: approved
 ---
 
 # Plan + Shopping list (`app/(app)/plan/*`, `app/(app)/shopping-list/*`)

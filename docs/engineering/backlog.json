@@ -1538,7 +1538,11 @@
       "order": 69,
       "estimate": 0.3,
       "acceptance": "Consume actions (used it up/wasted) and shopping-list regeneration get an explicit confirm step consistent with the rest of the app's pattern (not a raw window.confirm, not silent) -- one confirmation component/pattern reused across Settings wipe, Catalog merge, consume actions, and list regeneration instead of three inconsistent ones.",
-      "gh_issue": 121
+      "gh_issue": 121,
+      "verify": {
+        "ci": "pass",
+        "commit": "dce05d3"
+      }
     },
     {
       "id": "S-70",

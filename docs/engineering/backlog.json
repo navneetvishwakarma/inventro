@@ -1523,7 +1523,11 @@
       "order": 68,
       "estimate": 0.3,
       "acceptance": "Trigram-matched lines (>=0.62 confidence) in review-detail.tsx are no longer inert -- they get the same edit affordance needs_review lines already have, so a wrong auto-match can be corrected before commit without the user having to discover the heavier Catalog-merge flow after the fact.",
-      "gh_issue": 120
+      "gh_issue": 120,
+      "verify": {
+        "ci": "pass",
+        "commit": "0549b12"
+      }
     },
     {
       "id": "S-69",

@@ -10,6 +10,7 @@ import { formatBaseQty, formatDaysRemaining, formatCadenceBucket, buildPredictio
 import { formatMoney } from '@/lib/format/money';
 import { Sparkline } from '../sparkline';
 import { ConsumeActions } from './consume-actions';
+import { ItemAdminControls } from './item-admin-controls';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,13 @@ export default async function ItemDetailPage({ params }: { params: Promise<{ id:
             <Stat label="Avg price (90d)" value={item.avgUnitPrice90d !== null ? formatMoney(item.avgUnitPrice90d) : '—'} />
             <Stat label="Confidence" value={item.confidence !== null ? `${Math.round(item.confidence * 100)}%` : '—'} />
           </div>
+          <ItemAdminControls
+            catalogItemId={item.id}
+            isStaple={item.isStaple}
+            perishabilityDays={item.perishabilityDays}
+            cadenceBucket={item.cadenceBucket}
+            cadenceOverride={item.cadenceOverride}
+          />
         </CardContent>
       </Card>
 

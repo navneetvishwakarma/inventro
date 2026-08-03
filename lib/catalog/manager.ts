@@ -129,6 +129,27 @@ export async function archiveItem(catalogItemId: string, archived: boolean): Pro
   if (error) throw error;
 }
 
+// S-72: a pure filter flag (Plan/Inventory "staples only") -- computeItemStats
+// never reads is_staple, so no recompute is needed after this write.
+export async function setStaple(catalogItemId: string, isStaple: boolean): Promise<void> {
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
+  const { error } = await supabase.from('catalog_items').update({ is_staple: isStaple }).eq('id', catalogItemId).eq('household_id', householdId);
+  if (error) throw error;
+}
+
+// S-72: unlike is_staple, perishability_days IS a live prediction input
+// (recompute.ts's fetchInputs reads catalog_items.perishability_days
+// directly) -- recomputeOneItem must run after this write or the change
+// silently has no effect until the next unrelated recompute trigger.
+export async function setPerishabilityDays(catalogItemId: string, perishabilityDays: number | null): Promise<void> {
+  const supabase = await createRequestClient();
+  const householdId = await getCurrentHouseholdId();
+  const { error } = await supabase.from('catalog_items').update({ perishability_days: perishabilityDays }).eq('id', catalogItemId).eq('household_id', householdId);
+  if (error) throw error;
+  await recomputeOneItem(catalogItemId, householdId);
+}
+
 // Updates category_id ONLY -- base_unit is never touched (S-09's sticky-unit
 // invariant: existing stock_movements.qty_base values were recorded against
 // the item's CURRENT base_unit, so changing it would silently corrupt every

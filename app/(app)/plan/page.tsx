@@ -5,6 +5,7 @@ import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getPlanItems, type PlanItem } from '@/lib/plan/data';
 import { formatBaseQty, formatDueDate, formatCadenceBucket, CADENCE_BUCKET_ORDER } from '@/lib/inventory/format';
+import { formatMoney } from '@/lib/format/money';
 import type { CadenceBucket } from '@/lib/predictions/types';
 import { PlanItemActions } from './plan-item-actions';
 import { PlanBucketTabs } from './bucket-tabs';
@@ -56,6 +57,16 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
 
+  // S-72/F12: avgUnitPrice90d is per-purchase-event average (what you
+  // typically pay when you buy this item), not scaled by suggestedQtyBase
+  // -- reused as-is since it's the same field item-detail's own "Avg price
+  // (90d)" stat already shows, not a new price definition. Items with no
+  // price history (avgUnitPrice90d === null) are excluded from the sum and
+  // counted separately so the total doesn't silently understate itself.
+  const itemsWithPrice = bucketItems.filter((i) => i.avgUnitPrice90d !== null);
+  const estimatedTotal = itemsWithPrice.reduce((sum, i) => sum + (i.avgUnitPrice90d as number), 0);
+  const itemsMissingPrice = bucketItems.length - itemsWithPrice.length;
+
   return (
     <>
       <MobileTopBar title="Plan" />
@@ -80,11 +91,21 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>{formatCadenceBucket(selectedBucket)}</CardTitle>
-          <CardDescription>
-            {bucketItems.length} item{bucketItems.length === 1 ? '' : 's'} in this bucket.
-          </CardDescription>
+        <CardHeader className="flex-row items-center justify-between gap-2">
+          <div>
+            <CardTitle>{formatCadenceBucket(selectedBucket)}</CardTitle>
+            <CardDescription>
+              {bucketItems.length} item{bucketItems.length === 1 ? '' : 's'} in this bucket.
+            </CardDescription>
+          </div>
+          {itemsWithPrice.length > 0 && (
+            <div className="text-right">
+              <span className="block font-mono text-lg font-semibold">~{formatMoney(estimatedTotal)}</span>
+              <span className="block text-xs text-muted-foreground">
+                estimated{itemsMissingPrice > 0 ? ` (${itemsMissingPrice} item${itemsMissingPrice === 1 ? '' : 's'} without price history)` : ''}
+              </span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {bucketItems.length === 0 && <p className="text-sm text-muted-foreground">No items in this bucket yet.</p>}

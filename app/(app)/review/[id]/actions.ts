@@ -1,8 +1,10 @@
 'use server';
 
+import { after } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { confirmPurchaseDate, saveAndMatchLine, confirmAsNewItem, markLineNonInventory } from '@/lib/review/data';
 import { commitReceipt } from '@/lib/review/commit';
+import { runExtraction } from '@/lib/llm/extract';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -49,4 +51,18 @@ export async function commitReceiptAction(receiptId: string, pastOrderOverride: 
   revalidatePath(`/review/${receiptId}`);
   revalidatePath('/review');
   return result;
+}
+
+// S-67: re-runs the exact same extraction path a fresh upload uses
+// (app/(app)/add/actions.ts's after(() => runExtraction(id))) against a
+// receipt whose prior attempt failed. Safe to call again -- a failed
+// attempt never inserts receipt_lines (lib/llm/extract.ts returns before
+// that step on failure), so there's nothing to duplicate, and
+// runExtraction updates the same ingest_jobs row in place rather than
+// requiring a new one.
+export async function retryExtractionAction(receiptId: string): Promise<ActionResult> {
+  after(() => runExtraction(receiptId));
+  revalidatePath(`/review/${receiptId}`);
+  revalidatePath('/review');
+  return { ok: true };
 }

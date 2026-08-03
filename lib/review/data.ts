@@ -5,28 +5,66 @@ import { getSignedReceiptUrl } from '@/lib/receipts/storage';
 import { normalizeText, normalizeUnitToBase, matchCatalogItem, type BaseUnit } from '@/lib/receipts/canonicalize';
 import { toKolkataDateString, kolkataDateStringToInstant } from '@/lib/date';
 
+// S-67: 'ingestState' is ingest_jobs.state ('queued' | 'processing' | 'done'
+// | 'failed'), not receipts.status -- a receipt whose extraction is still
+// running or has permanently failed never reaches receipts.status='parsed'
+// (lib/llm/extract.ts only sets that on success), so it needs its own
+// signal for the queue to show something other than silence.
 export type ReviewQueueItem = {
   id: string;
   merchant: string | null;
   purchased_at: string | null;
   total_amount: number | null;
   created_at: string;
+  status: string;
+  ingestState: string | null;
+  ingestError: string | null;
 };
 
-// S-12: receipts land here once extraction (S-06/S-07) and canonicalization
-// (E-3) have run -- status only ever becomes 'parsed' after both finish
-// (lib/llm/extract.ts sets it last), so this list is never missing
-// review_state on its lines.
+async function latestIngestJobsByReceipt(receiptIds: string[]): Promise<Map<string, { state: string; error: string | null }>> {
+  const map = new Map<string, { state: string; error: string | null }>();
+  if (receiptIds.length === 0) return map;
+
+  const supabase = await createRequestClient();
+  const { data, error } = await supabase
+    .from('ingest_jobs')
+    .select('receipt_id, state, error')
+    .in('receipt_id', receiptIds)
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+
+  // A receipt normally has exactly one ingest_jobs row (created once,
+  // updated in place by every extraction attempt including retries -- see
+  // retryExtractionAction) -- ordering by updated_at desc and keeping the
+  // first hit per receipt_id is a defensive-not-load-bearing tie-break, not
+  // evidence multiple rows are expected.
+  for (const job of data ?? []) {
+    if (!map.has(job.receipt_id)) map.set(job.receipt_id, { state: job.state, error: job.error });
+  }
+  return map;
+}
+
+// S-12/S-67: used to filter to 'parsed' only, which made a receipt stuck in
+// processing or permanently failed vanish from the queue with no trace. Now
+// includes every non-committed receipt, with its real ingest state attached
+// so the UI can render each state distinctly instead of hiding it.
 export async function getReviewQueue(): Promise<ReviewQueueItem[]> {
   const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('receipts')
-    .select('id, merchant, purchased_at, total_amount, created_at')
+    .select('id, merchant, purchased_at, total_amount, created_at, status')
     .eq('household_id', await getCurrentHouseholdId())
-    .eq('status', 'parsed')
+    .neq('status', 'committed')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  const receipts = data ?? [];
+
+  const jobsByReceipt = await latestIngestJobsByReceipt(receipts.map((r) => r.id));
+  return receipts.map((r) => ({
+    ...r,
+    ingestState: jobsByReceipt.get(r.id)?.state ?? null,
+    ingestError: jobsByReceipt.get(r.id)?.error ?? null,
+  }));
 }
 
 export type ReceiptForReview = {
@@ -39,6 +77,8 @@ export type ReceiptForReview = {
   date_source: string | null;
   near_duplicate_of: string | null;
   status: string;
+  ingestState: string | null;
+  ingestError: string | null;
 };
 
 export async function getReceiptForReview(receiptId: string): Promise<ReceiptForReview | null> {
@@ -50,7 +90,11 @@ export async function getReceiptForReview(receiptId: string): Promise<ReceiptFor
     .eq('household_id', await getCurrentHouseholdId())
     .maybeSingle();
   if (error) throw error;
-  return data;
+  if (!data) return null;
+
+  const jobsByReceipt = await latestIngestJobsByReceipt([receiptId]);
+  const job = jobsByReceipt.get(receiptId);
+  return { ...data, ingestState: job?.state ?? null, ingestError: job?.error ?? null };
 }
 
 export async function getDocumentPreviewUrl(storagePath: string): Promise<string> {

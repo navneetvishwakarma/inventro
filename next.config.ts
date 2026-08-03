@@ -6,7 +6,11 @@ const nextConfig: NextConfig = {
   // ("Cannot find module '.next/server/chunks/ssr/pdf.worker.mjs'").
   // Found via full E2E testing (the fast-path silently fell back to
   // multimodal on every PDF, not just scanned ones), not by build success.
-  serverExternalPackages: ['pdf-parse'],
+  // @napi-rs/canvas (S-54) is pdf-parse's native canvas dependency -- also
+  // needs to stay external, not bundled, or its native binary fails to
+  // load under Vercel's serverless packaging ("DOMMatrix is not defined"),
+  // per pdf-parse's own Next.js/Vercel troubleshooting doc.
+  serverExternalPackages: ['pdf-parse', '@napi-rs/canvas'],
   // e2e/playwright.config.ts's baseURL is 127.0.0.1, not localhost -- Next's
   // dev-mode HMR websocket rejects that as a cross-origin request by
   // default, which was silently resetting client-side wizard state

@@ -1553,7 +1553,11 @@
       "order": 70,
       "estimate": 0.15,
       "acceptance": "app/(app)/inventory/page.tsx shows a distinct cold-start empty state (household has zero items ever tracked, A13) instead of reusing 'No items match these filters / Clear filters', which is actively misleading when there are no filters active to clear.",
-      "gh_issue": 122
+      "gh_issue": 122,
+      "verify": {
+        "ci": "pass",
+        "commit": "b5099be"
+      }
     },
     {
       "id": "S-71",

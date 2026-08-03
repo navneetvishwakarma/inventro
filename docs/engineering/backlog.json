@@ -1205,7 +1205,7 @@
       "title": "Seeded-DB integration harness (alias matching + backdating commit)",
       "epic": "E-17",
       "prd_ref": "REQ-28",
-      "status": "in_progress",
+      "status": "done",
       "order": 47,
       "estimate": 0.5,
       "blocked_by": [
@@ -1219,7 +1219,7 @@
       "title": "pdf-parse's DOMMatrix ReferenceError breaks the native-PDF-text fast path",
       "epic": "E-17",
       "prd_ref": "REQ-24",
-      "status": "notstarted",
+      "status": "done",
       "order": 54,
       "estimate": 0.4,
       "acceptance": "Confirmed via production runtime-error logs: 'Failed to load external module pdf-parse-...: ReferenceError: DOMMatrix is not defined' on /add, because pdf-parse's dependency expects a browser DOM API not present in the serverless Node runtime. extractPdfText() catches the error and returns null (no crash), but looksLikeRealDocument(null) is always false, so every native-text PDF silently falls back to the more expensive multimodal path -- violating REQ-24's stated fast-path behavior (verifiable via parse_path, A22). Needs a Node-compatible PDF text extraction path (e.g. pdfjs-dist's legacy Node build, or a DOMMatrix polyfill) -- found during the REQ-30 audit, not yet fixed.",

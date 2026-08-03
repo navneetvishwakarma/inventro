@@ -1594,7 +1594,7 @@
       "title": "define-design G3 pass for REQ-29 v2 tokens + mockups",
       "epic": "E-23",
       "prd_ref": "REQ-29",
-      "status": "notstarted",
+      "status": "done",
       "order": 73,
       "estimate": 0.4,
       "acceptance": "docs/design/ (v2) contains tokens.md, updated component primitive specs, and key-screen mockups for every app/(app)/**, app/onboarding/**, and the new /login + /signup screens; design-critique + WCAG AA a11y self-review pass; G3 approved by human review. This story is the enabler -- per-page implementation stories follow in a separate backlog reconcile once mockups exist.",

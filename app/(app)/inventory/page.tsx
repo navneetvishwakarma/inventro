@@ -184,7 +184,18 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
       {groupNames.length === 0 && outOfStock.length === 0 && runningLow.length === 0 && (
         <Card>
           <CardContent>
-            <EmptyState title="No items match these filters" action={<Link href="/inventory" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Clear filters</Link>} />
+            {items.length === 0 ? (
+              // S-70/A13: a brand-new household, zero items ever tracked --
+              // "No items match these filters" + "Clear filters" is wrong
+              // here (there's nothing to clear); point at capture instead.
+              <EmptyState
+                title="Nothing tracked yet"
+                description="Capture a receipt or add an item manually to get started."
+                action={<Link href="/add" className={buttonVariants({ variant: 'primary', size: 'sm' })}>Add an item</Link>}
+              />
+            ) : (
+              <EmptyState title="No items match these filters" action={<Link href="/inventory" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>Clear filters</Link>} />
+            )}
           </CardContent>
         </Card>
       )}

@@ -35,13 +35,13 @@ describe('extractPdfText', () => {
   // DOMMatrix global for text-position transforms. Without an explicit
   // CanvasFactory (pdf-parse/worker) this can throw ReferenceError: DOMMatrix
   // is not defined -- confirmed via production logs, specific to Vercel's
-  // serverless bundling of the native @napi-rs/canvas dependency (could not
+  // serverless bundling of the native @napi-rs/canvas dependency. Could NOT
   // be reproduced locally across bare Node, next dev, or next build+start on
-  // this machine -- see .claude/epic-17/ledger.md for the verification
-  // trail). This test doesn't reproduce the platform-specific failure, but
-  // it does lock in that extraction succeeds with the fix's exact call shape
-  // (CanvasFactory passed to PDFParse) so a regression that drops the
-  // argument would break a real extraction, not just a mock.
+  // this machine (see .claude/epic-17/ledger.md) -- extraction succeeded
+  // identically before and after the fix in all three, so this test cannot
+  // detect a regression that drops the CanvasFactory argument. Its real
+  // value is general regression coverage for extractPdfText/
+  // looksLikeRealDocument against a real PDFParse call, not a mock.
   it('extracts text from a native-text PDF without throwing', async () => {
     const pdf = buildTestPdf(['Big Bazaar', 'Milk 2pct Rs 89.00', 'Eggs Dozen Rs 78.00']);
     const text = await extractPdfText(toArrayBuffer(pdf));

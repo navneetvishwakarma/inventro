@@ -1568,7 +1568,11 @@
       "order": 71,
       "estimate": 0.2,
       "acceptance": "Shopping list, Catalog manager, Settings, and Review-queue pages set backHref on their MobileTopBar (none currently do) -- each is reachable only via inbound links today with no in-app way back except the OS gesture.",
-      "gh_issue": 123
+      "gh_issue": 123,
+      "verify": {
+        "ci": "pass",
+        "commit": "46cd599"
+      }
     },
     {
       "id": "S-72",

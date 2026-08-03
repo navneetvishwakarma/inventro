@@ -13,17 +13,6 @@ export async function generateShoppingListAction(source: ShoppingListSource): Pr
   redirect('/shopping-list');
 }
 
-const DEFAULT_DUE_IN_DAYS = 3;
-
-// Native <form action> can't bind a runtime user-entered value the way
-// generateShoppingListAction.bind(null, {type:'bucket', bucket}) does for
-// the fixed bucket buttons -- this reads the days value out of FormData.
-export async function generateDueInDaysAction(formData: FormData): Promise<void> {
-  const raw = formData.get('days');
-  const days = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : DEFAULT_DUE_IN_DAYS;
-  await generateShoppingListAction({ type: 'due_in_days', days: Number.isFinite(days) && days > 0 ? days : DEFAULT_DUE_IN_DAYS });
-}
-
 function revalidateAll(): void {
   revalidatePath('/shopping-list');
   revalidatePath('/plan');

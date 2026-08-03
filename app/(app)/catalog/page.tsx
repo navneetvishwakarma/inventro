@@ -16,7 +16,7 @@ export default async function CatalogPage() {
 
   return (
     <>
-      <MobileTopBar title="Catalog manager" />
+      <MobileTopBar title="Catalog manager" backHref="/settings" />
       <CatalogManager items={items} categories={recategorizeCategories} />
     </>
   );

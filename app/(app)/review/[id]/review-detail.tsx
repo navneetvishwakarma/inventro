@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Loader2Icon } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ import { toKolkataDateString } from '@/lib/date';
 import { formatBaseQty } from '@/lib/inventory/format';
 import { formatMoney } from '@/lib/format/money';
 import type { BaseUnit } from '@/lib/receipts/canonicalize';
-import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction } from './actions';
+import { confirmPurchaseDateAction, saveAndMatchLineAction, confirmAsNewItemAction, markLineNonInventoryAction, commitReceiptAction, retryExtractionAction } from './actions';
 
 function todayString(): string {
   return toKolkataDateString(new Date().toISOString());
@@ -68,7 +69,12 @@ function EditableLineFields({
       <Select
         value={categorySlug}
         onChange={(e) => setCategorySlug(e.target.value)}
-        options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.map((c) => ({ value: c.slug, label: c.name }))]}
+        // 'uncategorized' is itself a real seeded leaf category (working
+        // spec: the deliberate escape hatch for an unresolved line) --
+        // filtered out of the fetched list since it's already the
+        // hardcoded first option below; keeping both produced two
+        // options with the same value/key.
+        options={[{ value: 'uncategorized', label: 'Uncategorized' }, ...categories.filter((c) => c.slug !== 'uncategorized').map((c) => ({ value: c.slug, label: c.name }))]}
         label="Category"
       />
       <div className="flex gap-2">
@@ -147,6 +153,32 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
       </div>
     </div>
   );
+}
+
+// S-68: a matched line (>=0.62 trigram confidence) used to render as an
+// inert ListRow -- only needs_review lines were clickable. A confidently
+// -wrong auto-match then committed silently, with the only correction path
+// afterward being the much heavier Catalog merge flow. Reuses
+// NeedsReviewRow's exact reassignment form once expanded, rather than
+// building a second edit UI -- the interaction (Save & match / Confirm as
+// new item / Mark non-inventory) is identical, only the entry point
+// (collapsed ListRow vs. always-open) differs.
+function MatchedLineRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!expanded) {
+    return (
+      <button type="button" onClick={() => setExpanded(true)} className="block w-full cursor-pointer text-left">
+        <ListRow
+          title={lineLabel(line)}
+          subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
+          trailing={<Badge tone="success">Matched</Badge>}
+        />
+      </button>
+    );
+  }
+
+  return <NeedsReviewRow receiptId={receiptId} line={line} categories={categories} />;
 }
 
 function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
@@ -242,6 +274,76 @@ function SessionCounter({ session, nextHref }: { session: ReviewSession; nextHre
   );
 }
 
+// S-67: a receipt still being parsed (ingest_jobs.state 'queued' or
+// 'processing') has no review_state-tagged lines yet -- rendering the full
+// editable form would show an empty, seemingly-broken review UI instead of
+// an accurate "still working on it".
+function ProcessingCard({ session }: { session: ReviewSession | null }) {
+  return (
+    <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Still parsing</CardTitle>
+          <CardDescription>This receipt hasn&apos;t finished extraction yet -- check back in a moment.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <Loader2Icon className="size-6 animate-spin text-muted-foreground" aria-hidden="true" />
+          {session && <SessionCounter session={session} nextHref={null} />}
+          <Link href="/review" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
+            Back to review queue
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// S-67: ingest_jobs.state='failed' -- extraction exhausted its escalation
+// ladder (lib/llm/extract.ts) with no usable lines. Retry re-runs the exact
+// same extraction path a fresh upload uses; manual entry is the existing
+// standalone fallback (REQ-24) for a receipt extraction can't handle at all.
+function FailedCard({ receiptId, ingestError, session }: { receiptId: string; ingestError: string | null; session: ReviewSession | null }) {
+  const [pending, startTransition] = useTransition();
+  const [retried, setRetried] = useState(false);
+
+  function retry() {
+    startTransition(async () => {
+      await retryExtractionAction(receiptId);
+      setRetried(true);
+    });
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Extraction failed</CardTitle>
+          <CardDescription>{ingestError ?? 'This receipt could not be parsed automatically.'}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {retried ? (
+            <Alert tone="info">Retrying -- check back in a moment.</Alert>
+          ) : (
+            <Alert tone="error">Retry, or enter this receipt&apos;s items manually.</Alert>
+          )}
+          {session && <SessionCounter session={session} nextHref={null} />}
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" disabled={pending || retried} onClick={retry}>
+              {pending ? 'Retrying…' : 'Retry extraction'}
+            </Button>
+            <Link href="/add/manual" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+              Enter manually
+            </Link>
+            <Link href="/review" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+              Back to review queue
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function ReviewDetail({
   receipt,
   lines,
@@ -287,7 +389,13 @@ export function ReviewDetail({
   // was set partway through (banner hidden, but the movement still silently
   // excluded) -- tried that first, verification caught it, reverted.
   const isPastOrder = receipt.purchased_at_confirmed && receipt.purchased_at !== null && new Date(receipt.purchased_at) < new Date(stockEpoch);
-  const canCommit = receipt.purchased_at_confirmed && receipt.purchased_at !== null && needsReviewLines.length === 0;
+  const hasCommittableLines = matchedLines.length + newItemLines.length > 0;
+  const canCommit = receipt.purchased_at_confirmed && receipt.purchased_at !== null && needsReviewLines.length === 0 && hasCommittableLines;
+  const disabledReason = needsReviewLines.length > 0
+    ? 'Disabled until every "needs review" line above is resolved.'
+    : !hasCommittableLines
+      ? 'Disabled -- this receipt has no items to commit.'
+      : 'Disabled until the purchase date is confirmed.';
 
   function confirmDate() {
     startTransition(async () => {
@@ -307,6 +415,17 @@ export function ReviewDetail({
         router.push(session.nextId ? `/review/${session.nextId}?session=${session.allIds.join(',')}` : '/review');
       }
     });
+  }
+
+  // S-67: ingestState is null only for a receipt whose ingest_jobs row
+  // predates this story (defensive, not an expected steady-state) -- treated
+  // as "still processing" rather than silently falling through to the full
+  // edit UI on a receipt with no lines yet.
+  if (receipt.status !== 'committed' && receipt.status !== 'parsed') {
+    if (receipt.ingestState === 'failed') {
+      return <FailedCard receiptId={receipt.id} ingestError={receipt.ingestError} session={session} />;
+    }
+    return <ProcessingCard session={session} />;
   }
 
   if (receipt.status === 'committed') {
@@ -420,14 +539,9 @@ export function ReviewDetail({
 
           {matchedLines.length > 0 && (
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold">Matched ({matchedLines.length}) — ready to commit</p>
+              <p className="text-sm font-semibold">Matched ({matchedLines.length}) — ready to commit, tap to correct</p>
               {matchedLines.map((line) => (
-                <ListRow
-                  key={line.id}
-                  title={lineLabel(line)}
-                  subtitle={`${line.qty_base !== null && line.catalog_items ? formatBaseQty(line.qty_base, line.catalog_items.base_unit as BaseUnit, null) : '—'} · ${line.unit_price !== null ? formatMoney(line.unit_price) : '—'}`}
-                  trailing={<Badge tone="success">Matched</Badge>}
-                />
+                <MatchedLineRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} />
               ))}
             </div>
           )}
@@ -458,7 +572,7 @@ export function ReviewDetail({
             </Button>
             {!canCommit && !pending && (
               <p className="text-xs text-foreground-subtle">
-                {needsReviewLines.length > 0 ? 'Disabled until every "needs review" line above is resolved.' : 'Disabled until the purchase date is confirmed.'}
+                {disabledReason}
               </p>
             )}
           </div>
@@ -472,7 +586,7 @@ export function ReviewDetail({
       </Button>
       {!canCommit && !pending && (
         <p className="text-xs text-foreground-subtle">
-          {needsReviewLines.length > 0 ? 'Disabled until every "needs review" line above is resolved.' : 'Disabled until the purchase date is confirmed.'}
+          {disabledReason}
         </p>
       )}
       {commitError && <Alert tone="error">{commitError}</Alert>}

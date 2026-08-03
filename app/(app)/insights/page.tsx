@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListRow } from '@/components/ui/list-row';
 import { Alert } from '@/components/ui/alert';
@@ -31,7 +32,15 @@ export default async function InsightsPage() {
         <CardContent>
           <div className="flex items-baseline justify-between">
             <span className="font-mono text-2xl font-semibold">{money(budget.totalSpend)}</span>
-            <span className="text-sm text-muted-foreground">{budget.monthlyBudget !== null ? `of ${money(budget.monthlyBudget)} budget` : 'no budget set yet'}</span>
+            <span className="text-sm text-muted-foreground">
+              {budget.monthlyBudget !== null ? (
+                `of ${money(budget.monthlyBudget)} budget`
+              ) : (
+                <Link href="/settings" className="text-link hover:text-link-hover">
+                  Set a budget in Settings
+                </Link>
+              )}
+            </span>
           </div>
           {budget.monthlyBudget !== null && <ProgressBar value={budget.totalSpend} max={budget.monthlyBudget} />}
           <div className="flex flex-col gap-1">

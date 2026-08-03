@@ -1508,7 +1508,11 @@
         "S-66"
       ],
       "acceptance": "getReviewQueue() (lib/review/data.ts) lists receipts outside status='parsed' (processing/failed) with an explicit state, not silently filtering them out; review-detail.tsx renders a spinner for processing and a 'extraction failed -- retry or enter manually' state for failed, instead of the full editable UI; commit_receipt() and the Commit button both refuse a receipt with zero lines instead of marking it committed with no movements written.",
-      "gh_issue": 119
+      "gh_issue": 119,
+      "verify": {
+        "ci": "pass",
+        "commit": "748fc19"
+      }
     },
     {
       "id": "S-68",
@@ -1519,7 +1523,11 @@
       "order": 68,
       "estimate": 0.3,
       "acceptance": "Trigram-matched lines (>=0.62 confidence) in review-detail.tsx are no longer inert -- they get the same edit affordance needs_review lines already have, so a wrong auto-match can be corrected before commit without the user having to discover the heavier Catalog-merge flow after the fact.",
-      "gh_issue": 120
+      "gh_issue": 120,
+      "verify": {
+        "ci": "pass",
+        "commit": "0549b12"
+      }
     },
     {
       "id": "S-69",
@@ -1530,7 +1538,11 @@
       "order": 69,
       "estimate": 0.3,
       "acceptance": "Consume actions (used it up/wasted) and shopping-list regeneration get an explicit confirm step consistent with the rest of the app's pattern (not a raw window.confirm, not silent) -- one confirmation component/pattern reused across Settings wipe, Catalog merge, consume actions, and list regeneration instead of three inconsistent ones.",
-      "gh_issue": 121
+      "gh_issue": 121,
+      "verify": {
+        "ci": "pass",
+        "commit": "dce05d3"
+      }
     },
     {
       "id": "S-70",
@@ -1541,7 +1553,11 @@
       "order": 70,
       "estimate": 0.15,
       "acceptance": "app/(app)/inventory/page.tsx shows a distinct cold-start empty state (household has zero items ever tracked, A13) instead of reusing 'No items match these filters / Clear filters', which is actively misleading when there are no filters active to clear.",
-      "gh_issue": 122
+      "gh_issue": 122,
+      "verify": {
+        "ci": "pass",
+        "commit": "b5099be"
+      }
     },
     {
       "id": "S-71",
@@ -1552,7 +1568,11 @@
       "order": 71,
       "estimate": 0.2,
       "acceptance": "Shopping list, Catalog manager, Settings, and Review-queue pages set backHref on their MobileTopBar (none currently do) -- each is reachable only via inbound links today with no in-app way back except the OS gesture.",
-      "gh_issue": 123
+      "gh_issue": 123,
+      "verify": {
+        "ci": "pass",
+        "commit": "46cd599"
+      }
     },
     {
       "id": "S-72",
@@ -1563,7 +1583,11 @@
       "order": 72,
       "estimate": 0.3,
       "acceptance": "Plan page shows a running total/estimated cost across the visible bucket; item detail page gains cadence-override, staple, perishability, and archive controls (F8, currently only on the separate Catalog page); Insights' 'no budget set yet' state links to Settings; the gate/login submit button gets a disabled/pending state to prevent double-submit on slow networks.",
-      "gh_issue": 124
+      "gh_issue": 124,
+      "verify": {
+        "ci": "pass",
+        "commit": "fe7e7d1"
+      }
     },
     {
       "id": "S-73",

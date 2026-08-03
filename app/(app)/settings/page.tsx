@@ -33,7 +33,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <MobileTopBar title="Settings" />
+      <MobileTopBar title="Settings" backHref="/" />
       <div className="mx-auto flex w-full max-w-[440px] flex-col gap-4 p-4 md:p-6">
       <Card>
         <CardHeader>

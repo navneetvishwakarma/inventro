@@ -24,7 +24,7 @@ export default async function ShoppingListPage() {
 
   return (
     <>
-      <MobileTopBar title="Shopping list" />
+      <MobileTopBar title="Shopping list" backHref="/" />
       <div className="flex w-full flex-col gap-4 p-4 md:p-6">
       <GenerateListPanel hasCheckedItems={hasCheckedItems} />
 

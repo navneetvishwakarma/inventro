@@ -39,7 +39,7 @@ export default async function ReviewQueuePage() {
 
   return (
     <>
-      <MobileTopBar title="Review queue" />
+      <MobileTopBar title="Review queue" backHref="/" />
       <div className="mx-auto w-full max-w-[780px] p-4 md:p-6">
       <Card>
         <CardHeader>

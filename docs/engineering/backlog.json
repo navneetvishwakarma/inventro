@@ -1508,7 +1508,11 @@
         "S-66"
       ],
       "acceptance": "getReviewQueue() (lib/review/data.ts) lists receipts outside status='parsed' (processing/failed) with an explicit state, not silently filtering them out; review-detail.tsx renders a spinner for processing and a 'extraction failed -- retry or enter manually' state for failed, instead of the full editable UI; commit_receipt() and the Commit button both refuse a receipt with zero lines instead of marking it committed with no movements written.",
-      "gh_issue": 119
+      "gh_issue": 119,
+      "verify": {
+        "ci": "pass",
+        "commit": "748fc19"
+      }
     },
     {
       "id": "S-68",

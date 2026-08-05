@@ -1,0 +1,19 @@
+{
+  "id": "S-50",
+  "title": "Inventory list: remove duplicate title wrapper, restore out-of-stock badge",
+  "goal": "The live /inventory page drifted from design/screens/08-inventory-list.html: the filter bar sat inside an extra Card with a duplicate 'Inventory' title (MobileTopBar already shows it once), and out-of-stock rows rendered a blank Sparkline instead of a status badge.",
+  "in_scope": [
+    "Unwrap the filter bar's Card so FilterBarWeb/FilterTriggerMobile sit directly on the page background, matching the reference",
+    "Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline",
+    "Reduce item-row meta to two facts (qty, cadence) instead of three, matching the reference's density"
+  ],
+  "out_of_scope": [
+    "Any change to the E-16 IA decision (5-item mobile tab bar, Today's extra quick-links) — confirmed intentional, not part of this audit"
+  ],
+  "acceptance": "app/(app)/inventory/page.tsx's filter bar no longer wraps in an extra Card with a duplicate 'Inventory' title/description. Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline. The extra third meta line on item rows is removed.",
+  "invariants": [
+    "No regression to existing inventory filtering/sorting behavior"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

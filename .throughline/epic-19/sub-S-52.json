@@ -1,0 +1,18 @@
+{
+  "id": "S-52",
+  "title": "Settings: full-width Save button, resolve Manage catalog alignment",
+  "goal": "Settings' Save button was wrapped in a horizontal flex row that shrank it to content width, instead of the reference's full-width primary CTA; the 'Manage catalog' link's self-start alignment needed checking against the reference.",
+  "in_scope": [
+    "settings-form.tsx's Save button becomes a direct flex-col child of its Card so it can stretch full-width",
+    "Investigate 'Manage catalog' link's self-start alignment against the reference and either fix it or document why it's a deliberate, existing app-wide convention"
+  ],
+  "out_of_scope": [
+    "Any other Settings page field or section"
+  ],
+  "acceptance": "settings-form.tsx's Save button is a direct flex-col child of its Card (matching the reference's full-width primary CTA) instead of wrapped in a horizontal flex row. The 'Manage catalog' link's self-start alignment is reconciled against the reference — if it's a deliberate app-wide convention used consistently elsewhere, that finding is documented instead of changed blind.",
+  "invariants": [
+    "Save button's submit behavior unchanged — layout only"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

@@ -258,7 +258,7 @@
       "vertical": false,
       "estimate": 0.2,
       "acceptance": "Two P0 bugs found while auditing against design/screens/*.html, fixed same-day ahead of the formal audit epic since both were live, app-wide/severe: an unlayered CSS reset silently zeroing every Tailwind padding/margin utility in both themes, and an unhandled rejection hanging /review/[id] indefinitely for any receipt with a missing Storage object.",
-      "gh_issue": null
+      "gh_issue": 132
     },
     {
       "id": "E-19",
@@ -1248,7 +1248,8 @@
       "verify": {
         "ci": "pass",
         "commit": "97f7692"
-      }
+      },
+      "gh_issue": 133
     },
     {
       "id": "S-49",
@@ -1262,7 +1263,8 @@
       "verify": {
         "ci": "pass",
         "commit": "caead90"
-      }
+      },
+      "gh_issue": 134
     },
     {
       "id": "S-50",
@@ -1273,7 +1275,11 @@
       "order": 50,
       "estimate": 0.3,
       "acceptance": "app/(app)/inventory/page.tsx's filter bar no longer wraps in an extra Card with a duplicate 'Inventory' title/description (design/screens/08-inventory-list.html has FilterBarWeb/FilterTriggerMobile unwrapped, directly on the page background). Out-of-stock item rows show a Badge tone=\"error\" (\"Out of stock\") as the trailing element instead of an always-rendered blank Sparkline (matching OutOfStockCard in the reference). The extra third meta line on item rows (vs. the reference's two-item meta) is removed or justified in the story's own notes if kept.",
-      "gh_issue": 100
+      "gh_issue": 100,
+      "verify": {
+        "ci": "pass",
+        "commit": "5b63299"
+      }
     },
     {
       "id": "S-51",
@@ -1284,7 +1290,11 @@
       "order": 51,
       "estimate": 0.1,
       "acceptance": "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button uses variant=\"ghost\" (matching design/screens/10-plan.html:127), not variant=\"destructive\" -- a low-emphasis action should not carry primary/destructive visual weight.",
-      "gh_issue": 101
+      "gh_issue": 101,
+      "verify": {
+        "ci": "pass",
+        "commit": "5b63299"
+      }
     },
     {
       "id": "S-52",
@@ -1295,7 +1305,11 @@
       "order": 52,
       "estimate": 0.2,
       "acceptance": "settings-form.tsx's Save button is a direct flex-col child of its Card (matching the reference's full-width primary CTA) instead of wrapped in a horizontal flex row that prevents it from stretching. The 'Manage catalog' link's self-start alignment (settings/page.tsx) is reconciled against the reference's centered/full-width tertiary-button treatment -- if self-start turns out to be a deliberate app-wide convention used consistently elsewhere, this story documents that finding instead of changing it blind.",
-      "gh_issue": 102
+      "gh_issue": 102,
+      "verify": {
+        "ci": "pass",
+        "commit": "5b63299"
+      }
     },
     {
       "id": "S-53",
@@ -1306,7 +1320,11 @@
       "order": 53,
       "estimate": 0.2,
       "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed (both findings were flagged before that fix; likely already resolved). Fix only what's still actually wrong post-verification, don't re-fix what S-48 already handled.",
-      "gh_issue": 103
+      "gh_issue": 103,
+      "verify": {
+        "ci": "pass",
+        "commit": "5b63299"
+      }
     },
     {
       "id": "S-56",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Phase A bootstrap — deterministic, no deps. Idempotent (never overwrites). Run at the project root.
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { chmodSync, copyFileSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 const root = process.cwd();
 const project = process.argv[2] || '<PROJECT_NAME>';
@@ -33,14 +33,28 @@ const generic = (n, title) => place(n, tpl('_doc.template.md', title));
   ['docs/architecture/07-infrastructure.md', 'Infrastructure'],
 ].forEach(([p, t]) => generic(p, t));
 place('docs/product/06-prd.md', tpl('prd.template.md', 'Product Requirements'));
+place('docs/design/README.md', tpl('design-readme.template.md', 'Design'));
 place('docs/engineering/01-tech-plan.md', tpl('tech-plan.template.md', 'Technical Plan'));
 place('docs/architecture/decisions/ADR-0001-example.md', tpl('adr.template.md', 'Example Decision'));
+place('docs/design/tokens.md', tpl('design-tokens.template.md', 'Design Tokens'));
+place('docs/design/journeys/example-journey.md', tpl('journey.template.md', 'Example Journey'));
+place('docs/design/screens/example-screen.md', tpl('screen.template.md', 'Example Screen'));
 place('docs/engineering/backlog.json', readFileSync(join(root, 'docs/engineering/backlog.seed.json'), 'utf8').replaceAll('<PROJECT_NAME>', project));
 place('AGENTS.md', tpl('CLAUDE.template.md'));
 const manualPtr = '# ' + project + ' — agent operating manual\n\nCanonical manual: see **AGENTS.md** (cross-agent — Claude, Cursor, Codex, Gemini).\n';
 place('CLAUDE.md', manualPtr);
 place('GEMINI.md', manualPtr);
-mkdirSync(join(root, 'docs/design'), { recursive: true });
+if (existsSync(join(root, '.git')) && existsSync(join(root, '.githooks/pre-commit'))) {
+  const hook = join(root, '.git/hooks/pre-commit');
+  if (!existsSync(hook)) {
+    mkdirSync(dirname(hook), { recursive: true });
+    copyFileSync(join(root, '.githooks/pre-commit'), hook);
+    try { chmodSync(hook, 0o755); } catch {}
+    created.push('.git/hooks/pre-commit');
+  } else {
+    skipped.push('.git/hooks/pre-commit');
+  }
+}
 console.log('OK Bootstrapped "' + project + '"');
 console.log('  created: ' + created.length);
 created.forEach((f) => console.log('    + ' + f));

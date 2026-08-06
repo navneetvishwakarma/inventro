@@ -1,0 +1,19 @@
+{
+  "id": "S-53",
+  "title": "Review queue: verify row density and mobile merchant-name color post-hotfix",
+  "goal": "Two findings (review-queue row padding, mobile merchant-name color) were flagged during the fidelity audit before S-48's unlayered-CSS-reset fix landed; needed re-verification since that fix may have already resolved them.",
+  "in_scope": [
+    "Re-audit review-queue table row padding against design/screens/06-review-queue.html now that S-48 has landed",
+    "Mobile merchant-name color: force text-foreground instead of inheriting the ambient `a { color: var(--link) }` base rule from the wrapping Link, so merchant names read as plain bold text (blue reserved for the desktop table's actual link cells)",
+    "Fix only what's still actually wrong post-S-48 — don't re-fix what that story already handled"
+  ],
+  "out_of_scope": [
+    "Any review-queue functional/behavioral change — visual fidelity only"
+  ],
+  "acceptance": "Re-audit review-queue table row padding and mobile merchant-name color against design/screens/06-review-queue.html now that S-48's padding fix has landed; fix only what's still actually wrong post-verification.",
+  "invariants": [
+    "No change to review-queue commit/filter behavior"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

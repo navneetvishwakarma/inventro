@@ -1,0 +1,17 @@
+{
+  "id": "S-49",
+  "title": "Missing receipt Storage object hung /review/[id] indefinitely",
+  "goal": "app/(app)/review/[id]/page.tsx awaited getDocumentPreviewUrl/getDocumentPreviewText inside the page's single Promise.all with no error handling. When a receipt's storage_paths pointed at an object no longer in Storage, the whole request never resolved to either the page or its error boundary.",
+  "in_scope": [
+    "Catch the per-file document/text preview fetch failure and degrade to the existing 'No preview available.' fallback instead of letting it hang the page"
+  ],
+  "out_of_scope": [
+    "Any other part of the review-detail flow (line-item review, commit action)"
+  ],
+  "acceptance": "The document/text preview fetch in app/(app)/review/[id]/page.tsx degrades to the existing 'No preview available.' fallback on failure instead of an unhandled rejection stalling the whole page; reproduced pre-fix (60s+, never resolved) and confirmed resolved post-fix (~4s, renders correctly).",
+  "invariants": [
+    "Line-item review and commit functionality on this page must be unaffected"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

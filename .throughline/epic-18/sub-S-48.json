@@ -1,0 +1,17 @@
+{
+  "id": "S-48",
+  "title": "Unlayered CSS reset was zeroing every padding/margin utility app-wide",
+  "goal": "app/globals.css declared `* { box-sizing: border-box; padding: 0; margin: 0; }` as a plain, unlayered rule. Per the CSS cascade-layers spec, unlayered rules always beat layered ones, and every Tailwind utility (px-4, p-4, gap, mt-2, etc.) lives inside @layer utilities/base via `@import \"tailwindcss\"` — silently zeroing every padding/margin utility class app-wide, on every page, in both themes.",
+  "in_scope": [
+    "Wrap the padding/margin reset in @layer base so it no longer unconditionally beats Tailwind spacing utilities"
+  ],
+  "out_of_scope": [
+    "Any other globals.css rule not part of this reset"
+  ],
+  "acceptance": "app/globals.css's `* { padding: 0; margin: 0; }` reset moved inside @layer base so it no longer unconditionally beats every Tailwind spacing utility; verified via computed-style inspection (MobileTopBar's px-4: 0px -> 16px) in both themes, and visually across Today/Add/Review/Insights/Catalog/Settings.",
+  "invariants": [
+    "box-sizing: border-box reset itself must remain in effect app-wide"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

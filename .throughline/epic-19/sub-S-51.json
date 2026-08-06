@@ -1,0 +1,17 @@
+{
+  "id": "S-51",
+  "title": "Plan: fix 'Always exclude' button variant",
+  "goal": "The Plan page's 'Always exclude' action used variant=\"destructive\", giving a low-emphasis action primary/destructive visual weight it shouldn't carry, per design/screens/10-plan.html.",
+  "in_scope": [
+    "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button: variant=\"destructive\" -> variant=\"ghost\""
+  ],
+  "out_of_scope": [
+    "Any other Plan page action or layout change"
+  ],
+  "acceptance": "app/(app)/plan/plan-item-actions.tsx's 'Always exclude' button uses variant=\"ghost\" (matching design/screens/10-plan.html:127), not variant=\"destructive\".",
+  "invariants": [
+    "Button's exclude behavior/handler unchanged — visual variant only"
+  ],
+  "prd_ref": "REQ-30",
+  "adr_ref": null
+}

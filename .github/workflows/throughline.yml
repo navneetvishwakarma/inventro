@@ -53,6 +53,13 @@ jobs:
               console.log('::warning::coverage.mjs status=' + s.status + ' — see job output above for the recommended setup command.');
               process.exit(0);
             }
+            // Mirror coverage.mjs's own exit-code semantics: only gate the build once
+            // backlog.json's coverage.mode is explicitly 'enforce'. Otherwise this job is
+            // report-only, same as running coverage.mjs locally without --check.
+            if (s.mode !== 'enforce') {
+              console.log('::notice::coverage not enforced (mode=' + s.mode + ') — reporting only.');
+              process.exit(0);
+            }
             process.exit(s.passed ? 0 : 1);
           "
       - uses: actions/upload-artifact@v4

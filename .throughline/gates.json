@@ -1,0 +1,16 @@
+{
+  "gates": {
+    "G7": {
+      "status": "approved",
+      "note": "PR #135 merge approved: throughline scaffold upgrade, E-18/E-19 backfill, coverage setup, CI fixes",
+      "updatedAt": "2026-08-06T01:03:22.799Z",
+      "subjects": {
+        "adopt-project-20260805": {
+          "status": "approved",
+          "note": "PR #135 merge approved: throughline scaffold upgrade, E-18/E-19 backfill, coverage setup, CI fixes",
+          "updatedAt": "2026-08-06T01:03:22.799Z"
+        }
+      }
+    }
+  }
+}

@@ -1944,7 +1944,11 @@
       "order": 94,
       "estimate": 0.3,
       "acceptance": "The 25/50/75% quick-fraction buttons in consume-actions.tsx:74-80 go through the same ConfirmPanel step already used for 'Used it up'/'Wasted' instead of writing a ledger movement on a single tap; recordConsumption (lib/inventory/consume.ts:26-43) surfaces an explicit 'nothing to log' message instead of returning {ok:true} with no write and no UI change when virtualStockBase is already 0.",
-      "gh_issue": 151
+      "gh_issue": 151,
+      "verify": {
+        "ci": "pass",
+        "commit": "0c4fe04"
+      }
     },
     {
       "id": "S-95",

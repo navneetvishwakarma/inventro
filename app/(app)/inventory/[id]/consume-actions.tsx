@@ -74,13 +74,13 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={isPending} onClick={() => setPendingConfirm('used-it-up')}>
+        <Button size="sm" className="min-h-11" disabled={isPending} onClick={() => setPendingConfirm('used-it-up')}>
           Used it up
         </Button>
-        <Button size="sm" variant="outline" disabled={isPending} onClick={() => setShowUsedSome((v) => !v)}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={isPending} onClick={() => setShowUsedSome((v) => !v)}>
           Used some
         </Button>
-        <Button size="sm" variant="destructive" disabled={isPending} onClick={() => setPendingConfirm('wasted')}>
+        <Button size="sm" className="min-h-11" variant="destructive" disabled={isPending} onClick={() => setPendingConfirm('wasted')}>
           Wasted
         </Button>
       </div>
@@ -88,7 +88,7 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
       {showUsedSome && (
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2">
           {FRACTIONS.map((f) => (
-            <Button key={f} size="sm" variant="outline" disabled={isPending} onClick={() => setPendingConfirm({ kind: 'fraction', fraction: f })}>
+            <Button key={f} size="sm" className="min-h-11" variant="outline" disabled={isPending} onClick={() => setPendingConfirm({ kind: 'fraction', fraction: f })}>
               {f * 100}%
             </Button>
           ))}

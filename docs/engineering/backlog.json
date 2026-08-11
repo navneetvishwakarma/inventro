@@ -1804,7 +1804,12 @@
       "order": 85,
       "estimate": 0.3,
       "acceptance": "checkExtractionQuality (lib/llm/extract.ts:99-104) treats a zero-line result as a quality-check failure and routes it through the existing Flash-to-Pro escalation / failed-state path (with its working retry and manual-entry affordances) instead of marking status:'parsed' with nothing to commit; the review queue badges these distinctly from a normal parsed receipt.",
-      "gh_issue": 142
+      "gh_issue": 142,
+      "verify": {
+        "ci": "pass",
+        "commit": "882f710",
+        "coverage": 0.226
+      }
     },
     {
       "id": "S-86",

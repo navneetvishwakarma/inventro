@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ListRow } from '@/components/ui/list-row';
 import { Alert } from '@/components/ui/alert';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getBudgetSummary, getForwardProjection, getTopSpendItems, getPriceAlerts, getWasteReport } from '@/lib/insights/data';
 import { formatMoney as money } from '@/lib/format/money';
@@ -13,6 +15,16 @@ import { ProgressBar } from './progress-bar';
 // -- Insights is a live view over the same underlying state everything else
 // uses (UX doc's own stated success signal), never a cached/static report.
 export const dynamic = 'force-dynamic';
+
+// S-98: the one obvious next action on every zero-data card here -- pulled
+// out once rather than repeated four times.
+function AddReceiptCta() {
+  return (
+    <Link href="/add" className={cn(buttonVariants({ variant: 'tertiary', size: 'sm' }), 'self-start')}>
+      Add a receipt
+    </Link>
+  );
+}
 
 export default async function InsightsPage() {
   const household = await getHousehold();
@@ -67,7 +79,12 @@ export default async function InsightsPage() {
           {projection.items.slice(0, 10).map((i) => (
             <ListRow key={i.catalogItemId} title={i.canonicalName} trailing={<span className="font-mono text-sm">{money(i.monthlyProjected)}</span>} />
           ))}
-          {projection.items.length === 0 && <p className="text-sm text-muted-foreground">Not enough purchase history yet to project next month&apos;s spend.</p>}
+          {projection.items.length === 0 && (
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-sm text-muted-foreground">Not enough purchase history yet to project next month&apos;s spend.</p>
+              <AddReceiptCta />
+            </div>
+          )}
           {projection.excludedNoPriceCount > 0 && (
             <p className="text-xs text-muted-foreground">
               {projection.excludedNoPriceCount} item{projection.excludedNoPriceCount === 1 ? '' : 's'} with a known buying cadence but no verified price yet are excluded from this projection.
@@ -86,7 +103,12 @@ export default async function InsightsPage() {
           <CardDescription>Trailing 90 days.</CardDescription>
         </CardHeader>
         <CardContent>
-          {topItems.length === 0 && <p className="text-sm text-muted-foreground">No priced purchases in the trailing 90 days yet.</p>}
+          {topItems.length === 0 && (
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-sm text-muted-foreground">No priced purchases in the trailing 90 days yet.</p>
+              <AddReceiptCta />
+            </div>
+          )}
           {topItems.map((i) => (
             <ListRow
               key={i.catalogItemId}
@@ -103,7 +125,12 @@ export default async function InsightsPage() {
           <CardDescription>More than 15% off the trailing average.</CardDescription>
         </CardHeader>
         <CardContent>
-          {alerts.length === 0 && <p className="text-sm text-muted-foreground">No notable price changes right now.</p>}
+          {alerts.length === 0 && (
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-sm text-muted-foreground">No notable price changes right now.</p>
+              <AddReceiptCta />
+            </div>
+          )}
           {alerts.map((a) => (
             <Alert key={a.catalogItemId} tone={a.pctChange > 0 ? 'warning' : 'success'} title={a.canonicalName}>
               {a.merchant ? `${a.merchant} — ` : ''}now {money(a.latestPrice)}/base unit, was averaging {money(a.trailingAvg)}/base unit ({a.pctChange > 0 ? '+' : ''}
@@ -119,7 +146,12 @@ export default async function InsightsPage() {
           <CardDescription>This month.</CardDescription>
         </CardHeader>
         <CardContent>
-          {waste.items.length === 0 && <p className="text-sm text-muted-foreground">No waste logged this month.</p>}
+          {waste.items.length === 0 && (
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-sm text-muted-foreground">No waste logged this month.</p>
+              <AddReceiptCta />
+            </div>
+          )}
           {waste.items.map((i) => (
             <ListRow
               key={i.catalogItemId}

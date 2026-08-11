@@ -24,8 +24,16 @@ export default function SignupPage() {
           <form action={formAction} className="flex flex-col gap-3">
             <Input id="email" name="email" type="email" label="Email" placeholder="you@example.com" required autoFocus disabled={isPending} />
             <Input id="password" name="password" type="password" label="Password" required disabled={isPending} />
-            <Input id="confirmPassword" name="confirmPassword" type="password" label="Confirm password" required disabled={isPending} />
-            {!state.ok && <Alert tone="error">{state.error}</Alert>}
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              label="Confirm password"
+              required
+              disabled={isPending}
+              error={!state.ok && state.field === 'confirmPassword' ? state.error : undefined}
+            />
+            {!state.ok && state.field !== 'confirmPassword' && <Alert tone="error">{state.error}</Alert>}
             <Button type="submit" size="lg" className="w-full" disabled={isPending}>
               {isPending ? 'Creating…' : 'Create household'}
             </Button>

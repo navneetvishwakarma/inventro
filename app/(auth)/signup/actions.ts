@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
 
-export type SignupResult = { ok: true } | { ok: false; error: string };
+export type SignupResult = { ok: true } | { ok: false; error: string; field?: 'confirmPassword' };
 
 export async function signupAction(_prevState: SignupResult | null, formData: FormData): Promise<SignupResult> {
   const email = formData.get('email');
@@ -14,7 +14,7 @@ export async function signupAction(_prevState: SignupResult | null, formData: Fo
     return { ok: false, error: 'Email and password are required.' };
   }
   if (password !== confirmPassword) {
-    return { ok: false, error: 'Passwords do not match.' };
+    return { ok: false, error: 'Passwords do not match.', field: 'confirmPassword' };
   }
 
   const supabase = await createRequestClient();

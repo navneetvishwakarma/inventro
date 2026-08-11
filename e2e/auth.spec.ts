@@ -34,6 +34,31 @@ base('signup creates a household and reaches onboarding', async ({ page }) => {
   await expect(page).toHaveURL(/\/onboarding/, { timeout: 15_000 });
 });
 
+// S-88 Fix 1: password-mismatch is a field-level problem, not a page-wide
+// failure -- it must surface on the confirmPassword Input itself (aria-invalid
+// + its own error slot), not as a separate page Alert. getByRole('alert')
+// can't prove absence here: Next's own route announcer
+// (id="__next-route-announcer__") always carries role="alert" too (see
+// onboarding.spec.ts) -- so the negative assertion below excludes it by id
+// rather than asserting zero role="alert" matches.
+base('mismatched passwords show a field-level error on confirm password, not a page alert', async ({ page }) => {
+  const email = uniqueTestEmail();
+
+  await page.goto('/signup');
+  await page.locator('#email').fill(email);
+  await page.locator('#password').fill('E2eTestPassword123!');
+  await page.locator('#confirmPassword').fill('SomethingElse456!');
+  await page.getByRole('button', { name: /create household/i }).click();
+
+  const confirmInput = page.locator('#confirmPassword');
+  await expect(confirmInput).toHaveAttribute('aria-invalid', 'true');
+  const describedBy = await confirmInput.getAttribute('aria-describedby');
+  expect(describedBy).toBeTruthy();
+  await expect(page.locator(`#${describedBy}`)).toHaveText('Passwords do not match.');
+
+  await expect(page.locator('[role="alert"]:not(#__next-route-announcer__)')).toHaveCount(0);
+});
+
 base('duplicate signup is rejected with a clear error', async ({ page }) => {
   const email = uniqueTestEmail();
   const password = 'E2eTestPassword123!';

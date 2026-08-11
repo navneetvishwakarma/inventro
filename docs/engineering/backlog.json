@@ -1899,7 +1899,11 @@
       "order": 91,
       "estimate": 0.2,
       "acceptance": "Line-level action buttons in review-detail.tsx ('Save & match', 'Confirm as new item', 'Mark non-inventory', 'Retry extraction', 'Confirm date') use a touch target of at least 44x44px, consistent with the Checkbox's existing 44px hit area in the same rows.",
-      "gh_issue": 148
+      "gh_issue": 148,
+      "verify": {
+        "ci": "pass",
+        "commit": "bbe3583"
+      }
     },
     {
       "id": "S-92",

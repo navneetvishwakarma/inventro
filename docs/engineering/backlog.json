@@ -2094,7 +2094,11 @@
       "order": 104,
       "estimate": 0.2,
       "acceptance": "sparkline.tsx marks the latest price point distinctly (per docs/design/pages/inventory.md's v2 target) on both the item card and item-detail price-trend card, instead of rendering a flat single-color polyline with no endpoint marker.",
-      "gh_issue": 161
+      "gh_issue": 161,
+      "verify": {
+        "ci": "pass",
+        "commit": "2d59cd5"
+      }
     }
   ],
   "coverage": {

@@ -1884,7 +1884,11 @@
       "order": 90,
       "estimate": 0.3,
       "acceptance": "Editing a line in review-detail.tsx (NeedsReviewRow, NewItemRow, expanded MatchedLineRow) and then using 'Skip to next' or back-navigation without saving triggers a confirm-discard prompt (or auto-saves) instead of silently losing the edit with no warning.",
-      "gh_issue": 147
+      "gh_issue": 147,
+      "verify": {
+        "ci": "pass",
+        "commit": "a6f2aa3"
+      }
     },
     {
       "id": "S-91",

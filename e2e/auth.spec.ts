@@ -119,6 +119,14 @@ base('clicking log out clears the session and gates subsequent access', async ({
   await page.getByRole('button', { name: /create household/i }).click();
   await expect(page).toHaveURL(/\/onboarding/);
 
+  // Settings redirects back to /onboarding until household.onboarded_at is
+  // set (app/(app)/settings/page.tsx), so walk the wizard first -- same
+  // 3-step happy path as the shared authenticated fixture (fixtures.ts).
+  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByRole('button', { name: /continue/i }).click();
+  await page.getByRole('button', { name: /^skip$/i }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith('/onboarding'));
+
   await page.goto('/settings');
   await page.getByRole('button', { name: /log out/i }).click();
 

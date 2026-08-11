@@ -31,6 +31,17 @@ export async function signupAction(_prevState: SignupResult | null, formData: Fo
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
   if (signUpError) {
     console.error('signup: signUp failed', signUpError.message);
+    // S-88: 'weak_password' is safe to disambiguate -- GoTrue's
+    // checkPasswordStrength (supabase/auth internal/api/signup.go ->
+    // password.go) runs unconditionally on the password alone, before any
+    // duplicate-email lookup, and takes no email/user argument. A weak
+    // password gets this exact response whether or not the email is
+    // already registered, so surfacing it doesn't reopen the enumeration
+    // oracle GENERIC_SIGNUP_ERROR exists to close. Every other code
+    // (including anything unrecognized) stays on the generic message.
+    if (signUpError.code === 'weak_password') {
+      return { ok: false, error: signUpError.message || 'Password is too weak. Try a longer or more complex password.' };
+    }
     return { ok: false, error: GENERIC_SIGNUP_ERROR };
   }
   if (!signUpData.session) {

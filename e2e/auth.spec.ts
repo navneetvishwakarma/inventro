@@ -79,7 +79,34 @@ base('duplicate signup is rejected with a clear error', async ({ page }) => {
   await page.getByRole('button', { name: /create household/i }).click();
 
   await expect(page).toHaveURL(/\/signup/);
-  await expect(page.getByRole('alert')).toBeVisible();
+  // Regression guard on anti-enumeration (S-58/S-88): a bare getByRole('alert')
+  // check would still pass if the message ever changed to something
+  // email-existence-specific -- Next's own route announcer also carries
+  // role="alert" and is always in the DOM (see onboarding.spec.ts), so this
+  // asserts the exact generic text on the page's own error Alert instead.
+  await expect(page.getByText('Could not create your account. Try a different email, or log in if you already have one.')).toBeVisible();
+});
+
+// S-88 Fix 2: verified via GoTrue's own source (supabase/auth
+// internal/api/signup.go + password.go) that checkPasswordStrength runs
+// unconditionally before any duplicate-email lookup and takes no email
+// parameter -- a weak-password response is identical whether or not the
+// email is already registered, so distinguishing it does not reopen the
+// enumeration oracle the generic message exists to close.
+base('weak password signup failure is distinct from the generic error, and duplicate-email stays generic', async ({ page }) => {
+  const email = uniqueTestEmail();
+
+  await page.goto('/signup');
+  await page.locator('#email').fill(email);
+  await page.locator('#password').fill('a');
+  await page.locator('#confirmPassword').fill('a');
+  await page.getByRole('button', { name: /create household/i }).click();
+
+  await expect(page).toHaveURL(/\/signup/);
+  const alert = page.locator('[role="alert"]:not(#__next-route-announcer__)');
+  await expect(alert).toBeVisible();
+  const alertText = await alert.textContent();
+  expect(alertText).not.toContain('Could not create your account');
 });
 
 base('wrong password is rejected with a generic error and no session', async ({ page }) => {

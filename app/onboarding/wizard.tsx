@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert } from '@/components/ui/alert';
 import { SHOPPING_PRESETS } from '@/lib/onboarding/presets';
 import { applyPresetsAction, completeOnboardingAction } from './actions';
 import type { StapleItem } from '@/lib/onboarding/data';
@@ -27,12 +28,15 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
   // the working spec calls for, not everything a broad preset touches.
   const tickOffItems = initialStapleItems;
   const [tickedIds, setTickedIds] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   function togglePreset(id: string) {
+    setError(null);
     setPresetIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
   }
 
   function toggleTick(id: string) {
+    setError(null);
     setTickedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -43,7 +47,12 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
 
   function goToTickOff() {
     startTransition(async () => {
-      await applyPresetsAction(presetIds);
+      const result = await applyPresetsAction(presetIds);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setError(null);
       setStep(3);
     });
   }
@@ -51,7 +60,12 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
   function finish(skipTickOff: boolean) {
     startTransition(async () => {
       const budgetValue = budget.trim() === '' ? null : Number(budget);
-      await completeOnboardingAction(name, budgetValue, skipTickOff ? [] : [...tickedIds]);
+      const result = await completeOnboardingAction(name, budgetValue, skipTickOff ? [] : [...tickedIds]);
+      // On success completeOnboardingAction redirects (throws internally) and
+      // never returns here -- a defined result only happens on failure.
+      if (result && !result.ok) {
+        setError(result.error);
+      }
     });
   }
 
@@ -98,9 +112,17 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                   {SHOPPING_PRESETS.map((preset) => (
                     <Checkbox key={preset.id} id={preset.id} checked={presetIds.includes(preset.id)} onChange={() => togglePreset(preset.id)} label={preset.label} />
                   ))}
+                  {error && <Alert tone="error">{error}</Alert>}
                 </CardContent>
                 <CardFooter className="flex gap-2">
-                  <Button variant="outline" onClick={() => setStep(1)} disabled={pending}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setError(null);
+                      setStep(1);
+                    }}
+                    disabled={pending}
+                  >
                     Back
                   </Button>
                   <Button className="flex-1" onClick={goToTickOff} disabled={pending}>
@@ -121,6 +143,11 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                     <Checkbox key={item.id} id={item.id} checked={tickedIds.has(item.id)} onChange={() => toggleTick(item.id)} label={itemLabel(item)} />
                   ))}
                 </CardContent>
+                {error && (
+                  <div className="mt-3">
+                    <Alert tone="error">{error}</Alert>
+                  </div>
+                )}
                 <CardFooter className="flex gap-2">
                   <Button variant="outline" onClick={() => finish(true)} disabled={pending}>
                     Skip

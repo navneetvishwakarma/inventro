@@ -1,0 +1,13 @@
+
+> inventro@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.10 C:/Users/navne.FUDGE/source/inventro
+
+
+ Test Files  7 passed (7)
+      Tests  43 passed (43)
+   Start at  21:51:21
+   Duration  5.12s (transform 3.00s, setup 0ms, import 9.74s, tests 2.45s, environment 3ms)
+

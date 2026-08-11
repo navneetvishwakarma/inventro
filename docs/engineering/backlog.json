@@ -1887,7 +1887,8 @@
       "gh_issue": 147,
       "verify": {
         "ci": "pass",
-        "commit": "a6f2aa3"
+        "commit": "a6f2aa3",
+        "coverage": 0.252
       }
     },
     {
@@ -1902,7 +1903,8 @@
       "gh_issue": 148,
       "verify": {
         "ci": "pass",
-        "commit": "bbe3583"
+        "commit": "bbe3583",
+        "coverage": 0.252
       }
     },
     {
@@ -1917,7 +1919,8 @@
       "gh_issue": 149,
       "verify": {
         "ci": "pass",
-        "commit": "bccf057"
+        "commit": "bccf057",
+        "coverage": 0.252
       }
     },
     {
@@ -1932,7 +1935,8 @@
       "gh_issue": 150,
       "verify": {
         "ci": "pass",
-        "commit": "4e378c9"
+        "commit": "4e378c9",
+        "coverage": 0.252
       }
     },
     {
@@ -1947,7 +1951,8 @@
       "gh_issue": 151,
       "verify": {
         "ci": "pass",
-        "commit": "0c4fe04"
+        "commit": "0c4fe04",
+        "coverage": 0.252
       }
     },
     {
@@ -1962,7 +1967,8 @@
       "gh_issue": 152,
       "verify": {
         "ci": "pass",
-        "commit": "71dea0a"
+        "commit": "71dea0a",
+        "coverage": 0.252
       }
     },
     {
@@ -1977,7 +1983,8 @@
       "gh_issue": 153,
       "verify": {
         "ci": "pass",
-        "commit": "dadf00c"
+        "commit": "dadf00c",
+        "coverage": 0.252
       }
     },
     {
@@ -1992,7 +1999,8 @@
       "gh_issue": 154,
       "verify": {
         "ci": "pass",
-        "commit": "0a954a5"
+        "commit": "0a954a5",
+        "coverage": 0.252
       }
     },
     {
@@ -2007,7 +2015,8 @@
       "gh_issue": 155,
       "verify": {
         "ci": "pass",
-        "commit": "50e266c"
+        "commit": "50e266c",
+        "coverage": 0.252
       }
     },
     {
@@ -2022,7 +2031,8 @@
       "gh_issue": 156,
       "verify": {
         "ci": "pass",
-        "commit": "b55ba36"
+        "commit": "b55ba36",
+        "coverage": 0.252
       }
     },
     {
@@ -2037,7 +2047,8 @@
       "gh_issue": 157,
       "verify": {
         "ci": "pass",
-        "commit": "8ca4381"
+        "commit": "8ca4381",
+        "coverage": 0.252
       }
     },
     {
@@ -2052,7 +2063,8 @@
       "gh_issue": 158,
       "verify": {
         "ci": "pass",
-        "commit": "337cd87"
+        "commit": "337cd87",
+        "coverage": 0.252
       }
     },
     {
@@ -2067,7 +2079,8 @@
       "gh_issue": 159,
       "verify": {
         "ci": "pass",
-        "commit": "7a43de0"
+        "commit": "7a43de0",
+        "coverage": 0.252
       }
     },
     {
@@ -2082,7 +2095,8 @@
       "gh_issue": 160,
       "verify": {
         "ci": "pass",
-        "commit": "f425428"
+        "commit": "f425428",
+        "coverage": 0.252
       }
     },
     {
@@ -2097,7 +2111,8 @@
       "gh_issue": 161,
       "verify": {
         "ci": "pass",
-        "commit": "2d59cd5"
+        "commit": "2d59cd5",
+        "coverage": 0.252
       }
     }
   ],

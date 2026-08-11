@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getCostMeterSummary } from '@/lib/settings/cost-meter';
 import { DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
+import { logoutAction } from '@/app/(auth)/login/actions';
 import { SettingsForm } from './settings-form';
 import { DataToolsPanel } from './data-tools-panel';
 import { ProgressBar } from './progress-bar';
@@ -102,6 +103,20 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <DataToolsPanel />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session</CardTitle>
+          <CardDescription>Sign out of this device.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={logoutAction}>
+            <Button type="submit" variant="outline">
+              Log out
+            </Button>
+          </form>
         </CardContent>
       </Card>
       </div>

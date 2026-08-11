@@ -105,3 +105,27 @@ base('correct login reaches a gated route without redirect', async ({ page }) =>
 
   await expect(page).toHaveURL(/\/$|\/onboarding/);
 });
+
+// S-82: a real logout control bound to logoutAction, replacing the
+// clearCookies() simulation used above for unrelated session-reset setup.
+base('clicking log out clears the session and gates subsequent access', async ({ page }) => {
+  const email = uniqueTestEmail();
+  const password = 'E2eTestPassword123!';
+
+  await page.goto('/signup');
+  await page.locator('#email').fill(email);
+  await page.locator('#password').fill(password);
+  await page.locator('#confirmPassword').fill(password);
+  await page.getByRole('button', { name: /create household/i }).click();
+  await expect(page).toHaveURL(/\/onboarding/);
+
+  await page.goto('/settings');
+  await page.getByRole('button', { name: /log out/i }).click();
+
+  await expect(page).toHaveURL(/\/login/);
+  const cookies = await page.context().cookies();
+  expect(cookies.some((c) => c.name.startsWith('sb-'))).toBe(false);
+
+  await page.goto('/inventory');
+  await expect(page).toHaveURL(/\/login\?next=%2Finventory/);
+});

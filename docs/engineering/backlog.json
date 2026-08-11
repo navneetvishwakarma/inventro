@@ -2049,7 +2049,11 @@
       "order": 101,
       "estimate": 0.1,
       "acceptance": "Progress bar components in app/(app)/insights/progress-bar.tsx and app/(app)/settings/progress-bar.tsx carry role='progressbar' with aria-valuenow/min/max, giving screen-reader users a signal from the bar itself in addition to the adjacent numeric text.",
-      "gh_issue": 158
+      "gh_issue": 158,
+      "verify": {
+        "ci": "pass",
+        "commit": "337cd87"
+      }
     },
     {
       "id": "S-102",

@@ -1788,7 +1788,12 @@
       "order": 84,
       "estimate": 0.2,
       "acceptance": "handleFiles's preprocessFile call (app/(app)/add/capture.tsx:61-70) is wrapped in try/catch; a HEIC-conversion or downscaling failure on one file in a batch produces a per-file 'Failed -- couldn't process image' result and does not block status from reaching 'idle', instead of leaving the UI stuck on 'Got it -- processing...' with no recovery.",
-      "gh_issue": 141
+      "gh_issue": 141,
+      "verify": {
+        "ci": "pass",
+        "commit": "0295aea",
+        "coverage": 0.165
+      }
     },
     {
       "id": "S-85",

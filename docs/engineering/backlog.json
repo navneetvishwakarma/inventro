@@ -1989,7 +1989,11 @@
       "order": 97,
       "estimate": 0.3,
       "acceptance": "getPlanItems() (lib/plan/data.ts:87-88) and the shopping-list/plan empty states distinguish a cold-start household with zero purchase history (no prediction data exists yet -- nudge to capture a receipt, using EmptyState's existing action CTA slot) from a fully-stocked household with genuinely nothing due, instead of rendering the same 'nothing needs restocking right now' message for both.",
-      "gh_issue": 154
+      "gh_issue": 154,
+      "verify": {
+        "ci": "pass",
+        "commit": "0a954a5"
+      }
     },
     {
       "id": "S-98",

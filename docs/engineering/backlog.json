@@ -2114,6 +2114,26 @@
         "commit": "2d59cd5",
         "coverage": 0.252
       }
+    },
+    {
+      "id": "S-105",
+      "title": "[P1][review,bug] generate-list-panel.tsx: try/catch around a redirect()-ending Server Action renders NEXT_REDIRECT as literal error text",
+      "epic": "E-25",
+      "prd_ref": "REQ-35",
+      "status": "notstarted",
+      "order": 105,
+      "acceptance": "A client-side try/catch that wraps a call to a Server Action ending in redirect() must not catch Next.js's internal NEXT_REDIRECT throw and render it as visible error text -- either move the redirect() call (or its triggering condition) outside the try block, or explicitly re-throw/ignore errors whose message starts with 'NEXT_REDIRECT'. Verified by an e2e test that drives the generate-list-panel flow to a successful redirect and asserts no 'NEXT_REDIRECT' text ever renders.",
+      "blocked_by": []
+    },
+    {
+      "id": "S-106",
+      "title": "[P2][design-system,touch-target] ConfirmPanel Confirm/Cancel buttons are under the 44px touch target",
+      "epic": "E-25",
+      "prd_ref": "REQ-35",
+      "status": "notstarted",
+      "order": 106,
+      "acceptance": "components/ui/confirm-panel.tsx's own Confirm and Cancel buttons render at the Button component's default size (40px) rather than the 44px min-h-11 applied to every other actionable control across S-91/S-95/S-102. Since ConfirmPanel is a shared component used by multiple destructive/ledger-writing flows (consume, wipe, merge), bump both buttons to min-h-11 and re-run the e2e suites for each flow that renders it to confirm no layout regressions.",
+      "blocked_by": []
     }
   ],
   "coverage": {

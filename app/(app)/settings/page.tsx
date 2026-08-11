@@ -42,7 +42,17 @@ export default async function SettingsPage() {
           <CardDescription>Name, monthly grocery budget, and where digest emails go.</CardDescription>
         </CardHeader>
         <CardContent>
-          <SettingsForm initialName={household.name} initialMonthlyBudget={household.monthly_budget} initialNotifyEmail={household.notify_email} />
+          <SettingsForm
+            initialName={household.name}
+            initialMonthlyBudget={household.monthly_budget}
+            initialNotifyEmail={household.notify_email}
+            // S-96: reflects live config, not a static message -- reads the
+            // same env var digest.ts's own send-decision gate reads
+            // (RESEND_API_KEY), computed fresh on every request since this
+            // is a Server Component. A digest that never sends looked
+            // identical, in the UI, to one that's configured and working.
+            digestConfigured={Boolean(process.env.RESEND_API_KEY)}
+          />
         </CardContent>
       </Card>
 

@@ -10,10 +10,12 @@ export function SettingsForm({
   initialName,
   initialMonthlyBudget,
   initialNotifyEmail,
+  digestConfigured,
 }: {
   initialName: string;
   initialMonthlyBudget: number | null;
   initialNotifyEmail: string | null;
+  digestConfigured: boolean;
 }) {
   const [name, setName] = useState(initialName);
   const [budget, setBudget] = useState(initialMonthlyBudget === null ? '' : String(initialMonthlyBudget));
@@ -60,8 +62,12 @@ export function SettingsForm({
         onChange={(e) => setNotifyEmail(e.target.value)}
         placeholder="you@example.com"
         disabled={isPending}
-        helperText="Where the daily/weekly due-soon digest is sent, once email delivery is configured."
+        helperText="Where the daily/weekly due-soon digest is sent."
       />
+
+      {!digestConfigured && (
+        <Alert tone="warning">Digest emails aren&apos;t sending yet — email delivery isn&apos;t configured in this environment. Saving an address here won&apos;t deliver anything until it is.</Alert>
+      )}
 
       <Button onClick={save} disabled={isPending}>
         {isPending ? 'Saving…' : 'Save'}

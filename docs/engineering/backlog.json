@@ -1929,7 +1929,11 @@
       "order": 93,
       "estimate": 0.1,
       "acceptance": "After a successful merge (catalog-manager.tsx:226-236), a brief success Alert confirms the merge, matching the existing pattern used by Settings' wipe flow, instead of the merged row silently disappearing with no feedback.",
-      "gh_issue": 150
+      "gh_issue": 150,
+      "verify": {
+        "ci": "pass",
+        "commit": "4e378c9"
+      }
     },
     {
       "id": "S-94",

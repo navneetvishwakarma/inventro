@@ -1,0 +1,21 @@
+{
+  "id": "S-100",
+  "title": "[P1][design-system,visual] G3-approved v2 design tokens never applied to app/globals.css",
+  "goal": "docs/design/tokens.md (G3-approved 2026-08-03) specifies new v2 values for --background (canvas), --surface-sunken, --border, --border-strong, --shadow-sm, and --shadow-md, for both light and dark. app/globals.css still carries the v1 values for all of these (confirmed by direct grep: --background: var(--neutral-50), --border: var(--neutral-200), the old shadow formulas). S-73 deferred per-page implementation to 'a separate backlog reconcile once mockups exist' and that reconcile never happened until this story.",
+  "in_scope": [
+    "Update app/globals.css's --background, --surface-sunken, --border, --border-strong, --shadow-sm, and --shadow-md custom properties to match docs/design/tokens.md's approved v2 values, for both the light and dark theme blocks.",
+    "Visually spot-check a representative set of pages (per docs/design/pages/*.md's screen list) after the token change to confirm elevation/contrast reads as intended -- shadow-sm on a card should now visibly separate from the deeper canvas, per tokens.md's stated rationale.",
+    "Confirm no other token or component file hardcodes the old v1 hex values in a way that would now be inconsistent with the updated custom properties (grep for the literal v1 hex values, e.g. #FBF8F7, #E9DEDB, alongside the token update)."
+  ],
+  "out_of_scope": [
+    "Any token value not explicitly listed in docs/design/tokens.md's 'New / changed' table -- brand (--red-*), secondary (--gold-*), tertiary (--blue-*), and semantic status scales are explicitly unchanged per that doc and must stay that way.",
+    "Per-page layout or component restructuring -- this story is a token-value rollout, not a redesign; tokens.md's own scope note (REQ-29's acceptance) already excludes structural changes here."
+  ],
+  "acceptance": "app/globals.css's --background, --surface-sunken, --border, --border-strong, --shadow-sm, and --shadow-md values match docs/design/tokens.md's approved v2 values in both light and dark. No component hardcodes a stale v1 hex value that now conflicts with the updated tokens.",
+  "invariants": [
+    "This must be a values-only change to already-existing custom properties -- it must not introduce new token names or restructure the existing semantic-layer-over-raw-palette architecture that tokens.md explicitly says stays as-is.",
+    "Brand, secondary, tertiary, and semantic status color scales must remain byte-for-byte unchanged -- tokens.md explicitly scopes this rollout to the six listed tokens only."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

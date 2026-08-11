@@ -1,0 +1,21 @@
+{
+  "id": "S-86",
+  "title": "[P0][cost,llm] Cost meter under-reports on every Flash-to-Pro escalation",
+  "goal": "In lib/llm/extract.ts:166-180, totalTokens and totalCost are only accumulated inside if (attempt.ok) { ... } -- after the escalation retry has already overwritten attempt with the Pro-tier result. The failed primary (Flash) attempt's usage, which Gemini still billed, is never added; only the winning attempt's cost gets written to receipts.parse_cost. This violates REQ-21's cost-meter accounting and REQ-25's per-receipt accounting claim on every escalated receipt.",
+  "in_scope": [
+    "lib/llm/extract.ts: accumulate totalTokens/totalCost from both the failed primary attempt (its usage, even though attempt.ok was false) and the successful escalation attempt, whenever escalation occurs.",
+    "Verify estimateCostUsd is called with each attempt's own tier ('primary' vs 'escalation') so mixed-tier pricing is applied correctly, not the escalation tier's rate applied to the primary attempt's tokens or vice versa.",
+    "Confirm the corrected total is what's actually written to receipts.parse_cost / surfaced in Settings' cost meter and Insights."
+  ],
+  "out_of_scope": [
+    "Changing the escalation ladder's retry logic itself -- this story only fixes cost accounting, not when/whether escalation happens.",
+    "Historical backfill of already-recorded parse_cost values for past receipts -- out of scope unless explicitly requested; this fixes the accounting going forward."
+  ],
+  "acceptance": "totalTokens/totalCost in lib/llm/extract.ts accumulate both the failed primary (Flash) attempt's billed usage and the escalation (Pro) attempt's usage whenever escalation occurs, using each attempt's own tier for cost estimation. Settings' cost meter and REQ-21's per-receipt accounting reflect the true combined spend for escalated receipts.",
+  "invariants": [
+    "A non-escalated receipt's cost accounting must be unchanged -- this fix only affects the escalation branch, not the common single-attempt-success path.",
+    "The primary attempt's usage must still be counted even though attempt.ok was false for it -- Gemini bills for the call regardless of whether the response passed quality checks, and the fix must reflect that reality, not just extraction success."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

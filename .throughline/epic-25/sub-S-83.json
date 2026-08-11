@@ -1,0 +1,21 @@
+{
+  "id": "S-83",
+  "title": "[P0][onboarding] Onboarding wizard has no error handling; a mid-setup failure discards all input",
+  "goal": "applyPresetsAction and completeOnboardingAction (app/onboarding/wizard.tsx:44-56) throw on any DB error (lib/onboarding/data.ts:60,68,77,94,105,118) with no try/catch at either call site, so a failure lands the user on the generic app/error.tsx boundary, which remounts the wizard from scratch -- household name, budget, preset picks, and tick-off selections are all lost with no inline recovery, on the exact step the wizard's own comments (wizard.tsx:24-28) call the highest-abandonment-risk part of onboarding.",
+  "in_scope": [
+    "Wrap applyPresetsAction and completeOnboardingAction call sites in wizard.tsx with error handling that surfaces an inline Alert (the pattern already used in login/signup) instead of letting the error propagate to app/error.tsx.",
+    "Preserve wizard state (current step, household name, budget, preset selections, tick-off state) across a failed submit so the user can retry without re-entering prior steps.",
+    "Ensure a retry after a transient failure (e.g. a dropped connection) succeeds cleanly without double-writing already-committed partial state (e.g. household already created but preset application failed)."
+  ],
+  "out_of_scope": [
+    "Redesigning the onboarding flow's steps or copy -- REQ-01/REQ-29 scope.",
+    "Building offline/optimistic-UI support -- this story is about not losing input on a genuine server error, not about working without a network."
+  ],
+  "acceptance": "A DB error during preset application or onboarding completion surfaces an inline Alert with a retry action, not the generic app-level error boundary. Household name, budget, preset picks, and tick-off selections all survive a failed submit. Retrying after a failure does not lose prior progress or double-write already-committed state.",
+  "invariants": [
+    "If household creation already succeeded before a later step fails (e.g. presets), retry must not attempt to create a second household -- check for existing state before re-running earlier side effects.",
+    "The fix must not silently swallow the error -- the user must see why it failed, not just a generic 'something went wrong'."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

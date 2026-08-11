@@ -1,0 +1,19 @@
+{
+  "id": "S-103",
+  "title": "[P2][review,polish] Surface raw LLM response on failure and auto-refresh processing state",
+  "goal": "Two related review-flow polish gaps in the same file: FailedCard (review-detail.tsx:305-345) has access to ingest_jobs.raw_response (already captured in lib/llm/extract.ts:188) but never renders it, despite the review-commit journey doc explicitly calling for a 'flag this parse as bad' affordance with the raw response visible (docs/ux/03-review-commit-journey.md:66); and ProcessingCard (review-detail.tsx:281-299) has no polling/interval, so the user must manually reload to see extraction complete.",
+  "in_scope": [
+    "FailedCard: render ingest_jobs.raw_response behind a 'view raw response' disclosure.",
+    "ProcessingCard: poll periodically (reasonable interval, e.g. every few seconds) so a completed extraction appears without a manual reload."
+  ],
+  "out_of_scope": [
+    "Building a full 'flag this parse as bad' reporting/feedback pipeline -- this story only surfaces the raw response for the user's own inspection, not a submission mechanism to the team.",
+    "Websocket/realtime push for processing status -- polling is sufficient per this finding; realtime is a larger architectural change out of scope here."
+  ],
+  "acceptance": "FailedCard renders the raw LLM response behind a disclosure. ProcessingCard polls periodically so a completed extraction appears without requiring a manual page reload.",
+  "invariants": [
+    "Polling must stop once the receipt reaches a terminal state (parsed or failed) -- it must not poll indefinitely after the outcome is already known."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

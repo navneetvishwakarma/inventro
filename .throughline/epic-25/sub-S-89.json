@@ -1,0 +1,20 @@
+{
+  "id": "S-89",
+  "title": "[P1][interaction,design-system] Enabled Button and Checkbox miss cursor-pointer",
+  "goal": "components/ui/button.tsx and components/ui/checkbox.tsx only set cursor-not-allowed when disabled; Tailwind v4 preflight leaves the enabled state at cursor: default. This is inconsistent with radio.tsx and list-row.tsx in the same design system, which already set cursor-pointer on their clickable state. Affects every submit button and every preset/tick-off checkbox app-wide.",
+  "in_scope": [
+    "Add cursor-pointer to Button's enabled/clickable state in components/ui/button.tsx.",
+    "Add cursor-pointer to Checkbox's enabled/clickable state in components/ui/checkbox.tsx.",
+    "Spot-check that disabled states still correctly show cursor-not-allowed (regression check, not a new requirement)."
+  ],
+  "out_of_scope": [
+    "Auditing every other interactive component for the same gap -- this story covers Button and Checkbox specifically, the two flagged by the audit; a broader sweep is a separate story if more are found.",
+    "Any other visual change to Button or Checkbox beyond the cursor property."
+  ],
+  "acceptance": "Enabled Button and Checkbox instances show cursor-pointer on hover, matching Radio and ListRow's existing behavior. Disabled instances still show cursor-not-allowed, unchanged.",
+  "invariants": [
+    "This is a single CSS-class-level change -- it must not alter any component's layout, sizing, or click behavior."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

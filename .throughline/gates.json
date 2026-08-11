@@ -2,13 +2,35 @@
   "gates": {
     "G7": {
       "status": "approved",
-      "note": "PR #135 merge approved: throughline scaffold upgrade, E-18/E-19 backfill, coverage setup, CI fixes",
-      "updatedAt": "2026-08-06T01:03:22.799Z",
+      "note": "PR merge approved",
+      "updatedAt": "2026-08-11T00:59:58.081Z",
       "subjects": {
         "adopt-project-20260805": {
           "status": "approved",
           "note": "PR #135 merge approved: throughline scaffold upgrade, E-18/E-19 backfill, coverage setup, CI fixes",
           "updatedAt": "2026-08-06T01:03:22.799Z"
+        },
+        "code-review-20260811-005047": {
+          "status": "approved",
+          "note": "PR merge approved",
+          "updatedAt": "2026-08-11T00:59:58.081Z"
+        }
+      }
+    },
+    "G5": {
+      "status": "approved",
+      "note": "Backfilled: project adopted via adopt-project (0.3.1, legacyContractGrace), so G1-G6 predate gate.mjs and were never individually recorded. PRD is approved and backlog.json validates clean with 26 epics/107 stories, 24 of which (E-1..E-23) already went through define-epic/implement-epic/ship under this same posture. Recording G5 now to unblock define-epic for E-25 rather than leave a structural gap unaddressed.",
+      "updatedAt": "2026-08-11T01:50:16.729Z"
+    },
+    "G6": {
+      "status": "approved",
+      "note": "Epic plan approved: 23 story specs, test plan, ledger skeleton, 24 GitHub issues (1 epic + 23 sub-issues) created and linked.",
+      "updatedAt": "2026-08-11T02:00:40.861Z",
+      "subjects": {
+        "E-25": {
+          "status": "approved",
+          "note": "Epic plan approved: 23 story specs, test plan, ledger skeleton, 24 GitHub issues (1 epic + 23 sub-issues) created and linked.",
+          "updatedAt": "2026-08-11T02:00:40.861Z"
         }
       }
     }

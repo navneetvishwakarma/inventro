@@ -1,0 +1,19 @@
+{
+  "id": "S-91",
+  "title": "[P1][review,touch-target] Per-line review edit controls under the 44px touch target",
+  "goal": "Every action on NeedsReviewRow/NewItemRow/FailedCard in review-detail.tsx ('Save & match', 'Confirm as new item', 'Mark non-inventory', 'Retry extraction', 'Confirm date') uses Button's size='sm' (h-8, 32px), well under the 44x44px target -- inconsistent with the Checkbox in the same rows, which correctly wraps its control in a 44px hit area (checkbox.tsx:35).",
+  "in_scope": [
+    "Increase the touch target of the named per-line action buttons in review-detail.tsx to at least 44x44px -- either by changing their size prop or by wrapping them in a larger hit-area container if the visual size must stay compact.",
+    "Verify this doesn't cause layout crowding/overlap in the per-line row given how many actions sit adjacent to each other -- check both mobile and desktop widths."
+  ],
+  "out_of_scope": [
+    "Changing button sizing on other pages -- this story is scoped to review-detail.tsx's per-line controls specifically; S-95 covers the equivalent issue on inventory consume-actions.",
+    "Any copy or icon changes to these buttons -- touch-target sizing only."
+  ],
+  "acceptance": "The named per-line action buttons in review-detail.tsx have a touch target of at least 44x44px, consistent with the Checkbox's existing 44px hit area in the same rows, without introducing layout crowding at mobile widths.",
+  "invariants": [
+    "Increasing touch target size must not cause adjacent per-line controls to visually overlap or become mis-tappable -- verify at the narrowest supported mobile width, not just desktop."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

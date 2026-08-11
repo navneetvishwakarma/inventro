@@ -1,0 +1,18 @@
+{
+  "id": "S-104",
+  "title": "[P2][inventory,polish] Sparkline endpoint highlight per the approved mockup",
+  "goal": "docs/design/pages/inventory.md's v2 target explicitly calls for marking the latest point on the price sparkline ('give sparklines the same care as type'); sparkline.tsx still renders a flat single-color polyline with no endpoint marker, on both the item card and item-detail price-trend card.",
+  "in_scope": [
+    "Add an endpoint marker (dot or equivalent) to the latest data point in sparkline.tsx, applied consistently to both its item-card and item-detail usages."
+  ],
+  "out_of_scope": [
+    "Any other sparkline styling change beyond the endpoint marker -- REQ-29/E-23's broader token rollout (S-100) covers color/shadow values separately.",
+    "Changing the underlying price-history data the sparkline renders."
+  ],
+  "acceptance": "The price sparkline marks its latest data point distinctly, per docs/design/pages/inventory.md's v2 target, on both the item card and item-detail price-trend card.",
+  "invariants": [
+    "The endpoint marker must not visually clutter the sparkline at its smallest rendered size (item card) -- verify legibility at both card and detail-page sizes."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

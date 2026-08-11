@@ -1,0 +1,19 @@
+{
+  "id": "S-95",
+  "title": "[P1][inventory,touch-target] Consume-action buttons under the 44px touch target",
+  "goal": "'Used it up', 'Used some', 'Wasted', and the 25/50/75% fraction buttons in consume-actions.tsx:63-79 all use size='sm' (h-8, 32px) -- the highest-frequency, ledger-writing taps in the whole app, sitting below the 44px target already used elsewhere in the same design system (checkbox and icon-button sizes are already size-11/44px).",
+  "in_scope": [
+    "Increase the touch target of the consume-action buttons in consume-actions.tsx (item detail page) to at least 44x44px -- e.g. size='md' or 'lg'.",
+    "Verify the larger buttons don't crowd the item-detail layout, particularly on narrow mobile widths where this control is most used."
+  ],
+  "out_of_scope": [
+    "Touch-target sizing on review-detail.tsx's controls -- covered separately by S-91.",
+    "Any change to the confirm-step behavior of these buttons -- covered separately by S-94."
+  ],
+  "acceptance": "The consume-action buttons (Used it up, Used some, Wasted, and the fraction shortcuts) have a touch target of at least 44x44px, consistent with the 44px sizing already used elsewhere in this design system, without crowding the item-detail layout at mobile widths.",
+  "invariants": [
+    "The larger touch target must not visually dominate the item-detail page relative to other controls -- verify against the page's existing visual hierarchy."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

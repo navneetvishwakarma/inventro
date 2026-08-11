@@ -1,0 +1,19 @@
+{
+  "id": "S-87",
+  "title": "[P0][catalog,a11y] Catalog \"Recategorize\" select has no accessible name",
+  "goal": "The Select in app/(app)/catalog/catalog-manager.tsx:87-97 only renders a <label> when a label prop is passed (components/ui/select.tsx:37-41); this instance passes placeholder='Recategorize...' but no label and no aria-label. Screen-reader users get an unlabeled combobox on the primary recategorize control -- a WCAG 4.1.2 violation.",
+  "in_scope": [
+    "Add aria-label='Recategorize item' (or a visible <label>, whichever fits the existing catalog-manager.tsx layout better) to the Recategorize Select.",
+    "Spot-check catalog-manager.tsx's other controls (bulk-select checkboxes, merge trigger) for the same missing-label pattern while in this file, since this is exactly the kind of gap that repeats across similar controls."
+  ],
+  "out_of_scope": [
+    "A full accessibility audit of the entire Catalog page beyond this specific control and its immediate neighbors -- broader a11y sweep is not this story's scope.",
+    "Any visual restyling of the Select component -- REQ-29/E-23 scope."
+  ],
+  "acceptance": "The Recategorize Select carries an aria-label or visible label announced by screen readers. Verified via an accessibility check (axe or equivalent) that the control now has an accessible name.",
+  "invariants": [
+    "The fix must not change the Select's visual appearance or existing placeholder behavior -- this is an accessibility-attribute-only fix."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

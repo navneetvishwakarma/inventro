@@ -1,0 +1,18 @@
+{
+  "id": "S-99",
+  "title": "[P1][shopping-list,feedback] No loading affordance during shopping-list regeneration",
+  "goal": "The bucket buttons and 'Generate' button in generate-list-panel.tsx:71,88-98 only pass disabled={isPending}, not Button's existing loading prop (which renders a spinner, button.tsx:38,62-63). During the network round-trip + redirect, all buttons in the row simultaneously dim with no spinner and no per-button distinction of which one was actually clicked -- this is the write-action loading state S-69/REQ-33 asked to confirm, and it's missing here despite ConfirmPanel's branch (triggered only when hasCheckedItems) correctly showing 'Working...' text.",
+  "in_scope": [
+    "Use Button's existing loading prop on the specific button that was clicked during shopping-list regeneration, instead of only disabling every button in the row uniformly."
+  ],
+  "out_of_scope": [
+    "Changing the regeneration logic itself or the confirm-step behavior (already correct per S-69/S-94's related pattern) -- this story is loading-state UI only.",
+    "Adding loading states to other write actions outside this specific panel -- scoped to generate-list-panel.tsx as flagged by the audit."
+  ],
+  "acceptance": "During shopping-list regeneration, the specific button clicked shows a loading spinner (via Button's existing loading prop), distinguishing it from the other buttons that are merely disabled during the operation.",
+  "invariants": [
+    "The existing disabled={isPending} behavior on the non-clicked buttons must be preserved -- this story adds a loading indicator to the clicked button, it doesn't change which buttons are disabled during the operation."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

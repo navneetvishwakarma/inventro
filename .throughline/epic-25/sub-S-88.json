@@ -1,0 +1,21 @@
+{
+  "id": "S-88",
+  "title": "[P1][auth,forms,a11y] Signup/onboarding form-error clarity and re-entry staleness",
+  "goal": "Three related, independently-fixable form-quality gaps in the same auth/onboarding surface: (1) the password-mismatch error in app/(auth)/signup/page.tsx:27-28 renders as a page-level Alert instead of using the Input component's existing error/aria-invalid/aria-describedby support (already built, input.tsx:39-40,48-52, just unused here); (2) signup's generic failure message (signup/actions.ts:29-35) collapses every failure -- including a too-short/weak password -- into 'try a different email', misleading a user whose actual problem is password strength; (3) getStapleItems() (lib/onboarding/data.ts:26-37) reads is_staple fresh on every load, but applyPresetsAction already flipped it on 100+ items, so a user who abandons after step 2 and returns sees a 100+ item tick-off list instead of the ~40-item, 60-second list the wizard promises.",
+  "in_scope": [
+    "signup/page.tsx: pass the password-mismatch error to the confirmPassword Input's error prop instead of a page-level Alert.",
+    "signup/actions.ts: distinguish a weak/too-short password failure from a duplicate-email failure in the returned error message -- duplicate-email must stay generic (anti-enumeration), but a password-strength failure should say so.",
+    "app/onboarding/page.tsx + lib/onboarding/data.ts: scope the tick-off list to the current step's intended ~40-item set on re-entry, not every is_staple=true item accumulated across a prior abandoned pass."
+  ],
+  "out_of_scope": [
+    "Building password-strength meters or client-side validation UI -- this is about server-side error message clarity, not a new client feature.",
+    "Changing the anti-enumeration behavior for duplicate-email failures -- that behavior is correct and must be preserved."
+  ],
+  "acceptance": "Password-mismatch renders as a field-level error on the confirmPassword input, not a page Alert. A too-short/weak-password signup failure states the real problem, not 'try a different email'. Returning to onboarding after abandoning at step 2 shows the intended ~40-item tick-off list, not a preset-inflated one.",
+  "invariants": [
+    "Anti-enumeration behavior for duplicate-email signup failures must be unchanged -- do not let the password-strength fix leak whether an email is already registered.",
+    "The tick-off list fix must not lose track of items the user had already ticked off before abandoning -- distinguish 'reset to the intended set' from 'discard prior progress'."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

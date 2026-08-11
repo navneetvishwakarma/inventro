@@ -1,0 +1,21 @@
+{
+  "id": "S-85",
+  "title": "[P0][capture,review] Zero-line \"successful\" extraction is a silent dead end in Review",
+  "goal": "checkExtractionQuality (lib/llm/extract.ts:99-104) only checks mean-confidence when lines.length > 0, and only checks total-deviation when order_total was extracted. A blank/unreadable photo where the model returns lines: [] and order_total: null passes quality checks cleanly, so the receipt is marked status:'parsed' with zero receipt_lines rows -- never entering the Flash-to-Pro escalation or the failed state. In Review, this renders the full editable UI with no line sections; hasCommittableLines is false and the only feedback is a small disabled-button caption with no retry, no manual-entry link, and no queue badge distinguishing it from a normal parsed receipt (statusBadge only flags non-'parsed' statuses).",
+  "in_scope": [
+    "checkExtractionQuality (lib/llm/extract.ts:99-104): treat a zero-line result as a quality-check failure, on par with low mean-confidence or total-deviation, so it triggers the same Flash-to-Pro escalation path a low-confidence result already takes.",
+    "If escalation also returns zero lines, route into the existing failed state (same path attempt.ok === false already uses) so it gets FailedCard's working retry + manual-entry affordances in review-detail.tsx, instead of status:'parsed' with an empty line list.",
+    "Queue list (app/(app)/review/page.tsx): ensure this case is badged distinctly, not indistinguishable from a normal parsed receipt, once it correctly lands in a non-'parsed' state."
+  ],
+  "out_of_scope": [
+    "Improving the underlying extraction model's accuracy on blank/unreadable photos -- this story is about correctly classifying and surfacing the failure, not preventing it.",
+    "Building a new manual-entry UI -- FailedCard's existing retry/manual-entry affordances already exist and are reused, not rebuilt."
+  ],
+  "acceptance": "A receipt whose extraction returns zero lines (with no order_total) is routed through the same escalation/failed path as a low-confidence extraction, not marked status:'parsed'. If it still fails after escalation, it lands in the failed state with FailedCard's existing retry and manual-entry affordances. The review queue badges it distinctly from a normal parsed receipt.",
+  "invariants": [
+    "This must not regress a genuinely correct zero-line extraction if one is ever legitimate (e.g. a receipt for a single non-inventory service charge) -- confirm with the actual extraction schema whether a truly empty receipt is a real, valid case before hard-failing on line count alone; if so, distinguish 'model returned nothing usable' from 'model correctly found nothing to extract'.",
+    "The fix must not weaken the existing quality checks for non-empty extractions -- this only adds a new failure condition, it doesn't loosen the mean-confidence/total-deviation checks that already work."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

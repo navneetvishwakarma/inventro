@@ -2,7 +2,7 @@
 doc: prd
 project: Inventro
 status: approved        # draft | approved  — must be `approved` before backlog seeding
-updated: 2026-08-01
+updated: 2026-08-06
 v2-cycle: multi-tenant-auth-activation
 ---
 
@@ -79,6 +79,7 @@ password only, deliberately, per the "simple" login requirement).
 | REQ-31 | Real authentication: Supabase Auth email + password signup/login/logout, replacing the shared passcode gate. Signup creates a household and its creator as `owner` in the same transaction — no invite flow (ADR-0006) | P0 | New email/password signup reaches a non-broken Today screen for a brand-new, empty household; wrong password is rejected with a clear error and no session; logout clears the session and the next request re-gates to `/login`, not a 401 page; Supabase anon key remains absent from the client bundle (replaces A26 under the new mechanism) | v2 |
 | REQ-32 | Multi-tenant data isolation: `household_members` join table, RLS enabled and rewritten to key off `auth.uid()` (replacing the disabled, speculative `app.current_household_id` policies), every user-facing Server Action/Route Handler/Server Component reads its household from the signed-in session via a request-scoped Supabase client — not `DEFAULT_HOUSEHOLD_ID` — with the service-role client narrowed to exactly two call sites (`api/cron/*`, the REQ-23 synthetic seeder) | P0 | Two households, each with one seeded item: household A's authenticated session cannot read, list, or write household B's row via any route (new cross-household isolation test, the hard gate on this requirement); RLS is `ENABLE`d (not just written) on every `household_id`-scoped table; no user-facing code path still calls the service-role client | v2 |
 | REQ-33 | Usability and flow-completeness fixes identified by the v2 UX audit (see epic backlog for the itemized list) — dead ends, missing feedback/error states, and incomplete edge-case handling across capture, review, inventory, planning, and shopping-list flows | P1 | Each fix traces to a specific audit finding and its own acceptance line in the backlog; no visual/token changes bundled into this requirement (that's REQ-29's scope) | v2 |
+| REQ-34 | Critical-path unit test coverage beyond REQ-28's original scope (prediction engine, canonicalization, e2e smoke), plus an enforced coverage gate — targeting `lib/` modules with zero coverage that guard a stated safety/correctness claim elsewhere in this table: dedup/hard-stop guards (REQ-08 A2, REQ-25), the redirect sanitizer on the new auth path (REQ-31), LLM-extraction failure handling (REQ-24 A11), virtual stock/consumption math (REQ-14), cost accounting (REQ-25), the notification digest condition (REQ-20), and shopping-list generation (REQ-18) | P1 | `docs/engineering/backlog.json`'s `coverage` gate is set to `mode: "warn"` and reports a real aggregate `lib/**` percentage on every CI run (measured surface stays `lib/**`, matching REQ-28's precedent — `app/` route handlers/Server Actions/Components remain covered by the Playwright e2e suite, not unit coverage, so the two suites don't duplicate the same assertions); each story below adds tests for one zero-coverage module tied to an existing REQ's safety claim; a final story flips `mode` to `"enforce"` once the aggregate clears the 0.7 threshold, not before | v2 |
 
 **PII / compliance flag:** REQ-31 and REQ-32 are this cycle's requirements
 touching auth and PII — REQ-31 introduces real user credentials (email +
@@ -169,3 +170,32 @@ epic this requirement maps to, not duplicated here.
 marked superseded (see its row) but left textually intact as the
 historical record of what v1 shipped, per this project's own "never
 renumber or silently rewrite a shipped requirement" rule.
+
+## v2 reconcile — test coverage hardening (2026-08-06)
+
+E-17 through E-19 (REQ-28, REQ-30) and E-20/E-21 (REQ-31, REQ-32) are
+in flight or shipped. A coverage/quality pass while auditing this cycle
+found `npm test`'s own `@vitest/coverage-v8` report (already wired by
+E-17/S-42, `scripts/coverage.mjs`, and the `coverage` CI job — no new
+tool needed, all OSS and already throughline-native) at 15.0% aggregate
+`lib/**` line coverage against the schema's 70% default threshold, with
+`docs/engineering/backlog.json` carrying no `coverage` key at all —
+meaning enforcement is fully off (`mode` resolves to `'off'`, not even
+`'warn'`), not merely under target. 41 of 48 `lib/**` files have zero
+test coverage.
+
+This is not a REQ-28 regression: REQ-28's acceptance was deliberately
+narrow (prediction engine, canonicalization/unit-normalization,
+backdating/rate-correction, e2e route smoke) and every story under it
+shipped exactly that scope, verified. The gap is modules REQ-28 never
+claimed to cover, several of which back a safety/correctness claim made
+elsewhere in this table (REQ-08 A2's duplicate-block, REQ-25's 100/day
+hard stop, REQ-24 A11's "never a crash or silent data loss," REQ-31's
+new redirect path). Adds REQ-34, additive, no existing REQ-01–REQ-33
+change.
+
+**Why `warn`, not `enforce`, to start:** setting `mode: "enforce"` at
+15% would turn CI red on every PR immediately, including ones unrelated
+to the modules in scope. `warn` measures and reports without blocking;
+the ratchet to `enforce` is its own last story under REQ-34, gated on
+the aggregate actually clearing 0.7 first.

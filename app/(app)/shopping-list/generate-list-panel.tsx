@@ -24,9 +24,21 @@ export function GenerateListPanel({ hasCheckedItems }: { hasCheckedItems: boolea
   const [error, setError] = useState<string | null>(null);
   const [pendingSource, setPendingSource] = useState<ShoppingListSource | null>(null);
   const [days, setDays] = useState(String(DEFAULT_DUE_IN_DAYS));
+  // S-99: every button in the row previously just disabled uniformly during
+  // the round-trip -- no spinner, no way to tell which one was actually
+  // clicked. Tracks the specific source so only that button renders
+  // Button's loading prop; the others stay merely disabled, unchanged.
+  const [clickedSource, setClickedSource] = useState<ShoppingListSource | null>(null);
+
+  function isClicked(source: ShoppingListSource): boolean {
+    if (!clickedSource) return false;
+    if (source.type === 'bucket') return clickedSource.type === 'bucket' && clickedSource.bucket === source.bucket;
+    return clickedSource.type === 'due_in_days';
+  }
 
   function generate(source: ShoppingListSource) {
     setError(null);
+    setClickedSource(source);
     startTransition(async () => {
       try {
         await generateShoppingListAction(source);
@@ -68,7 +80,15 @@ export function GenerateListPanel({ hasCheckedItems }: { hasCheckedItems: boolea
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-2">
           {CADENCE_BUCKET_ORDER.map((bucket) => (
-            <Button key={bucket} type="button" size="sm" variant="outline" disabled={isPending} onClick={() => requestGenerate({ type: 'bucket', bucket })}>
+            <Button
+              key={bucket}
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              loading={isPending && isClicked({ type: 'bucket', bucket })}
+              onClick={() => requestGenerate({ type: 'bucket', bucket })}
+            >
               {formatCadenceBucket(bucket)}
             </Button>
           ))}
@@ -89,6 +109,7 @@ export function GenerateListPanel({ hasCheckedItems }: { hasCheckedItems: boolea
             type="button"
             size="sm"
             disabled={isPending}
+            loading={isPending && isClicked({ type: 'due_in_days', days: 0 })}
             onClick={() => {
               const n = Number(days);
               requestGenerate({ type: 'due_in_days', days: Number.isFinite(n) && n > 0 ? n : DEFAULT_DUE_IN_DAYS });

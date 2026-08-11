@@ -2019,7 +2019,11 @@
       "order": 99,
       "estimate": 0.2,
       "acceptance": "The bucket-selection and 'Generate' buttons in generate-list-panel.tsx use Button's existing loading prop (which renders a spinner) during regeneration instead of only setting disabled, so the user sees which action is in flight rather than every button dimming together with no distinguishing signal.",
-      "gh_issue": 156
+      "gh_issue": 156,
+      "verify": {
+        "ci": "pass",
+        "commit": "b55ba36"
+      }
     },
     {
       "id": "S-100",

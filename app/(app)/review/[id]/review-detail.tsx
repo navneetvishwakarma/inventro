@@ -141,6 +141,7 @@ function NeedsReviewRow({ receiptId, line, categories, reportDirty }: { receiptI
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          className="min-h-11"
           disabled={pending}
           onClick={() => run(() => saveAndMatchLineAction(receiptId, line.id, { itemName, brand: brand || null, categorySlug, qtyDisplay: qtyDisplay || null, unitDisplay: unitDisplay || null }))}
         >
@@ -148,6 +149,7 @@ function NeedsReviewRow({ receiptId, line, categories, reportDirty }: { receiptI
         </Button>
         <Button
           size="sm"
+          className="min-h-11"
           variant="outline"
           disabled={pending}
           onClick={() =>
@@ -165,7 +167,7 @@ function NeedsReviewRow({ receiptId, line, categories, reportDirty }: { receiptI
         >
           Confirm as new item
         </Button>
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
           Mark non-inventory
         </Button>
       </div>
@@ -251,6 +253,7 @@ function NewItemRow({ receiptId, line, categories, reportDirty }: { receiptId: s
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          className="min-h-11"
           disabled={pending}
           onClick={() =>
             run(() =>
@@ -269,13 +272,14 @@ function NewItemRow({ receiptId, line, categories, reportDirty }: { receiptId: s
         </Button>
         <Button
           size="sm"
+          className="min-h-11"
           variant="outline"
           disabled={pending}
           onClick={() => run(() => saveAndMatchLineAction(receiptId, line.id, { itemName, brand: brand || null, categorySlug, qtyDisplay: qtyDisplay || null, unitDisplay: unitDisplay || null }))}
         >
           Actually, match existing
         </Button>
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
           Mark non-inventory
         </Button>
       </div>
@@ -371,7 +375,7 @@ function FailedCard({ receiptId, ingestError, session }: { receiptId: string; in
           )}
           {session && <SessionCounter session={session} nextHref={null} />}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={pending || retried} onClick={retry}>
+            <Button size="sm" className="min-h-11" disabled={pending || retried} onClick={retry}>
               {pending ? 'Retrying…' : 'Retry extraction'}
             </Button>
             <Link href="/add/manual" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
@@ -604,7 +608,7 @@ export function ReviewDetail({
             <Label htmlFor="purchased-at">Purchase date (required)</Label>
             <div className="flex items-end gap-2">
               <Input id="purchased-at" type="date" size="sm" value={dateInput} onChange={(e) => setDateInput(e.target.value)} />
-              <Button variant="outline" size="sm" onClick={confirmDate} disabled={pending}>
+              <Button variant="outline" size="sm" className="min-h-11" onClick={confirmDate} disabled={pending}>
                 {receipt.purchased_at_confirmed ? 'Update date' : 'Confirm date'}
               </Button>
             </div>

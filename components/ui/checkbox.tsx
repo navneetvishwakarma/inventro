@@ -32,7 +32,7 @@ function Checkbox({ checked, defaultChecked, onChange, label, disabled, id, name
       disabled={disabled}
       onCheckedChange={onChange}
       className={cn(
-        "group relative flex size-11 shrink-0 items-center justify-center rounded-sm outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "group relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
     >

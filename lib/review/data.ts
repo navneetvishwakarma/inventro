@@ -97,6 +97,31 @@ export async function getReceiptForReview(receiptId: string): Promise<ReceiptFor
   return { ...data, ingestState: job?.state ?? null, ingestError: job?.error ?? null };
 }
 
+export type DuplicateReceiptSummary = {
+  id: string;
+  merchant: string | null;
+  purchased_at: string | null;
+  total_amount: number | null;
+};
+
+// S-92: near_duplicate_of only carries the other receipt's id -- the
+// warning that references it had nothing to show the user without this,
+// so "check before committing" meant leaving the page and searching the
+// queue manually. household_id-scoped like every other query here, so a
+// stale/cross-tenant id (shouldn't happen, but not assumed) resolves to
+// null rather than leaking another household's receipt.
+export async function getDuplicateReceiptSummary(receiptId: string): Promise<DuplicateReceiptSummary | null> {
+  const supabase = await createRequestClient();
+  const { data, error } = await supabase
+    .from('receipts')
+    .select('id, merchant, purchased_at, total_amount')
+    .eq('id', receiptId)
+    .eq('household_id', await getCurrentHouseholdId())
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function getDocumentPreviewUrl(storagePath: string): Promise<string> {
   return getSignedReceiptUrl(storagePath, 300);
 }

@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getHousehold } from '@/lib/onboarding/data';
-import { getReceiptForReview, getReceiptLines, getLeafCategories, getStockEpoch, getDocumentPreviewUrl, getDocumentPreviewText } from '@/lib/review/data';
+import { getReceiptForReview, getReceiptLines, getLeafCategories, getStockEpoch, getDocumentPreviewUrl, getDocumentPreviewText, getDuplicateReceiptSummary } from '@/lib/review/data';
 import { ReviewDetail, type ReviewSession } from './review-detail';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export default async function ReviewDetailPage({ params, searchParams }: { param
 
   const isTextReceipt = receipt.mime === 'text/plain';
 
-  const [lines, categories, stockEpoch, docUrls, previewText] = await Promise.all([
+  const [lines, categories, stockEpoch, docUrls, previewText, duplicateReceipt] = await Promise.all([
     getReceiptLines(id),
     getLeafCategories(),
     getStockEpoch(),
@@ -58,11 +58,21 @@ export default async function ReviewDetailPage({ params, searchParams }: { param
           urls.filter((u): u is string => u !== null),
         ),
     isTextReceipt && receipt.storage_paths[0] ? getDocumentPreviewText(receipt.storage_paths[0]).catch(() => null) : Promise.resolve(null),
+    receipt.near_duplicate_of ? getDuplicateReceiptSummary(receipt.near_duplicate_of) : Promise.resolve(null),
   ]);
 
   const session = parseSession(sessionParam, id);
 
   return (
-    <ReviewDetail receipt={receipt} lines={lines} categories={categories} stockEpoch={stockEpoch} docUrls={docUrls} previewText={previewText} session={session} />
+    <ReviewDetail
+      receipt={receipt}
+      lines={lines}
+      categories={categories}
+      stockEpoch={stockEpoch}
+      docUrls={docUrls}
+      previewText={previewText}
+      session={session}
+      duplicateReceipt={duplicateReceipt}
+    />
   );
 }

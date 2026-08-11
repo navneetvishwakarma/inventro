@@ -15,7 +15,7 @@ import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ListRow } from '@/components/ui/list-row';
 import { cn } from '@/lib/utils';
-import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
+import type { ReceiptForReview, ReceiptLineForReview, LeafCategory, DuplicateReceiptSummary } from '@/lib/review/data';
 import { toKolkataDateString } from '@/lib/date';
 import { formatBaseQty } from '@/lib/inventory/format';
 import { formatMoney } from '@/lib/format/money';
@@ -399,6 +399,7 @@ export function ReviewDetail({
   docUrls,
   previewText,
   session,
+  duplicateReceipt,
 }: {
   receipt: ReceiptForReview;
   lines: ReceiptLineForReview[];
@@ -407,6 +408,7 @@ export function ReviewDetail({
   docUrls: string[];
   previewText: string | null;
   session: ReviewSession | null;
+  duplicateReceipt: DuplicateReceiptSummary | null;
 }) {
   const router = useRouter();
   const [dateInput, setDateInput] = useState(toDateInputValue(receipt.purchased_at));
@@ -601,7 +603,33 @@ export function ReviewDetail({
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {receipt.near_duplicate_of && (
-            <Alert tone="warning">Possible duplicate of another receipt (merchant/date/total match) — check before committing.</Alert>
+            <Alert
+              tone="warning"
+              action={
+                // S-92: non-blocking by design (journey doc's explicit
+                // intent) -- this just makes the claim verifiable instead
+                // of sending the user to manually search the queue. Goes
+                // through the same unsaved-edit guard as every other
+                // navigation-away link on this page (S-90), since leaving
+                // via this link can silently discard edits exactly like
+                // "Skip to next" or the mobile back link can.
+                <Link href={`/review/${receipt.near_duplicate_of}`} onClick={confirmDiscardIfDirty} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                  View possible duplicate
+                </Link>
+              }
+            >
+              Possible duplicate of{' '}
+              {duplicateReceipt ? (
+                <>
+                  {duplicateReceipt.merchant ?? 'another receipt'}
+                  {duplicateReceipt.purchased_at ? ` on ${toKolkataDateString(duplicateReceipt.purchased_at)}` : ''}
+                  {duplicateReceipt.total_amount !== null ? ` (${formatMoney(duplicateReceipt.total_amount)})` : ''}
+                </>
+              ) : (
+                'another receipt'
+              )}{' '}
+              — check before committing.
+            </Alert>
           )}
 
           <div className="flex flex-col gap-2 rounded-md border-2 border-border-strong p-3">

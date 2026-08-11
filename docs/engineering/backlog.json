@@ -1772,7 +1772,12 @@
       "order": 83,
       "estimate": 0.3,
       "acceptance": "applyPresetsAction and completeOnboardingAction (app/onboarding/wizard.tsx:44-56) are wrapped so a DB error surfaces an inline Alert instead of hitting the generic app-level error boundary; household name, budget, preset picks, and tick-off selections survive a failed submit and the user can retry without re-entering prior steps.",
-      "gh_issue": 140
+      "gh_issue": 140,
+      "verify": {
+        "ci": "pass",
+        "commit": "9db9a22",
+        "coverage": 0.165
+      }
     },
     {
       "id": "S-84",

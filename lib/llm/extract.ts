@@ -87,7 +87,7 @@ async function routeExtraction(pages: ExtractionPage[], storagePath: string): Pr
   };
 }
 
-function checkExtractionQuality(lines: Array<{ line_total: number | null; confidence: number }>, orderTotal: number | null): string[] {
+export function checkExtractionQuality(lines: Array<{ line_total: number | null; confidence: number }>, orderTotal: number | null): string[] {
   const problems: string[] = [];
 
   if (orderTotal !== null) {
@@ -99,6 +99,13 @@ function checkExtractionQuality(lines: Array<{ line_total: number | null; confid
   if (lines.length > 0) {
     const meanConfidence = lines.reduce((sum, l) => sum + l.confidence, 0) / lines.length;
     if (meanConfidence < 0.5) problems.push(`mean line confidence ${meanConfidence.toFixed(2)} < 0.5`);
+  } else {
+    // S-85: zero lines is never a legitimate extraction (a delivery-fee-only
+    // or non-inventory-only receipt still produces one line with
+    // is_non_inventory: true -- see schema.ts, which has no minimum-length
+    // constraint on `lines` but every real document produces at least one).
+    // Zero lines only ever means the model returned nothing usable.
+    problems.push('no line items extracted');
   }
 
   return problems;

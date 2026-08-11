@@ -1,5 +1,4 @@
 import { notFound, redirect } from 'next/navigation';
-import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getReceiptForReview, getReceiptLines, getLeafCategories, getStockEpoch, getDocumentPreviewUrl, getDocumentPreviewText } from '@/lib/review/data';
 import { ReviewDetail, type ReviewSession } from './review-detail';
@@ -64,9 +63,6 @@ export default async function ReviewDetailPage({ params, searchParams }: { param
   const session = parseSession(sessionParam, id);
 
   return (
-    <>
-      <MobileTopBar title="Review receipt" backHref="/review" />
-      <ReviewDetail receipt={receipt} lines={lines} categories={categories} stockEpoch={stockEpoch} docUrls={docUrls} previewText={previewText} session={session} />
-    </>
+    <ReviewDetail receipt={receipt} lines={lines} categories={categories} stockEpoch={stockEpoch} docUrls={docUrls} previewText={previewText} session={session} />
   );
 }

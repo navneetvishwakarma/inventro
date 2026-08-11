@@ -35,6 +35,11 @@
       "id": "D6",
       "name": "V2: multi-tenant auth activation",
       "order": 6
+    },
+    {
+      "id": "D7",
+      "name": "V2: test coverage hardening",
+      "order": 7
     }
   ],
   "epics": [
@@ -309,6 +314,17 @@
       "estimate": 0.4,
       "acceptance": "docs/design/ v2 token set, updated component primitives, and key-screen mockups (covering every existing app/(app)/** and app/onboarding/** screen plus the new /login and /signup screens from E-20) exist and pass define-design's self-review (design-critique + WCAG AA a11y pass); G3 approved. Per-page implementation stories are seeded in a follow-up backlog reconcile once mockups exist -- writing testable per-page acceptance against mockups that do not exist yet would violate Definition of Ready, the same reason REQ-30 (E-19) worked against an already-approved reference rather than one authored in the same pass.",
       "gh_issue": 125
+    },
+    {
+      "id": "E-24",
+      "title": "Critical-path unit test coverage + coverage gate ratchet",
+      "phase": "D7",
+      "prd_ref": "REQ-34",
+      "order": 24,
+      "vertical": false,
+      "estimate": 1.5,
+      "acceptance": "Aggregate lib/** line coverage (scripts/coverage.mjs) rises from 15.0% toward the 0.7 threshold via targeted unit tests across the seven stories below, covering nine zero-coverage modules each tied to an existing REQ's safety/correctness claim; final story flips backlog.json's coverage.mode from 'warn' to 'enforce' once the aggregate clears 0.7, not before.",
+      "gh_issue": null
     }
   ],
   "stories": [
@@ -1617,6 +1633,107 @@
       "estimate": 0.4,
       "acceptance": "docs/design/ (v2) contains tokens.md, updated component primitive specs, and key-screen mockups for every app/(app)/**, app/onboarding/**, and the new /login + /signup screens; design-critique + WCAG AA a11y self-review pass; G3 approved by human review. This story is the enabler -- per-page implementation stories follow in a separate backlog reconcile once mockups exist.",
       "gh_issue": 126
+    },
+    {
+      "id": "S-74",
+      "title": "lib/safe-redirect.ts unit tests (redirect sanitizer on the new auth path)",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 74,
+      "estimate": 0.2,
+      "acceptance": "Unit tests cover safe-redirect's allow/deny logic: a same-origin relative path (e.g. '/today') is returned unchanged; an absolute URL, protocol-relative URL ('//evil.com'), or any path not starting with a single '/' is rejected and the safe default is returned instead. Currently 0% covered and sits directly on REQ-31's new /login?next= redirect path.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-75",
+      "title": "lib/receipts/dedup.ts + guard.ts unit tests (duplicate-block + daily hard-stop)",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 75,
+      "estimate": 0.4,
+      "acceptance": "Unit tests cover dedup.ts's content-hash duplicate detection (same SHA-256 content_hash is flagged, a one-byte-different file is not) and guard.ts's ingestion rate logic (100th receipt in a day is allowed, 101st is blocked; the 50-receipt alert threshold fires once, not on every subsequent receipt). Both are currently 0% covered despite backing REQ-08's A2 and REQ-25's hard-stop acceptance claims.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-76",
+      "title": "lib/llm/extract.ts unit tests (malformed-response escalation path)",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 76,
+      "estimate": 0.5,
+      "acceptance": "Unit tests (mocked provider calls, no live Gemini call) cover extract.ts's escalation branch: malformed/non-schema-conforming JSON on the first (Flash) attempt triggers exactly one retry on Pro, not a crash; a second failure on Pro falls through to the manual-entry path with the raw response retained, never a thrown exception or silently dropped receipt. Currently 0% covered despite REQ-24 A11's explicit 'never a crash or silent data loss' claim.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-77",
+      "title": "lib/inventory/virtualStock.ts + consume.ts unit tests",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 77,
+      "estimate": 0.4,
+      "acceptance": "Unit tests cover virtualStock's implicit-depletion projection (stock trends toward zero between purchases per the predicted rate, never below zero) and consume.ts's three actions (used it up zeroes virtual stock; used some decrements by a partial amount; wasted zeroes stock and tags the movement distinctly from a normal depletion) -- both pure/near-pure and currently 0% covered though REQ-14's Today-surfacing behavior depends on them.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-78",
+      "title": "lib/llm/cost.ts unit tests (per-receipt token/cost accounting)",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 78,
+      "estimate": 0.2,
+      "acceptance": "Unit tests cover cost.ts's token-to-cost conversion for each configured model tier (Flash vs. Pro pricing), including the escalation case (a receipt that retries on Pro accumulates both calls' cost, not just the final one). Currently 0% covered despite backing REQ-21's cost-meter display and REQ-25's per-receipt accounting claim.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-79",
+      "title": "lib/notifications/digest.ts unit tests (due-item condition)",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 79,
+      "estimate": 0.3,
+      "acceptance": "Unit tests cover digest.ts's send-decision logic: a household with at least one item due within the digest window returns {sent: true, ...}; a household with none due returns {sent: false, reason: 'nothing due'}; the already-covered RESEND_API_KEY-unset path (S-55) is left as-is. Currently 0% covered though REQ-20's acceptance is specifically 'digest only fires when something is actually due.'",
+      "gh_issue": null
+    },
+    {
+      "id": "S-80",
+      "title": "lib/shopping-list/generate.ts unit tests",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 80,
+      "estimate": 0.3,
+      "acceptance": "Unit tests cover generate.ts's list-building logic: generating from a single cadence bucket includes only that bucket's due items; generating from 'due in next N days' includes items whose predicted next-purchase falls within N days and excludes ones just outside it (boundary case); an item with no active prediction is excluded, not defaulted in. Currently 0% covered despite REQ-18 depending on it end-to-end.",
+      "gh_issue": null
+    },
+    {
+      "id": "S-81",
+      "title": "Ratchet coverage.mjs mode from warn to enforce once aggregate clears 0.7",
+      "epic": "E-24",
+      "prd_ref": "REQ-34",
+      "status": "notstarted",
+      "order": 81,
+      "estimate": 0.1,
+      "blocked_by": [
+        "S-74",
+        "S-75",
+        "S-76",
+        "S-77",
+        "S-78",
+        "S-79",
+        "S-80"
+      ],
+      "acceptance": "node scripts/coverage.mjs --check reports an aggregate lib/** line percentage >= 0.7; backlog.json's coverage.mode is then flipped from 'warn' to 'enforce' in the same change, and the coverage CI job goes from report-only to blocking on the next PR.",
+      "gh_issue": null
     }
-  ]
+  ],
+  "coverage": {
+    "min": 0.7,
+    "mode": "warn"
+  }
 }

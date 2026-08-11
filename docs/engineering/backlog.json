@@ -2004,7 +2004,11 @@
       "order": 98,
       "estimate": 0.2,
       "acceptance": "Each zero-data card on the Insights page (app/(app)/insights/page.tsx:70,89,106,122 -- no purchase history, no priced purchases, no price changes, no waste logged) links to /add, instead of stating the empty condition as plain text with no next action.",
-      "gh_issue": 155
+      "gh_issue": 155,
+      "verify": {
+        "ci": "pass",
+        "commit": "50e266c"
+      }
     },
     {
       "id": "S-99",

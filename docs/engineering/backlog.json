@@ -2064,7 +2064,11 @@
       "order": 102,
       "estimate": 0.2,
       "acceptance": "The price Input and 'Log purchase' Button in shopping-list-item-row.tsx, and the Continue/Back/Skip/Finish buttons in app/onboarding/wizard.tsx, move from their current sub-44px sizing (size='sm'/default h-10) to the 44px+ sizing already used correctly on login/signup (size='lg').",
-      "gh_issue": 159
+      "gh_issue": 159,
+      "verify": {
+        "ci": "pass",
+        "commit": "7a43de0"
+      }
     },
     {
       "id": "S-103",

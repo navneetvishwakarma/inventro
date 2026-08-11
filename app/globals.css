@@ -200,23 +200,35 @@ body {
   --radius-2xl: 18px;
 
   --shadow-xs: 0 1px 2px color-mix(in oklch, var(--shadow-tint) 10%, transparent);
-  --shadow-sm: 0 1px 3px color-mix(in oklch, var(--shadow-tint) 12%, transparent), 0 1px 2px color-mix(in oklch, var(--shadow-tint) 8%, transparent);
-  --shadow-md: 0 4px 10px color-mix(in oklch, var(--shadow-tint) 14%, transparent), 0 2px 4px color-mix(in oklch, var(--shadow-tint) 8%, transparent);
+  /* S-100/tokens.md v2: --shadow-sm and --shadow-md move out of this shared
+     tint-based formula into :root/.dark below -- light gets a slightly
+     more visible resting/hover shadow, dark switches to a flat black
+     falloff instead of a tinted one (tokens.md's own rationale: a tint
+     barely shows against a dark ground). --shadow-xs/lg/xl are untouched,
+     not named in tokens.md's v2 table. */
   --shadow-lg: 0 12px 24px color-mix(in oklch, var(--shadow-tint) 16%, transparent), 0 4px 8px color-mix(in oklch, var(--shadow-tint) 8%, transparent);
   --shadow-xl: 0 24px 48px color-mix(in oklch, var(--shadow-tint) 20%, transparent), 0 8px 16px color-mix(in oklch, var(--shadow-tint) 10%, transparent);
 }
 
 :root {
-  --background: var(--neutral-50);
+  /* S-100/tokens.md v2 (G3-approved 2026-08-03): --background,
+     --surface-sunken, --border, --border-strong retuned off the raw
+     --neutral-* scale to new literal values -- v1 was ~1% off white and
+     didn't read as elevated against shadow-sm + a white surface. The
+     --neutral-* scale itself is untouched; these four are no longer
+     aliases into it. */
+  --background: #F1E8E4;
   --foreground: var(--neutral-900);
   --foreground-muted: var(--neutral-600);
   --foreground-subtle: var(--neutral-500);
 
   --surface: var(--neutral-0);
   --surface-raised: var(--neutral-0);
-  --surface-sunken: var(--neutral-100);
-  --border: var(--neutral-200);
-  --border-strong: var(--neutral-300);
+  --surface-sunken: #F5EDEA;
+  --border: #E4D5D0;
+  --border-strong: #D2BDB6;
+  --shadow-sm: 0 1px 2px rgba(60, 24, 20, .06), 0 1px 1px rgba(60, 24, 20, .04);
+  --shadow-md: 0 6px 16px rgba(60, 24, 20, .10), 0 2px 5px rgba(60, 24, 20, .06);
 
   --brand: var(--red-500);
   --brand-hover: var(--red-600);
@@ -263,7 +275,17 @@ body {
 }
 
 .dark {
-  --background: var(--neutral-950);
+  /* S-100/tokens.md v2: --background retuned to pair with the light-mode
+     canvas/surface separation logic; --surface (--neutral-900) is
+     unchanged so the gap between them is preserved the same way.
+     --shadow-sm/--shadow-md switch from the shared tint-based formula to
+     a flat black falloff -- a tint barely shows against a dark ground
+     (tokens.md's own rationale). tokens.md gives only the two opacity
+     values (.3/.4), not exact offsets/blur for dark -- reused the
+     existing sm/md offset-blur shape (1px/2px, 4px/10px) rather than
+     inventing new ones, since only the color formula is called out as
+     changing. */
+  --background: #17100E;
   --foreground: var(--neutral-50);
   --foreground-muted: var(--neutral-300);
   --foreground-subtle: var(--neutral-400);
@@ -273,6 +295,8 @@ body {
   --surface-sunken: #0C0908;
   --border: var(--neutral-700);
   --border-strong: var(--neutral-600);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, .4);
 
   --brand: var(--red-500);
   --brand-hover: var(--red-400);

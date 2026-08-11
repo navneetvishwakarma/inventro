@@ -326,6 +326,19 @@ function SessionCounter({
 // editable form would show an empty, seemingly-broken review UI instead of
 // an accurate "still working on it".
 function ProcessingCard({ session }: { session: ReviewSession | null }) {
+  const router = useRouter();
+
+  // S-103: no polling meant the user had to manually reload to see a
+  // completed extraction. Refreshing (not re-fetching client-side) re-runs
+  // this Server Component's data fetch; once that reveals a terminal state
+  // (parsed/failed), the parent stops rendering ProcessingCard at all --
+  // this component unmounts, and the cleanup below clears the interval.
+  // Polling can't outlive the terminal state by construction.
+  useEffect(() => {
+    const id = setInterval(() => router.refresh(), 4000);
+    return () => clearInterval(id);
+  }, [router]);
+
   return (
     <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
       <Card>
@@ -349,7 +362,17 @@ function ProcessingCard({ session }: { session: ReviewSession | null }) {
 // ladder (lib/llm/extract.ts) with no usable lines. Retry re-runs the exact
 // same extraction path a fresh upload uses; manual entry is the existing
 // standalone fallback (REQ-24) for a receipt extraction can't handle at all.
-function FailedCard({ receiptId, ingestError, session }: { receiptId: string; ingestError: string | null; session: ReviewSession | null }) {
+function FailedCard({
+  receiptId,
+  ingestError,
+  ingestRawResponse,
+  session,
+}: {
+  receiptId: string;
+  ingestError: string | null;
+  ingestRawResponse: string | null;
+  session: ReviewSession | null;
+}) {
   const [pending, startTransition] = useTransition();
   const [retried, setRetried] = useState(false);
 
@@ -385,6 +408,17 @@ function FailedCard({ receiptId, ingestError, session }: { receiptId: string; in
               Back to review queue
             </Link>
           </div>
+          {ingestRawResponse && (
+            // S-103: journey doc calls for a "flag this parse as bad"
+            // affordance with the raw response visible -- this is the
+            // inspection surface, not a submission mechanism (out of
+            // scope). Native <details> needs no new state or dependency
+            // for a disclosure this simple.
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer select-none">View raw response</summary>
+              <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-surface-sunken p-2 whitespace-pre-wrap">{ingestRawResponse}</pre>
+            </details>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -514,7 +548,7 @@ export function ReviewDetail({
       <>
         <MobileTopBar title="Review receipt" backHref="/review" onBackClick={confirmDiscardIfDirty} />
         {receipt.ingestState === 'failed' ? (
-          <FailedCard receiptId={receipt.id} ingestError={receipt.ingestError} session={session} />
+          <FailedCard receiptId={receipt.id} ingestError={receipt.ingestError} ingestRawResponse={receipt.ingestRawResponse} session={session} />
         ) : (
           <ProcessingCard session={session} />
         )}

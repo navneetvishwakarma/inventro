@@ -21,14 +21,16 @@ export type ReviewQueueItem = {
   ingestError: string | null;
 };
 
-async function latestIngestJobsByReceipt(receiptIds: string[]): Promise<Map<string, { state: string; error: string | null }>> {
-  const map = new Map<string, { state: string; error: string | null }>();
+type IngestJobSummary = { state: string; error: string | null; rawResponse: { text: string | null } | null };
+
+async function latestIngestJobsByReceipt(receiptIds: string[]): Promise<Map<string, IngestJobSummary>> {
+  const map = new Map<string, IngestJobSummary>();
   if (receiptIds.length === 0) return map;
 
   const supabase = await createRequestClient();
   const { data, error } = await supabase
     .from('ingest_jobs')
-    .select('receipt_id, state, error')
+    .select('receipt_id, state, error, raw_response')
     .in('receipt_id', receiptIds)
     .order('updated_at', { ascending: false });
   if (error) throw error;
@@ -39,7 +41,7 @@ async function latestIngestJobsByReceipt(receiptIds: string[]): Promise<Map<stri
   // first hit per receipt_id is a defensive-not-load-bearing tie-break, not
   // evidence multiple rows are expected.
   for (const job of data ?? []) {
-    if (!map.has(job.receipt_id)) map.set(job.receipt_id, { state: job.state, error: job.error });
+    if (!map.has(job.receipt_id)) map.set(job.receipt_id, { state: job.state, error: job.error, rawResponse: job.raw_response as { text: string | null } | null });
   }
   return map;
 }
@@ -79,6 +81,7 @@ export type ReceiptForReview = {
   status: string;
   ingestState: string | null;
   ingestError: string | null;
+  ingestRawResponse: string | null;
 };
 
 export async function getReceiptForReview(receiptId: string): Promise<ReceiptForReview | null> {
@@ -94,7 +97,7 @@ export async function getReceiptForReview(receiptId: string): Promise<ReceiptFor
 
   const jobsByReceipt = await latestIngestJobsByReceipt([receiptId]);
   const job = jobsByReceipt.get(receiptId);
-  return { ...data, ingestState: job?.state ?? null, ingestError: job?.error ?? null };
+  return { ...data, ingestState: job?.state ?? null, ingestError: job?.error ?? null, ingestRawResponse: job?.rawResponse?.text ?? null };
 }
 
 export type DuplicateReceiptSummary = {

@@ -1914,7 +1914,11 @@
       "order": 92,
       "estimate": 0.2,
       "acceptance": "The 'possible duplicate' warning in review-detail.tsx:507-509 links to receipt.near_duplicate_of so the user can inspect the actual match before committing, instead of stating the claim with no way to verify it.",
-      "gh_issue": 149
+      "gh_issue": 149,
+      "verify": {
+        "ci": "pass",
+        "commit": "bccf057"
+      }
     },
     {
       "id": "S-93",

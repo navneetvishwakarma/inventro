@@ -40,7 +40,7 @@ export async function signupAction(_prevState: SignupResult | null, formData: Fo
     // oracle GENERIC_SIGNUP_ERROR exists to close. Every other code
     // (including anything unrecognized) stays on the generic message.
     if (signUpError.code === 'weak_password') {
-      return { ok: false, error: signUpError.message || 'Password is too weak. Try a longer or more complex password.' };
+      return { ok: false, error: signUpError.message };
     }
     return { ok: false, error: GENERIC_SIGNUP_ERROR };
   }

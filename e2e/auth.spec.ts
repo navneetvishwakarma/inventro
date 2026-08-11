@@ -93,7 +93,7 @@ base('duplicate signup is rejected with a clear error', async ({ page }) => {
 // parameter -- a weak-password response is identical whether or not the
 // email is already registered, so distinguishing it does not reopen the
 // enumeration oracle the generic message exists to close.
-base('weak password signup failure is distinct from the generic error, and duplicate-email stays generic', async ({ page }) => {
+base('weak password signup failure states the real problem, not the generic error', async ({ page }) => {
   const email = uniqueTestEmail();
 
   await page.goto('/signup');
@@ -107,6 +107,7 @@ base('weak password signup failure is distinct from the generic error, and dupli
   await expect(alert).toBeVisible();
   const alertText = await alert.textContent();
   expect(alertText).not.toContain('Could not create your account');
+  expect(alertText).toMatch(/password/i);
 });
 
 base('wrong password is rejected with a generic error and no session', async ({ page }) => {

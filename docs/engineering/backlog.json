@@ -1852,7 +1852,12 @@
       "order": 88,
       "estimate": 0.4,
       "acceptance": "Three related fixes: (1) password-mismatch error in app/(auth)/signup/page.tsx:27-28 is passed to the confirmPassword Input's existing error/aria-invalid support instead of rendering as a page-level Alert; (2) signup's generic failure message (signup/actions.ts:29-35) is split so a too-short/weak password gets its own actionable message instead of 'try a different email'; (3) getStapleItems() (lib/onboarding/data.ts:26-37) reflects only the current wizard step's picks on re-entry after an abandoned session, not a 100+-item list inflated by presets already applied in a prior visit.",
-      "gh_issue": 145
+      "gh_issue": 145,
+      "verify": {
+        "ci": "pass",
+        "commit": "fdd90f4",
+        "coverage": 0.253
+      }
     },
     {
       "id": "S-89",

@@ -73,10 +73,9 @@ export function ShoppingListItemRow({
             value={price}
             disabled={isPending}
             onChange={(e) => setPrice(e.target.value)}
-            size="sm"
             className="w-28"
           />
-          <Button type="button" size="sm" variant="outline" disabled={isPending || !price} onClick={handleLogPurchase}>
+          <Button type="button" size="sm" className="min-h-11" variant="outline" disabled={isPending || !price} onClick={handleLogPurchase}>
             Log purchase
           </Button>
         </div>

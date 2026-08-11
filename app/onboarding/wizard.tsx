@@ -95,7 +95,7 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                   />
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" disabled={!name.trim()} onClick={() => setStep(2)}>
+                  <Button size="lg" className="w-full" disabled={!name.trim()} onClick={() => setStep(2)}>
                     Continue
                   </Button>
                 </CardFooter>
@@ -116,6 +116,7 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                 </CardContent>
                 <CardFooter className="flex gap-2">
                   <Button
+                    size="lg"
                     variant="outline"
                     onClick={() => {
                       setError(null);
@@ -125,7 +126,7 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                   >
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={goToTickOff} disabled={pending}>
+                  <Button size="lg" className="flex-1" onClick={goToTickOff} disabled={pending}>
                     {pending ? 'Loading…' : 'Continue'}
                   </Button>
                 </CardFooter>
@@ -149,10 +150,10 @@ export function OnboardingWizard({ initialName, initialStapleItems }: { initialN
                   </div>
                 )}
                 <CardFooter className="flex gap-2">
-                  <Button variant="outline" onClick={() => finish(true)} disabled={pending}>
+                  <Button size="lg" variant="outline" onClick={() => finish(true)} disabled={pending}>
                     Skip
                   </Button>
-                  <Button className="flex-1" onClick={() => finish(false)} disabled={pending}>
+                  <Button size="lg" className="flex-1" onClick={() => finish(false)} disabled={pending}>
                     {pending ? 'Finishing…' : `Finish (${tickedIds.size} selected)`}
                   </Button>
                 </CardFooter>

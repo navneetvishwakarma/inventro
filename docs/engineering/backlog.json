@@ -1756,7 +1756,12 @@
       "order": 82,
       "estimate": 0.2,
       "acceptance": "A logout control (Settings page or sidebar footer) is bound to the existing logoutAction (app/(auth)/login/actions.ts:32-36); e2e/auth.spec.ts's logout coverage exercises the real UI control instead of clearCookies(). Currently logoutAction has zero call sites in app/ or components/ -- REQ-31's logout acceptance has never been exercised through the UI.",
-      "gh_issue": 139
+      "gh_issue": 139,
+      "verify": {
+        "ci": "pass",
+        "commit": "41a0766",
+        "coverage": 0.15
+      }
     },
     {
       "id": "S-83",

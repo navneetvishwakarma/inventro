@@ -1820,7 +1820,12 @@
       "order": 86,
       "estimate": 0.2,
       "acceptance": "totalTokens/totalCost in lib/llm/extract.ts:166-180 accumulate both the failed primary (Flash) attempt's billed usage and the escalation (Pro) attempt's usage on every escalation, not just the winning attempt; Settings' cost meter and REQ-21's per-receipt accounting reflect the true combined spend.",
-      "gh_issue": 143
+      "gh_issue": 143,
+      "verify": {
+        "ci": "pass",
+        "commit": "c65a2af",
+        "coverage": 0.253
+      }
     },
     {
       "id": "S-87",

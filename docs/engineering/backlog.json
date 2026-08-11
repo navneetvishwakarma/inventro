@@ -2079,7 +2079,11 @@
       "order": 103,
       "estimate": 0.3,
       "acceptance": "FailedCard in review-detail.tsx:305-345 renders ingest_jobs.raw_response (already captured, currently unused) behind a 'view raw response' disclosure per the review-commit journey doc's 'flag this parse as bad' intent; ProcessingCard (review-detail.tsx:281-299) polls periodically so a completed extraction appears without a manual page reload.",
-      "gh_issue": 160
+      "gh_issue": 160,
+      "verify": {
+        "ci": "pass",
+        "commit": "f425428"
+      }
     },
     {
       "id": "S-104",

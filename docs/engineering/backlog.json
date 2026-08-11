@@ -2034,7 +2034,11 @@
       "order": 100,
       "estimate": 0.5,
       "acceptance": "app/globals.css's --background, --surface-sunken, --border, --border-strong, --shadow-sm, and --shadow-md values match docs/design/tokens.md's approved v2 values (both light and dark), closing the gap left when S-73 deferred per-page implementation to 'a separate backlog reconcile once mockups exist' with no such reconcile ever seeded until this story.",
-      "gh_issue": 157
+      "gh_issue": 157,
+      "verify": {
+        "ci": "pass",
+        "commit": "8ca4381"
+      }
     },
     {
       "id": "S-101",

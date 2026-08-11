@@ -1836,7 +1836,12 @@
       "order": 87,
       "estimate": 0.1,
       "acceptance": "The Recategorize Select in app/(app)/catalog/catalog-manager.tsx:87-97 carries an aria-label (or visible label); a screen-reader user gets an announced name for the control, not a bare unlabeled combobox. WCAG 4.1.2.",
-      "gh_issue": 144
+      "gh_issue": 144,
+      "verify": {
+        "ci": "pass",
+        "commit": "7b5bbbc",
+        "coverage": 0.253
+      }
     },
     {
       "id": "S-88",

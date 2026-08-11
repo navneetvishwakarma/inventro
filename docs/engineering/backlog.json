@@ -1868,7 +1868,12 @@
       "order": 89,
       "estimate": 0.1,
       "acceptance": "components/ui/button.tsx and components/ui/checkbox.tsx set cursor-pointer on their enabled/clickable state, matching the existing pattern already used in radio.tsx and list-row.tsx -- consistent across every submit button and checkbox app-wide.",
-      "gh_issue": 146
+      "gh_issue": 146,
+      "verify": {
+        "ci": "pass",
+        "commit": "4b24074",
+        "coverage": 0.253
+      }
     },
     {
       "id": "S-90",

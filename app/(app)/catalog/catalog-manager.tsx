@@ -89,6 +89,7 @@ function ItemRow({
           <Select
             value=""
             placeholder="Recategorize…"
+            aria-label="Recategorize item"
             onChange={(e) => handleRecategorize(e.target.value)}
             disabled={isPending}
             options={categories.map((c) => ({ value: c.slug, label: c.name }))}

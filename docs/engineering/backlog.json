@@ -1974,7 +1974,11 @@
       "order": 96,
       "estimate": 0.2,
       "acceptance": "settings-form.tsx surfaces an explicit warning (e.g. Alert tone='warning') stating the digest is currently inactive when RESEND_API_KEY is unset, replacing the current small gray helper text that a user can easily miss and mistake for 'configured and working'.",
-      "gh_issue": 153
+      "gh_issue": 153,
+      "verify": {
+        "ci": "pass",
+        "commit": "dadf00c"
+      }
     },
     {
       "id": "S-97",

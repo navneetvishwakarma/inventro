@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
+import { buttonVariants } from '@/components/ui/button';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getActiveShoppingList } from '@/lib/shopping-list/data';
+import { getPlanItems } from '@/lib/plan/data';
 import { formatShoppingListAsText } from '@/lib/shopping-list/format';
 import { formatBaseQty } from '@/lib/inventory/format';
 import { GenerateListPanel } from './generate-list-panel';
@@ -22,6 +25,14 @@ export default async function ShoppingListPage() {
   const listText = list ? formatShoppingListAsText(list) : '';
   const hasCheckedItems = list ? list.items.some((item) => item.checked) : false;
 
+  // S-97: getPlanItems() is already filtered to cadenceBucket !== null, so
+  // an empty result means literally nothing in the household has a
+  // computed prediction yet -- distinct from a generated list that's
+  // empty because everything WITH predictions is already stocked. Only
+  // fetched when it might matter (the list itself is empty) to avoid an
+  // extra query on the common non-empty path.
+  const hasAnyPredictionData = list && list.items.length === 0 ? (await getPlanItems()).length > 0 : true;
+
   return (
     <>
       <MobileTopBar title="Shopping list" backHref="/" />
@@ -39,8 +50,19 @@ export default async function ShoppingListPage() {
           {list && list.items.length > 0 && <CopyListButton text={listText} />}
         </CardHeader>
         <CardContent>
-          {list && list.items.length === 0 && (
+          {list && list.items.length === 0 && hasAnyPredictionData && (
             <EmptyState title="Nothing due in this selection" description="Good news — nothing needs restocking right now." />
+          )}
+          {list && list.items.length === 0 && !hasAnyPredictionData && (
+            <EmptyState
+              title="No predictions yet"
+              description="Add a receipt so Inventro can start predicting what you'll need to restock."
+              action={
+                <Link href="/add" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                  Add a receipt
+                </Link>
+              }
+            />
           )}
           {list?.items.map((item) => (
             <ShoppingListItemRow

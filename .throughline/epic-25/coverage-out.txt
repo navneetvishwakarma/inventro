@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-08-11T16:21:49.096Z",
+  "status": "ok",
+  "stacks": [
+    {
+      "stack": "node-vitest",
+      "tool": "@vitest/coverage-v8",
+      "status": "ok",
+      "reportFormat": "lcov",
+      "reportPath": "coverage/lcov.info",
+      "covered": 286,
+      "total": 1135,
+      "pct": 0.25198237885462554,
+      "passed": false
+    }
+  ],
+  "commit": "4550adf1d6a4d50545d6b98fd1ff74ba12bc5aad",
+  "aggregate": {
+    "pct": 0.25198237885462554
+  },
+  "threshold": 0.7,
+  "mode": "warn",
+  "passed": false
+}

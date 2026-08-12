@@ -11,17 +11,21 @@ export function Sparkline({ points, width = 80, height = 24 }: { points: { unitP
   const range = max - min || 1;
   const stepX = values.length > 1 ? width / (values.length - 1) : 0;
 
-  const coords = values
-    .map((v, i) => {
-      const x = i * stepX;
-      const y = height - ((v - min) / range) * height;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
+  const xy = values.map((v, i) => ({
+    x: i * stepX,
+    y: height - ((v - min) / range) * height,
+  }));
+  const coords = xy.map(({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const endpoint = xy[xy.length - 1];
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="inline-block text-foreground-subtle" role="img" aria-label="Price trend">
       <polyline points={coords} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      {/* S-104/docs/design/pages/inventory.md: "give sparklines the same
+         care as type" -- a small fixed radius reads clearly at both the
+         item-card's 24px height and item-detail's 60px without dominating
+         the smaller size. */}
+      <circle cx={endpoint.x} cy={endpoint.y} r={2} className="fill-primary" stroke="none" />
     </svg>
   );
 }

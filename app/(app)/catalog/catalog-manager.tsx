@@ -89,6 +89,7 @@ function ItemRow({
           <Select
             value=""
             placeholder="Recategorize…"
+            aria-label="Recategorize item"
             onChange={(e) => handleRecategorize(e.target.value)}
             disabled={isPending}
             options={categories.map((c) => ({ value: c.slug, label: c.name }))}
@@ -100,7 +101,7 @@ function ItemRow({
   );
 }
 
-function MergePanel({ itemA, itemB, onDone, onCancel }: { itemA: CatalogManagerItem; itemB: CatalogManagerItem; onDone: () => void; onCancel: () => void }) {
+function MergePanel({ itemA, itemB, onDone, onCancel }: { itemA: CatalogManagerItem; itemB: CatalogManagerItem; onDone: (message: string) => void; onCancel: () => void }) {
   const [survivorId, setSurvivorId] = useState(itemA.id);
   const [preview, setPreview] = useState<MergePreview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +126,7 @@ function MergePanel({ itemA, itemB, onDone, onCancel }: { itemA: CatalogManagerI
     startTransition(async () => {
       const result = await mergeCatalogItemsAction(survivor.id, loser.id);
       if (result.ok) {
-        onDone();
+        onDone(`Merged ${itemLabel(loser)} into ${itemLabel(survivor)}.`);
       } else {
         setError(result.error);
       }
@@ -168,6 +169,7 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [merging, setMerging] = useState(false);
+  const [mergeResult, setMergeResult] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -209,7 +211,15 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
             <Input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search catalog" placeholder="Search catalog…" size="sm" className="w-full sm:w-[260px]" />
             <Checkbox checked={showArchived} onChange={(c) => setShowArchived(c)} label="Show archived" />
             {selectedItems.length === 2 && !merging && (
-              <Button type="button" size="sm" className="hidden md:inline-flex" onClick={() => setMerging(true)}>
+              <Button
+                type="button"
+                size="sm"
+                className="hidden md:inline-flex"
+                onClick={() => {
+                  setMergeResult(null);
+                  setMerging(true);
+                }}
+              >
                 Merge selected
               </Button>
             )}
@@ -217,7 +227,15 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
 
           {selectedItems.length === 2 && !merging && (
             <div className="fixed inset-x-0 bottom-16 z-10 border-t border-border bg-surface p-3 md:hidden">
-              <Button type="button" size="lg" className="w-full" onClick={() => setMerging(true)}>
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  setMergeResult(null);
+                  setMerging(true);
+                }}
+              >
                 Merge selected
               </Button>
             </div>
@@ -227,13 +245,18 @@ export function CatalogManager({ items, categories }: { items: CatalogManagerIte
             <MergePanel
               itemA={selectedItems[0]}
               itemB={selectedItems[1]}
-              onDone={() => {
+              onDone={(message) => {
                 setMerging(false);
                 setSelectedIds([]);
+                setMergeResult(message);
               }}
               onCancel={() => setMerging(false)}
             />
           )}
+
+          {/* S-93: additive, not a gate -- rendered alongside the row list
+             the merge already removed via revalidation, not blocking it. */}
+          {mergeResult && !merging && <Alert tone="success">{mergeResult}</Alert>}
 
           <div className="flex flex-col gap-2">
             {filtered.map((item) => (

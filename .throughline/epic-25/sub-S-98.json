@@ -1,0 +1,18 @@
+{
+  "id": "S-98",
+  "title": "[P1][insights,flow-completeness] Zero-data Insights cards have no CTA back to capture",
+  "goal": "Every zero-data card on app/(app)/insights/page.tsx (lines 70, 89, 106, 122 -- 'Not enough purchase history yet...', 'No priced purchases...', 'No notable price changes...', 'No waste logged...') is plain text with no link to /add. Not a hard dead end since bottom nav still works, but every card independently fails to offer the one obvious next action on a data-empty Insights page.",
+  "in_scope": [
+    "Add a link to /add on each of the four zero-data cards identified in insights/page.tsx."
+  ],
+  "out_of_scope": [
+    "Changing the underlying data queries that determine when these cards render as empty -- this story only adds a CTA to the existing empty copy.",
+    "The Plan/Shopping-List empty-state distinction -- covered separately by S-97, a different page."
+  ],
+  "acceptance": "Each of the four zero-data cards on the Insights page links to /add, instead of stating the empty condition as plain text with no next action.",
+  "invariants": [
+    "The CTA must only appear on genuinely empty cards -- it must not show once real data exists for that card."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

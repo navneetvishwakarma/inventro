@@ -1,0 +1,18 @@
+{
+  "id": "S-93",
+  "title": "[P1][catalog,feedback] Catalog merge has no success confirmation",
+  "goal": "catalog-manager.tsx:226-236's merge onDone handler (setMerging(false); setSelectedIds([])) just closes the merge UI and lets the revalidated list quietly drop the merged row -- there's no 'Merged successfully' feedback, unlike Settings' wipe flow which shows an explicit <Alert tone='success'>Demo data wiped.</Alert> (data-tools-panel.tsx:57,97). The catalog journey doc calls this a 'destructive-feeling action' that needs resolution feedback; currently the only signal is the row disappearing.",
+  "in_scope": [
+    "Surface a brief success Alert (matching the pattern already used in data-tools-panel.tsx) after a successful merge in catalog-manager.tsx."
+  ],
+  "out_of_scope": [
+    "Adding an undo affordance for merges -- not requested by the audit finding; success feedback only.",
+    "Changing the merge flow's existing preview-based confirm UI (already a deliberate, documented design choice per S-69's ledger) -- this story only adds post-merge feedback, not pre-merge confirmation changes."
+  ],
+  "acceptance": "After a successful catalog merge, a brief success Alert confirms the merge, matching the existing pattern used by Settings' wipe flow, instead of the merged row silently disappearing with no feedback.",
+  "invariants": [
+    "The success feedback must not block or delay the UI update -- the merged row should still disappear promptly; the Alert is additive, not a gate."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

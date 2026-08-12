@@ -1,0 +1,22 @@
+{
+  "id": "S-82",
+  "title": "[P0][auth] No logout affordance exists anywhere in the UI",
+  "goal": "logoutAction (app/(auth)/login/actions.ts:32-36) clears the session and redirects to /login correctly, but nothing in the app calls it -- grep across app/ and components/ finds zero call sites -- so a signed-in user has no in-app way to log out, and REQ-31's logout acceptance criterion has never actually been exercised through the UI (e2e/auth.spec.ts substitutes clearCookies()).",
+  "in_scope": [
+    "Add a logout control bound to the existing logoutAction -- Settings page (app/(app)/settings/**) is the natural home given it already hosts account-level actions (data-tools-panel.tsx's wipe flow), but the sidebar footer is also acceptable if that's where session-level actions already live in this design system.",
+    "Update e2e/auth.spec.ts's logout coverage to click the real UI control instead of calling clearCookies() directly.",
+    "Confirm the control redirects to /login (not a 401 page) and that a subsequent request to any app/(app)/** route re-gates to /login."
+  ],
+  "out_of_scope": [
+    "Any visual/token restyling beyond what's needed to add the control -- REQ-29/E-23 scope.",
+    "Multi-session / 'log out of all devices' -- not part of REQ-31's scope this cycle.",
+    "Building a new logout mechanism -- logoutAction is already correct and complete; this story is purely about wiring a UI entry point to it."
+  ],
+  "acceptance": "A logout control is bound to logoutAction and reachable from Settings or the sidebar footer. Clicking it clears the session and lands on /login. e2e/auth.spec.ts's logout test exercises the real control, not clearCookies(). Any prior in-app navigation to an app/(app)/** route after logout re-gates to /login, not a 401 page.",
+  "invariants": [
+    "The control must call the real logoutAction Server Action, not a client-side cookie clear -- a client-only 'logout' that doesn't hit the server leaves the httpOnly session cookie's server-side state inconsistent with what the UI implies.",
+    "This is the only path in the app that currently has zero UI entry point for an already-implemented, already-correct Server Action -- verify no other REQ-31/32 action shares this gap before closing the story."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

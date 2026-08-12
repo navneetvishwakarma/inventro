@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getCostMeterSummary } from '@/lib/settings/cost-meter';
 import { DAILY_INGEST_HARD_STOP } from '@/lib/receipts/guard';
+import { logoutAction } from '@/app/(auth)/login/actions';
 import { SettingsForm } from './settings-form';
 import { DataToolsPanel } from './data-tools-panel';
 import { ProgressBar } from './progress-bar';
@@ -41,7 +42,17 @@ export default async function SettingsPage() {
           <CardDescription>Name, monthly grocery budget, and where digest emails go.</CardDescription>
         </CardHeader>
         <CardContent>
-          <SettingsForm initialName={household.name} initialMonthlyBudget={household.monthly_budget} initialNotifyEmail={household.notify_email} />
+          <SettingsForm
+            initialName={household.name}
+            initialMonthlyBudget={household.monthly_budget}
+            initialNotifyEmail={household.notify_email}
+            // S-96: reflects live config, not a static message -- reads the
+            // same env var digest.ts's own send-decision gate reads
+            // (RESEND_API_KEY), computed fresh on every request since this
+            // is a Server Component. A digest that never sends looked
+            // identical, in the UI, to one that's configured and working.
+            digestConfigured={Boolean(process.env.RESEND_API_KEY)}
+          />
         </CardContent>
       </Card>
 
@@ -102,6 +113,20 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <DataToolsPanel />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Session</CardTitle>
+          <CardDescription>Sign out of this device.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={logoutAction}>
+            <Button type="submit" variant="outline">
+              Log out
+            </Button>
+          </form>
         </CardContent>
       </Card>
       </div>

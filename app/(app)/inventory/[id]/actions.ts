@@ -9,10 +9,22 @@ import type { CadenceBucket } from '@/lib/predictions/types';
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 async function runAndRevalidate(catalogItemId: string, action: ConsumeAction): Promise<ActionResult> {
+  let result;
   try {
-    await recordConsumption(catalogItemId, action);
+    result = await recordConsumption(catalogItemId, action);
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+  // S-94: recordConsumption previously no-op'd silently ({ok: true}, no
+  // write) whenever stock was already at zero -- the confirm panel this
+  // story adds would otherwise close with nothing visibly having happened
+  // and no explanation. Not a real failure, but ActionResult has no
+  // "false alarm" shape distinct from ok:false -- reusing it is the
+  // pragmatic minimal change, matching how every other soft/expected
+  // rejection in this file already surfaces (inline via the same error
+  // Alert / ConfirmPanel error prop).
+  if (!result.wrote) {
+    return { ok: false, error: 'Nothing to log -- this item is already at zero stock.' };
   }
   revalidatePath(`/inventory/${catalogItemId}`);
   revalidatePath('/inventory');

@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2Icon } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { MobileTopBar } from '@/components/ui/mobile-top-bar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +15,7 @@ import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ListRow } from '@/components/ui/list-row';
 import { cn } from '@/lib/utils';
-import type { ReceiptForReview, ReceiptLineForReview, LeafCategory } from '@/lib/review/data';
+import type { ReceiptForReview, ReceiptLineForReview, LeafCategory, DuplicateReceiptSummary } from '@/lib/review/data';
 import { toKolkataDateString } from '@/lib/date';
 import { formatBaseQty } from '@/lib/inventory/format';
 import { formatMoney } from '@/lib/format/money';
@@ -85,7 +86,7 @@ function EditableLineFields({
   );
 }
 
-function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
+function NeedsReviewRow({ receiptId, line, categories, reportDirty }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[]; reportDirty: (lineId: string, dirty: boolean) => void }) {
   const [itemName, setItemName] = useState(line.item_name ?? '');
   const [brand, setBrand] = useState(line.brand ?? '');
   const [categorySlug, setCategorySlug] = useState(line.category_slug ?? 'uncategorized');
@@ -94,6 +95,23 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
   const [packSize, setPackSize] = useState(line.pack_size ?? '');
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // S-90: reported on every field change, and cleared on unmount -- a
+  // successful save changes `line.review_state`, which changes this row's
+  // React `key` (see the .map() call sites below) and unmounts the old
+  // instance, so the cleanup here also covers "saved successfully" without
+  // needing to special-case the `run()` result.
+  useEffect(() => {
+    const dirty =
+      itemName !== (line.item_name ?? '') ||
+      brand !== (line.brand ?? '') ||
+      categorySlug !== (line.category_slug ?? 'uncategorized') ||
+      qtyDisplay !== (line.qty_display ?? '') ||
+      unitDisplay !== (line.unit_display ?? '') ||
+      packSize !== (line.pack_size ?? '');
+    reportDirty(line.id, dirty);
+    return () => reportDirty(line.id, false);
+  }, [itemName, brand, categorySlug, qtyDisplay, unitDisplay, packSize, line, reportDirty]);
 
   function run(fn: () => Promise<{ ok: boolean; error?: string }>) {
     startTransition(async () => {
@@ -123,6 +141,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          className="min-h-11"
           disabled={pending}
           onClick={() => run(() => saveAndMatchLineAction(receiptId, line.id, { itemName, brand: brand || null, categorySlug, qtyDisplay: qtyDisplay || null, unitDisplay: unitDisplay || null }))}
         >
@@ -130,6 +149,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
         </Button>
         <Button
           size="sm"
+          className="min-h-11"
           variant="outline"
           disabled={pending}
           onClick={() =>
@@ -147,7 +167,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
         >
           Confirm as new item
         </Button>
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
           Mark non-inventory
         </Button>
       </div>
@@ -163,7 +183,7 @@ function NeedsReviewRow({ receiptId, line, categories }: { receiptId: string; li
 // building a second edit UI -- the interaction (Save & match / Confirm as
 // new item / Mark non-inventory) is identical, only the entry point
 // (collapsed ListRow vs. always-open) differs.
-function MatchedLineRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
+function MatchedLineRow({ receiptId, line, categories, reportDirty }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[]; reportDirty: (lineId: string, dirty: boolean) => void }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!expanded) {
@@ -178,10 +198,10 @@ function MatchedLineRow({ receiptId, line, categories }: { receiptId: string; li
     );
   }
 
-  return <NeedsReviewRow receiptId={receiptId} line={line} categories={categories} />;
+  return <NeedsReviewRow receiptId={receiptId} line={line} categories={categories} reportDirty={reportDirty} />;
 }
 
-function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[] }) {
+function NewItemRow({ receiptId, line, categories, reportDirty }: { receiptId: string; line: ReceiptLineForReview; categories: LeafCategory[]; reportDirty: (lineId: string, dirty: boolean) => void }) {
   const [itemName, setItemName] = useState(line.item_name ?? '');
   const [brand, setBrand] = useState(line.brand ?? '');
   const [categorySlug, setCategorySlug] = useState(line.category_slug ?? 'uncategorized');
@@ -190,6 +210,20 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
   const [packSize, setPackSize] = useState(line.pack_size ?? '');
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  // S-90: see NeedsReviewRow's identical effect for why unmount-on-save
+  // (via the key-forced remount in the .map() below) is sufficient cleanup.
+  useEffect(() => {
+    const dirty =
+      itemName !== (line.item_name ?? '') ||
+      brand !== (line.brand ?? '') ||
+      categorySlug !== (line.category_slug ?? 'uncategorized') ||
+      qtyDisplay !== (line.qty_display ?? '') ||
+      unitDisplay !== (line.unit_display ?? '') ||
+      packSize !== (line.pack_size ?? '');
+    reportDirty(line.id, dirty);
+    return () => reportDirty(line.id, false);
+  }, [itemName, brand, categorySlug, qtyDisplay, unitDisplay, packSize, line, reportDirty]);
 
   function run(fn: () => Promise<{ ok: boolean; error?: string }>) {
     startTransition(async () => {
@@ -219,6 +253,7 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
+          className="min-h-11"
           disabled={pending}
           onClick={() =>
             run(() =>
@@ -237,13 +272,14 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
         </Button>
         <Button
           size="sm"
+          className="min-h-11"
           variant="outline"
           disabled={pending}
           onClick={() => run(() => saveAndMatchLineAction(receiptId, line.id, { itemName, brand: brand || null, categorySlug, qtyDisplay: qtyDisplay || null, unitDisplay: unitDisplay || null }))}
         >
           Actually, match existing
         </Button>
-        <Button size="sm" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={pending} onClick={() => run(() => markLineNonInventoryAction(receiptId, line.id))}>
           Mark non-inventory
         </Button>
       </div>
@@ -259,14 +295,25 @@ function NewItemRow({ receiptId, line, categories }: { receiptId: string; line: 
 // parseSession for why a sliced "remaining ids" subset breaks the counter.
 export type ReviewSession = { position: number; total: number; nextId: string | null; allIds: string[] };
 
-function SessionCounter({ session, nextHref }: { session: ReviewSession; nextHref: string | null }) {
+function SessionCounter({
+  session,
+  nextHref,
+  onNavigateAttempt,
+}: {
+  session: ReviewSession;
+  nextHref: string | null;
+  // S-90: same guard the top-level component wires into MobileTopBar's back
+  // link -- undefined on the read-only status cards (ProcessingCard/
+  // FailedCard), which never render editable rows so nothing can be dirty.
+  onNavigateAttempt?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+}) {
   return (
     <p className="flex items-center gap-2 text-sm text-muted-foreground">
       <Badge tone="neutral">
         Reviewing {session.position} of {session.total}
       </Badge>
       {nextHref && (
-        <Link href={nextHref} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+        <Link href={nextHref} onClick={onNavigateAttempt} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
           Skip to next
         </Link>
       )}
@@ -279,6 +326,19 @@ function SessionCounter({ session, nextHref }: { session: ReviewSession; nextHre
 // editable form would show an empty, seemingly-broken review UI instead of
 // an accurate "still working on it".
 function ProcessingCard({ session }: { session: ReviewSession | null }) {
+  const router = useRouter();
+
+  // S-103: no polling meant the user had to manually reload to see a
+  // completed extraction. Refreshing (not re-fetching client-side) re-runs
+  // this Server Component's data fetch; once that reveals a terminal state
+  // (parsed/failed), the parent stops rendering ProcessingCard at all --
+  // this component unmounts, and the cleanup below clears the interval.
+  // Polling can't outlive the terminal state by construction.
+  useEffect(() => {
+    const id = setInterval(() => router.refresh(), 4000);
+    return () => clearInterval(id);
+  }, [router]);
+
   return (
     <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
       <Card>
@@ -302,7 +362,17 @@ function ProcessingCard({ session }: { session: ReviewSession | null }) {
 // ladder (lib/llm/extract.ts) with no usable lines. Retry re-runs the exact
 // same extraction path a fresh upload uses; manual entry is the existing
 // standalone fallback (REQ-24) for a receipt extraction can't handle at all.
-function FailedCard({ receiptId, ingestError, session }: { receiptId: string; ingestError: string | null; session: ReviewSession | null }) {
+function FailedCard({
+  receiptId,
+  ingestError,
+  ingestRawResponse,
+  session,
+}: {
+  receiptId: string;
+  ingestError: string | null;
+  ingestRawResponse: string | null;
+  session: ReviewSession | null;
+}) {
   const [pending, startTransition] = useTransition();
   const [retried, setRetried] = useState(false);
 
@@ -328,7 +398,7 @@ function FailedCard({ receiptId, ingestError, session }: { receiptId: string; in
           )}
           {session && <SessionCounter session={session} nextHref={null} />}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={pending || retried} onClick={retry}>
+            <Button size="sm" className="min-h-11" disabled={pending || retried} onClick={retry}>
               {pending ? 'Retrying…' : 'Retry extraction'}
             </Button>
             <Link href="/add/manual" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
@@ -338,6 +408,17 @@ function FailedCard({ receiptId, ingestError, session }: { receiptId: string; in
               Back to review queue
             </Link>
           </div>
+          {ingestRawResponse && (
+            // S-103: journey doc calls for a "flag this parse as bad"
+            // affordance with the raw response visible -- this is the
+            // inspection surface, not a submission mechanism (out of
+            // scope). Native <details> needs no new state or dependency
+            // for a disclosure this simple.
+            <details className="text-xs text-muted-foreground">
+              <summary className="cursor-pointer select-none">View raw response</summary>
+              <pre className="mt-2 max-h-64 overflow-auto rounded-md bg-surface-sunken p-2 whitespace-pre-wrap">{ingestRawResponse}</pre>
+            </details>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -352,6 +433,7 @@ export function ReviewDetail({
   docUrls,
   previewText,
   session,
+  duplicateReceipt,
 }: {
   receipt: ReceiptForReview;
   lines: ReceiptLineForReview[];
@@ -360,6 +442,7 @@ export function ReviewDetail({
   docUrls: string[];
   previewText: string | null;
   session: ReviewSession | null;
+  duplicateReceipt: DuplicateReceiptSummary | null;
 }) {
   const router = useRouter();
   const [dateInput, setDateInput] = useState(toDateInputValue(receipt.purchased_at));
@@ -367,6 +450,37 @@ export function ReviewDetail({
   const [pending, startTransition] = useTransition();
   const [dateError, setDateError] = useState<string | null>(null);
   const [commitError, setCommitError] = useState<string | null>(null);
+
+  // S-90: a ref, not state -- this is read only at navigation-click time, so
+  // there's no reason to re-render the whole page on every keystroke in a
+  // row's fields. Rows register/unregister themselves by line id via
+  // `reportDirty`; the set's size is the only thing the guard cares about.
+  const dirtyLineIdsRef = useRef<Set<string>>(new Set());
+  const reportDirty = useCallback((lineId: string, dirty: boolean) => {
+    if (dirty) dirtyLineIdsRef.current.add(lineId);
+    else dirtyLineIdsRef.current.delete(lineId);
+  }, []);
+
+  // S-90: window.confirm, deliberately not ConfirmPanel (S-69's shared
+  // inline-confirm card). ConfirmPanel exists for destructive ledger-writing
+  // actions (consume, wipe, merge) where the app deliberately avoids the
+  // browser-native dialog's opaque styling for something the user is
+  // committing to. This isn't that -- it's a "leave without saving?" nav
+  // guard, the exact scenario window.confirm is the expected, native pattern
+  // for, and nothing is written to the ledger either way. Rendering
+  // ConfirmPanel here would also require blocking Link's default navigation
+  // unconditionally and reproducing it after an inline confirm click --
+  // strictly more code for a less familiar interaction on a lower-stakes
+  // action than the cases S-69 was solving for.
+  const confirmDiscardIfDirty = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (dirtyLineIdsRef.current.size === 0) return;
+    const leave = window.confirm('You have unsaved edits on this receipt. Leave without saving them?');
+    if (!leave) {
+      e.preventDefault();
+    } else {
+      dirtyLineIdsRef.current.clear();
+    }
+  }, []);
 
   // S-27: where "Next" goes after a successful commit -- the current
   // receipt's own id is already consumed, so only the ids after it remain.
@@ -421,45 +535,63 @@ export function ReviewDetail({
   // predates this story (defensive, not an expected steady-state) -- treated
   // as "still processing" rather than silently falling through to the full
   // edit UI on a receipt with no lines yet.
+  // S-90: MobileTopBar used to be rendered by page.tsx as a sibling of this
+  // component -- moved inside so its back link can share this component's
+  // dirty-tracking ref via `confirmDiscardIfDirty`. A Server Component
+  // (page.tsx) can't hold that ref or pass a closure into a Client
+  // Component's onClick, so the two had to live in the same client tree.
+  // Harmless on the Processing/Failed/Committed branches below: nothing
+  // dirty can exist there (no editable rows render), so the guard is a
+  // no-op and behaves exactly as the plain Link did before this story.
   if (receipt.status !== 'committed' && receipt.status !== 'parsed') {
-    if (receipt.ingestState === 'failed') {
-      return <FailedCard receiptId={receipt.id} ingestError={receipt.ingestError} session={session} />;
-    }
-    return <ProcessingCard session={session} />;
+    return (
+      <>
+        <MobileTopBar title="Review receipt" backHref="/review" onBackClick={confirmDiscardIfDirty} />
+        {receipt.ingestState === 'failed' ? (
+          <FailedCard receiptId={receipt.id} ingestError={receipt.ingestError} ingestRawResponse={receipt.ingestRawResponse} session={session} />
+        ) : (
+          <ProcessingCard session={session} />
+        )}
+      </>
+    );
   }
 
   if (receipt.status === 'committed') {
     return (
-      <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Committed</CardTitle>
-            <CardDescription>This receipt is already in inventory.</CardDescription>
-          </CardHeader>
-          {/* S-27: a mid-session receipt that's already committed (e.g. a
-             stale back-button visit) must not strand the user on a dead-end
-             card -- the counter and forward navigation render here too. */}
-          {session && (
-            <CardContent>
-              <SessionCounter session={session} nextHref={null} />
-              {nextHref ? (
-                <Link href={nextHref} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
-                  Next ({session.position + 1} of {session.total})
-                </Link>
-              ) : (
-                <Link href="/review" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
-                  Back to review queue
-                </Link>
-              )}
-            </CardContent>
-          )}
-        </Card>
-      </div>
+      <>
+        <MobileTopBar title="Review receipt" backHref="/review" onBackClick={confirmDiscardIfDirty} />
+        <div className="mx-auto w-full max-w-[440px] p-4 md:p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Committed</CardTitle>
+              <CardDescription>This receipt is already in inventory.</CardDescription>
+            </CardHeader>
+            {/* S-27: a mid-session receipt that's already committed (e.g. a
+               stale back-button visit) must not strand the user on a dead-end
+               card -- the counter and forward navigation render here too. */}
+            {session && (
+              <CardContent>
+                <SessionCounter session={session} nextHref={null} />
+                {nextHref ? (
+                  <Link href={nextHref} className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
+                    Next ({session.position + 1} of {session.total})
+                  </Link>
+                ) : (
+                  <Link href="/review" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'self-start')}>
+                    Back to review queue
+                  </Link>
+                )}
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      </>
     );
   }
 
   return (
     <>
+    <MobileTopBar title="Review receipt" backHref="/review" onBackClick={confirmDiscardIfDirty} />
     <div className="flex w-full flex-col gap-3 p-4 pb-24 md:flex-row md:gap-6 md:p-6 md:pb-6">
       <Card className="md:w-[320px] md:shrink-0">
         <CardHeader>
@@ -501,18 +633,44 @@ export function ReviewDetail({
           <CardDescription>
             {lines.length} line(s), {excludedCount} excluded.
           </CardDescription>
-          {session && <SessionCounter session={session} nextHref={nextHref} />}
+          {session && <SessionCounter session={session} nextHref={nextHref} onNavigateAttempt={confirmDiscardIfDirty} />}
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {receipt.near_duplicate_of && (
-            <Alert tone="warning">Possible duplicate of another receipt (merchant/date/total match) — check before committing.</Alert>
+            <Alert
+              tone="warning"
+              action={
+                // S-92: non-blocking by design (journey doc's explicit
+                // intent) -- this just makes the claim verifiable instead
+                // of sending the user to manually search the queue. Goes
+                // through the same unsaved-edit guard as every other
+                // navigation-away link on this page (S-90), since leaving
+                // via this link can silently discard edits exactly like
+                // "Skip to next" or the mobile back link can.
+                <Link href={`/review/${receipt.near_duplicate_of}`} onClick={confirmDiscardIfDirty} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                  View possible duplicate
+                </Link>
+              }
+            >
+              Possible duplicate of{' '}
+              {duplicateReceipt ? (
+                <>
+                  {duplicateReceipt.merchant ?? 'another receipt'}
+                  {duplicateReceipt.purchased_at ? ` on ${toKolkataDateString(duplicateReceipt.purchased_at)}` : ''}
+                  {duplicateReceipt.total_amount !== null ? ` (${formatMoney(duplicateReceipt.total_amount)})` : ''}
+                </>
+              ) : (
+                'another receipt'
+              )}{' '}
+              — check before committing.
+            </Alert>
           )}
 
           <div className="flex flex-col gap-2 rounded-md border-2 border-border-strong p-3">
             <Label htmlFor="purchased-at">Purchase date (required)</Label>
             <div className="flex items-end gap-2">
               <Input id="purchased-at" type="date" size="sm" value={dateInput} onChange={(e) => setDateInput(e.target.value)} />
-              <Button variant="outline" size="sm" onClick={confirmDate} disabled={pending}>
+              <Button variant="outline" size="sm" className="min-h-11" onClick={confirmDate} disabled={pending}>
                 {receipt.purchased_at_confirmed ? 'Update date' : 'Confirm date'}
               </Button>
             </div>
@@ -541,7 +699,7 @@ export function ReviewDetail({
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold">Matched ({matchedLines.length}) — ready to commit, tap to correct</p>
               {matchedLines.map((line) => (
-                <MatchedLineRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} />
+                <MatchedLineRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} reportDirty={reportDirty} />
               ))}
             </div>
           )}
@@ -550,7 +708,7 @@ export function ReviewDetail({
             <div className="flex flex-col gap-2">
               <p className="text-sm font-semibold">Needs review ({needsReviewLines.length}) — resolve before committing</p>
               {needsReviewLines.map((line) => (
-                <NeedsReviewRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} />
+                <NeedsReviewRow key={`${line.id}-${line.review_state}-${line.match_confidence}`} receiptId={receipt.id} line={line} categories={categories} reportDirty={reportDirty} />
               ))}
             </div>
           )}
@@ -559,7 +717,7 @@ export function ReviewDetail({
             <div className="flex flex-col gap-2">
               <p className="text-sm font-semibold">New items ({newItemLines.length})</p>
               {newItemLines.map((line) => (
-                <NewItemRow key={`${line.id}-${line.review_state}`} receiptId={receipt.id} line={line} categories={categories} />
+                <NewItemRow key={`${line.id}-${line.review_state}`} receiptId={receipt.id} line={line} categories={categories} reportDirty={reportDirty} />
               ))}
             </div>
           )}

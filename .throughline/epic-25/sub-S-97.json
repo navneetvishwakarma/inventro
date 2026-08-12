@@ -1,0 +1,19 @@
+{
+  "id": "S-97",
+  "title": "[P1][plan,shopping-list,flow-completeness] Empty states don't distinguish \"nothing due\" from \"no prediction data yet\"",
+  "goal": "getPlanItems() (lib/plan/data.ts:87-88) filters to cadenceBucket !== null, so a cold-start household with zero purchase history renders identically to a fully-stocked one: 'Nothing due in this selection -- Good news, nothing needs restocking right now.' EmptyState already supports an action CTA slot (components/ui/empty-state.tsx:7) but none is passed here. A brand-new household gets a falsely reassuring message instead of a nudge to capture a receipt.",
+  "in_scope": [
+    "Distinguish, in both the Plan page and the Shopping List page's empty states, a household with zero prediction data (no items have ever had a cadence computed) from a household with genuinely nothing due right now.",
+    "For the zero-prediction-data case, use EmptyState's existing action CTA slot to nudge toward /add, instead of the reassuring 'nothing needs restocking' copy."
+  ],
+  "out_of_scope": [
+    "Changing the underlying cadence/prediction computation -- REQ-14/prediction-engine scope, not this story.",
+    "The Insights zero-data CTA gap -- covered separately by S-98, a different page with a different data shape."
+  ],
+  "acceptance": "A cold-start household with zero prediction data sees a distinct empty state nudging toward capturing a receipt (via EmptyState's action CTA), not the same 'nothing needs restocking right now' message shown to a fully-stocked household with genuinely nothing due.",
+  "invariants": [
+    "The genuinely-nothing-due case for an established household must keep its current reassuring copy -- this story only adds a new, distinct branch for the zero-data case, it doesn't change the existing correct behavior."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

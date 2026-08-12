@@ -2,7 +2,7 @@
 doc: prd
 project: Inventro
 status: approved        # draft | approved  — must be `approved` before backlog seeding
-updated: 2026-08-06
+updated: 2026-08-11
 v2-cycle: multi-tenant-auth-activation
 ---
 
@@ -80,6 +80,7 @@ password only, deliberately, per the "simple" login requirement).
 | REQ-32 | Multi-tenant data isolation: `household_members` join table, RLS enabled and rewritten to key off `auth.uid()` (replacing the disabled, speculative `app.current_household_id` policies), every user-facing Server Action/Route Handler/Server Component reads its household from the signed-in session via a request-scoped Supabase client — not `DEFAULT_HOUSEHOLD_ID` — with the service-role client narrowed to exactly two call sites (`api/cron/*`, the REQ-23 synthetic seeder) | P0 | Two households, each with one seeded item: household A's authenticated session cannot read, list, or write household B's row via any route (new cross-household isolation test, the hard gate on this requirement); RLS is `ENABLE`d (not just written) on every `household_id`-scoped table; no user-facing code path still calls the service-role client | v2 |
 | REQ-33 | Usability and flow-completeness fixes identified by the v2 UX audit (see epic backlog for the itemized list) — dead ends, missing feedback/error states, and incomplete edge-case handling across capture, review, inventory, planning, and shopping-list flows | P1 | Each fix traces to a specific audit finding and its own acceptance line in the backlog; no visual/token changes bundled into this requirement (that's REQ-29's scope) | v2 |
 | REQ-34 | Critical-path unit test coverage beyond REQ-28's original scope (prediction engine, canonicalization, e2e smoke), plus an enforced coverage gate — targeting `lib/` modules with zero coverage that guard a stated safety/correctness claim elsewhere in this table: dedup/hard-stop guards (REQ-08 A2, REQ-25), the redirect sanitizer on the new auth path (REQ-31), LLM-extraction failure handling (REQ-24 A11), virtual stock/consumption math (REQ-14), cost accounting (REQ-25), the notification digest condition (REQ-20), and shopping-list generation (REQ-18) | P1 | `docs/engineering/backlog.json`'s `coverage` gate is set to `mode: "warn"` and reports a real aggregate `lib/**` percentage on every CI run (measured surface stays `lib/**`, matching REQ-28's precedent — `app/` route handlers/Server Actions/Components remain covered by the Playwright e2e suite, not unit coverage, so the two suites don't duplicate the same assertions); each story below adds tests for one zero-coverage module tied to an existing REQ's safety claim; a final story flips `mode` to `"enforce"` once the aggregate clears the 0.7 threshold, not before | v2 |
+| REQ-35 | Release-readiness flow/UX fixes from a fresh v2 audit across auth/onboarding, capture/review, inventory/catalog, and plan/shopping/insights/settings — must-fix defects (missing logout UI, onboarding data loss on error, capture-upload hang, silent zero-line extraction dead end, cost-meter under-reporting, an a11y violation), flow-completeness gaps, and the deferred v2 design-token rollout (see epic backlog for the itemized, priority-tagged list) | P1 | Every `[P0]`-tagged story is fixed before this v2 cycle ships (release-blocking); every `[P1]`-tagged story is fixed or explicitly deferred with a written reason; `[P2]`-tagged stories are tracked as polish, not release-blocking | v2 |
 
 **PII / compliance flag:** REQ-31 and REQ-32 are this cycle's requirements
 touching auth and PII — REQ-31 introduces real user credentials (email +
@@ -199,3 +200,51 @@ change.
 to the modules in scope. `warn` measures and reports without blocking;
 the ratchet to `enforce` is its own last story under REQ-34, gated on
 the aggregate actually clearing 0.7 first.
+
+## v2 reconcile — release-readiness flow audit (2026-08-11)
+
+A flow-by-flow UX/release-readiness audit across auth/onboarding,
+capture/review, inventory/catalog, and plan/shopping/insights/settings —
+cross-checked against `docs/ux/*.md` journey docs, `docs/design/pages/*.md`
+mockup briefs, and the six already-"done" E-22 usability fixes (S-67–S-72),
+which were re-verified directly in code rather than trusted from status
+alone; all six still hold.
+
+Found 6 must-fix defects: no logout control exists anywhere in the UI
+despite `logoutAction` being fully implemented (REQ-31's logout acceptance
+has never actually been exercised through the app — zero call sites);
+the onboarding wizard has no error handling, so a mid-setup DB failure
+discards all prior input; a client-side preprocessing failure in receipt
+capture can hang the upload UI indefinitely with no recovery; a zero-line
+"successful" extraction becomes a silent dead end in Review instead of
+routing into the existing failed/manual-fallback path; the LLM cost meter
+under-reports on every Flash-to-Pro escalation because only the winning
+attempt's cost is accumulated; and Catalog's Recategorize control has no
+accessible name (WCAG 4.1.2).
+
+13 additional flow-completeness/interaction gaps and 4 polish improvements
+were also found and are seeded below as REQ-35. This project's contract
+has no story-level priority or tags field — `docs/engineering/backlog.
+schema.json` sets `additionalProperties: false` on both the epic and
+story definitions — so priority and topic tags are encoded as a leading
+`[P0][tag,tag]` prefix on each story's title, and story `order` is
+sequenced P0 before P1 before P2. Both are consistent with how E-22's own
+epic acceptance already referred informally to "P0/P1 findings" with no
+JSON field backing it.
+
+Also confirmed structurally: the v2 design tokens (`docs/design/
+tokens.md`, G3-approved 2026-08-03) were never applied to
+`app/globals.css`, which still carries v1 values. S-73 deferred per-page
+implementation to "a separate backlog reconcile once mockups exist," and
+that reconcile never happened until now (S-100).
+
+One correction to a shipped requirement's acceptance text, noted here
+rather than edited in place, per this project's "never silently rewrite
+a shipped requirement" convention: REQ-32's acceptance line "no
+user-facing code path still calls the service-role client" should be
+read with one narrow, already-necessary exception —
+`app/(auth)/signup/actions.ts`'s post-signup-RPC-failure compensating
+cleanup (`auth.admin.deleteUser`) runs before any session exists, so
+there is no signed-in client available to use instead. This does not
+change REQ-32's isolation guarantee (RLS enforcement, per-household data
+access); it corrects the acceptance text's absolute phrasing.

@@ -1,0 +1,18 @@
+{
+  "id": "S-92",
+  "title": "[P1][review,flow-completeness] Near-duplicate warning doesn't link to the actual duplicate receipt",
+  "goal": "The 'Possible duplicate of another receipt (merchant/date/total match) -- check before committing' warning in review-detail.tsx:507-509 doesn't link to receipt.near_duplicate_of, so the user can't actually verify the claim without leaving to manually search the queue. The journey doc's 'soft warning, not a block' intent (docs/ux/03-review-commit-journey.md:62-63) is met structurally, but the 'informed' feeling it promises isn't -- the user can't act on the info shown.",
+  "in_scope": [
+    "Make the near-duplicate warning in review-detail.tsx link to (or otherwise surface) the actual receipt referenced by near_duplicate_of -- e.g. a link to that receipt's review-detail page, or an inline summary (merchant/date/total) pulled from it."
+  ],
+  "out_of_scope": [
+    "Changing the near-duplicate detection logic itself (what counts as a match) -- REQ-08 scope, not this story.",
+    "Turning the soft warning into a hard block -- the journey doc explicitly calls for a non-blocking warning; that behavior stays as-is."
+  ],
+  "acceptance": "The near-duplicate warning links to (or inline-summarizes) the actual duplicate receipt referenced by near_duplicate_of, so the user can verify the claim without manually searching the queue.",
+  "invariants": [
+    "The warning must remain non-blocking -- committing must still be possible after seeing it, per the journey doc's explicit intent."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

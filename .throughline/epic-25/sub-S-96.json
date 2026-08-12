@@ -1,0 +1,18 @@
+{
+  "id": "S-96",
+  "title": "[P1][notifications,feedback] Digest-disabled state has no clear warning signal in Settings",
+  "goal": "settings-form.tsx:55-64's only indicator that digest emails don't currently send (RESEND_API_KEY unset in this environment, per the already-known S-55 config gap) is small gray helper text under the email field ('...once email delivery is configured'). A user who enters an email sees no error and no active-status indicator, and can reasonably conclude digest works.",
+  "in_scope": [
+    "Add a more visible warning (e.g. Alert tone='warning', matching the pattern already used elsewhere in Settings) stating the digest is currently inactive when RESEND_API_KEY is unset, in addition to or replacing the current small helper text."
+  ],
+  "out_of_scope": [
+    "Actually configuring RESEND_API_KEY / enabling email delivery -- that's an operational/credential task (S-55), not a code fix.",
+    "Any change to digest.ts's underlying send-decision logic -- already correct per the audit's verification; this story is UI-signal only."
+  ],
+  "acceptance": "Settings surfaces a clearly visible warning (not just small gray helper text) stating digest is currently inactive when RESEND_API_KEY is unset, so a user cannot mistake the disabled state for 'configured and working'.",
+  "invariants": [
+    "The warning must disappear/change once RESEND_API_KEY is actually configured -- it must reflect live config state, not be a static message."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

@@ -1,5 +1,5 @@
 import 'server-only';
-import { NoObjectGeneratedError } from 'ai';
+import { NoObjectGeneratedError, type LanguageModelUsage } from 'ai';
 import { createRequestClient, createServiceClient } from '@/lib/supabase/server';
 import { geminiProvider } from '@/lib/llm/gemini-provider';
 import { buildReceiptExtractionSchema, type ReceiptExtraction } from '@/lib/llm/schema';
@@ -87,7 +87,7 @@ async function routeExtraction(pages: ExtractionPage[], storagePath: string): Pr
   };
 }
 
-function checkExtractionQuality(lines: Array<{ line_total: number | null; confidence: number }>, orderTotal: number | null): string[] {
+export function checkExtractionQuality(lines: Array<{ line_total: number | null; confidence: number }>, orderTotal: number | null): string[] {
   const problems: string[] = [];
 
   if (orderTotal !== null) {
@@ -99,12 +99,34 @@ function checkExtractionQuality(lines: Array<{ line_total: number | null; confid
   if (lines.length > 0) {
     const meanConfidence = lines.reduce((sum, l) => sum + l.confidence, 0) / lines.length;
     if (meanConfidence < 0.5) problems.push(`mean line confidence ${meanConfidence.toFixed(2)} < 0.5`);
+  } else {
+    // S-85: zero lines is never a legitimate extraction (a delivery-fee-only
+    // or non-inventory-only receipt still produces one line with
+    // is_non_inventory: true -- see schema.ts, which has no minimum-length
+    // constraint on `lines` but every real document produces at least one).
+    // Zero lines only ever means the model returned nothing usable.
+    problems.push('no line items extracted');
   }
 
   return problems;
 }
 
-type Attempt = { ok: true; result: LlmExtractionResult<ReceiptExtraction> } | { ok: false; problems: string[]; rawText?: string };
+type Usage = { inputTokens: number; outputTokens: number; totalTokens: number };
+
+type Attempt = { ok: true; result: LlmExtractionResult<ReceiptExtraction> } | { ok: false; problems: string[]; rawText?: string; usage: Usage | undefined };
+
+// Gemini bills a call whether or not its response passes checkExtractionQuality
+// or schema validation -- both failure branches below carry the billed usage
+// forward (S-86) so a failed-then-escalated receipt's cost meter reflects
+// BOTH calls, not just the winning one. NoObjectGeneratedError's usage can
+// genuinely be undefined (model failed hard enough that no usage was ever
+// reported), so this is Usage | undefined, not defaulted to zero here --
+// runExtraction's accumulation skips a missing attempt's contribution rather
+// than fabricating one.
+function toUsage(usage: LanguageModelUsage | undefined): Usage | undefined {
+  if (!usage) return undefined;
+  return { inputTokens: usage.inputTokens ?? 0, outputTokens: usage.outputTokens ?? 0, totalTokens: usage.totalTokens ?? 0 };
+}
 
 // Schema validation failure (NoObjectGeneratedError) is caught here and
 // folded into the same "problems" shape as a total-mismatch or low-confidence
@@ -114,11 +136,11 @@ async function attemptExtraction(parts: LlmContentPart[], schema: ReturnType<typ
   try {
     const result = await geminiProvider.extractStructured({ parts, schema, tier, correctionNote });
     const problems = checkExtractionQuality(result.object.lines, result.object.order_total);
-    if (problems.length > 0) return { ok: false, problems, rawText: result.rawText };
+    if (problems.length > 0) return { ok: false, problems, rawText: result.rawText, usage: result.usage };
     return { ok: true, result };
   } catch (err) {
     if (NoObjectGeneratedError.isInstance(err)) {
-      return { ok: false, problems: [`schema validation failed: ${err.message}`], rawText: err.text };
+      return { ok: false, problems: [`schema validation failed: ${err.message}`], rawText: err.text, usage: toUsage(err.usage) };
     }
     throw err;
   }
@@ -168,16 +190,25 @@ export async function runExtraction(receiptId: string): Promise<void> {
     let totalTokens = 0;
     let totalCost = 0;
 
+    const addUsage = (usageTier: 'primary' | 'escalation', usage: Usage | undefined) => {
+      if (!usage) return;
+      totalTokens += usage.totalTokens;
+      totalCost += estimateCostUsd(usageTier, usage.inputTokens, usage.outputTokens);
+    };
+
+    // S-86: the primary attempt's usage must be captured BEFORE `attempt` is
+    // reassigned below on escalation -- Gemini bills for that call
+    // regardless of whether it passed checkExtractionQuality, so a failed
+    // primary attempt's usage is real spend that the reassignment would
+    // otherwise silently drop.
     if (!attempt.ok) {
+      addUsage('primary', attempt.usage);
       tier = 'escalation';
       const primaryProblems = attempt.problems;
       attempt = await attemptExtraction(parts, schema, 'escalation', primaryProblems.join('; '));
     }
 
-    if (attempt.ok) {
-      totalTokens += attempt.result.usage.totalTokens;
-      totalCost += estimateCostUsd(tier, attempt.result.usage.inputTokens, attempt.result.usage.outputTokens);
-    }
+    addUsage(tier, attempt.ok ? attempt.result.usage : attempt.usage);
 
     if (!attempt.ok) {
       await supabase

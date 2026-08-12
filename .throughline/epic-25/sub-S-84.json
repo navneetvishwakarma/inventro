@@ -1,0 +1,22 @@
+{
+  "id": "S-84",
+  "title": "[P0][capture] Unhandled client-side preprocessing failure hangs the upload UI indefinitely",
+  "goal": "handleFiles's startTransition callback (app/(app)/add/capture.tsx:61-70) calls await preprocessFile(file) (HEIC conversion via heic2any, or canvas downscaling) with no try/catch. If conversion throws -- a real case for corrupt/unusual HEIC from some Android/iOS camera apps -- setStatus('idle') and setResults(...) never run, so the UI is stuck on 'Got it -- processing...' indefinitely with inputs disabled and no way to retry. In a multi-file batch, one bad file silently stalls the whole batch.",
+  "in_scope": [
+    "Wrap the per-file preprocessing step in capture.tsx's handleFiles loop in try/catch.",
+    "On a caught failure, push a per-file result state ('Failed -- couldn't process image', with a retry or skip affordance) instead of leaving the batch stuck.",
+    "Ensure status always reaches 'idle' after all files in the batch have been attempted, regardless of individual failures.",
+    "Verify the rest of the batch continues processing when one file fails -- one bad HEIC must not block the others."
+  ],
+  "out_of_scope": [
+    "Fixing heic2any's own conversion correctness or supporting additional image formats -- this story is about failure handling, not format coverage.",
+    "Server-side preprocessing fallback -- out of scope unless the client-side fix proves insufficient."
+  ],
+  "acceptance": "A file that fails client-side preprocessing (HEIC conversion or downscaling) produces a per-file 'Failed -- couldn't process image' result with a retry affordance, and does not block status from reaching 'idle'. The rest of a multi-file batch continues processing independently of one file's failure.",
+  "invariants": [
+    "A single bad file in a batch must never hang the entire upload flow -- this is the core defect and the primary regression to guard against.",
+    "The failure state must be visible to the user, not just logged -- a silent console error with a stuck spinner is the same bug from the user's perspective."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

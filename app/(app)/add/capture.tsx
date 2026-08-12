@@ -59,14 +59,40 @@ export function AddCapture() {
     setResults([]);
 
     startTransition(async () => {
-      const formData = new FormData();
-      for (const file of files) {
-        const processed = await preprocessFile(file);
-        formData.append('files', processed, processed.name);
+      try {
+        const formData = new FormData();
+        const preprocessFailures: UploadResult[] = [];
+
+        for (const file of files) {
+          try {
+            const processed = await preprocessFile(file);
+            formData.append('files', processed, processed.name);
+          } catch {
+            preprocessFailures.push({ fileName: file.name, ok: false, error: "couldn't process image" });
+          }
+        }
+
+        const processedFiles = formData.getAll('files').filter((f): f is File => f instanceof File);
+
+        // S-25's group is one indivisible unit -- a partial group (2 of 3
+        // selected images) must never silently upload as if the user chose
+        // 2. Skip the network call entirely and fail every file in the
+        // group, not just the one that didn't preprocess.
+        if (isGrouped && preprocessFailures.length > 0) {
+          setGroupError("One or more images couldn't be processed -- try the group again.");
+          setResults([
+            ...processedFiles.map((f): UploadResult => ({ fileName: f.name, ok: false, error: 'Group upload skipped' })),
+            ...preprocessFailures,
+          ]);
+        } else if (processedFiles.length > 0) {
+          const uploadResults = isGrouped ? await uploadGroupedReceiptAction(formData) : await uploadReceiptsAction(formData);
+          setResults([...uploadResults, ...preprocessFailures]);
+        } else {
+          setResults(preprocessFailures);
+        }
+      } finally {
+        setStatus('idle');
       }
-      const uploadResults = isGrouped ? await uploadGroupedReceiptAction(formData) : await uploadReceiptsAction(formData);
-      setResults(uploadResults);
-      setStatus('idle');
     });
   }
 

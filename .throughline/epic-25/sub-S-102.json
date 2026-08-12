@@ -1,0 +1,19 @@
+{
+  "id": "S-102",
+  "title": "[P2][touch-target,polish] Sub-44px secondary controls: shopping-list row and onboarding wizard buttons",
+  "goal": "Two unrelated but same-category polish gaps bundled together: the price Input and 'Log purchase' Button in shopping-list-item-row.tsx are both size='sm' (36px/32px), below the 44px target, while the row's primary checkbox is correctly size-11 (44px); and the Continue/Back/Skip/Finish buttons in app/onboarding/wizard.tsx use the default Button size (h-10, 40px), while login/signup already correctly use size='lg' (48px).",
+  "in_scope": [
+    "Increase shopping-list-item-row.tsx's price Input and 'Log purchase' Button to at least 44px.",
+    "Increase app/onboarding/wizard.tsx's Continue/Back/Skip/Finish buttons to size='lg' (48px), matching login/signup's existing correct sizing."
+  ],
+  "out_of_scope": [
+    "The shopping-list row's primary checkbox -- already correctly sized, not touched.",
+    "Any other button sizing outside these two specific locations."
+  ],
+  "acceptance": "shopping-list-item-row.tsx's price Input and 'Log purchase' Button are at least 44px. app/onboarding/wizard.tsx's step-navigation buttons use size='lg' (48px), matching login/signup.",
+  "invariants": [
+    "Layout must not break on narrow mobile widths after the size increase -- verify the shopping-list row still fits its content without wrapping awkwardly."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

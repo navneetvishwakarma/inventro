@@ -15,7 +15,11 @@ const FRACTIONS = [0.25, 0.5, 0.75] as const;
 // names explicitly. 'Used some' already requires typing an amount and a
 // separate Log click, which is its own confirmation step, so it's left as
 // is.
-type PendingConfirm = 'used-it-up' | 'wasted' | null;
+// S-94: the 25/50/75% quick-fraction buttons wrote on a single tap with no
+// confirm step at all -- the only ledger-writing actions in this file that
+// didn't. Routed through the same PendingConfirm union, carrying the
+// fraction so the panel can label itself accordingly.
+type PendingConfirm = 'used-it-up' | 'wasted' | { kind: 'fraction'; fraction: (typeof FRACTIONS)[number] } | null;
 
 export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: string; baseUnit: BaseUnit }) {
   const [isPending, startTransition] = useTransition();
@@ -43,15 +47,25 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
   }
 
   if (pendingConfirm) {
+    const isFraction = typeof pendingConfirm === 'object';
+    const fractionPct = isFraction ? pendingConfirm.fraction * 100 : null;
     return (
       <ConfirmPanel
-        title={pendingConfirm === 'used-it-up' ? 'Mark as used up?' : 'Mark as wasted?'}
+        title={isFraction ? `Log ${fractionPct}% used?` : pendingConfirm === 'used-it-up' ? 'Mark as used up?' : 'Mark as wasted?'}
         description="Logs this to your purchase history now -- there's no undo."
-        confirmLabel={pendingConfirm === 'used-it-up' ? 'Used it up' : 'Wasted'}
-        confirmVariant={pendingConfirm === 'used-it-up' ? 'primary' : 'destructive'}
+        confirmLabel={isFraction ? `Log ${fractionPct}%` : pendingConfirm === 'used-it-up' ? 'Used it up' : 'Wasted'}
+        confirmVariant={pendingConfirm === 'wasted' ? 'destructive' : 'primary'}
         pending={isPending}
         error={error}
-        onConfirm={() => run(() => (pendingConfirm === 'used-it-up' ? usedItUpAction(catalogItemId) : wastedAction(catalogItemId)))}
+        onConfirm={() =>
+          run(() =>
+            isFraction
+              ? usedSomeFractionAction(catalogItemId, pendingConfirm.fraction)
+              : pendingConfirm === 'used-it-up'
+                ? usedItUpAction(catalogItemId)
+                : wastedAction(catalogItemId),
+          )
+        }
         onCancel={() => setPendingConfirm(null)}
       />
     );
@@ -60,13 +74,13 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" disabled={isPending} onClick={() => setPendingConfirm('used-it-up')}>
+        <Button size="sm" className="min-h-11" disabled={isPending} onClick={() => setPendingConfirm('used-it-up')}>
           Used it up
         </Button>
-        <Button size="sm" variant="outline" disabled={isPending} onClick={() => setShowUsedSome((v) => !v)}>
+        <Button size="sm" className="min-h-11" variant="outline" disabled={isPending} onClick={() => setShowUsedSome((v) => !v)}>
           Used some
         </Button>
-        <Button size="sm" variant="destructive" disabled={isPending} onClick={() => setPendingConfirm('wasted')}>
+        <Button size="sm" className="min-h-11" variant="destructive" disabled={isPending} onClick={() => setPendingConfirm('wasted')}>
           Wasted
         </Button>
       </div>
@@ -74,7 +88,7 @@ export function ConsumeActions({ catalogItemId, baseUnit }: { catalogItemId: str
       {showUsedSome && (
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2">
           {FRACTIONS.map((f) => (
-            <Button key={f} size="sm" variant="outline" disabled={isPending} onClick={() => run(() => usedSomeFractionAction(catalogItemId, f))}>
+            <Button key={f} size="sm" className="min-h-11" variant="outline" disabled={isPending} onClick={() => setPendingConfirm({ kind: 'fraction', fraction: f })}>
               {f * 100}%
             </Button>
           ))}

@@ -1,0 +1,20 @@
+{
+  "id": "S-90",
+  "title": "[P1][review,data-integrity] Unsaved review-line edits silently discarded on navigation",
+  "goal": "All per-line edit state in review-detail.tsx (NeedsReviewRow lines 88-156, NewItemRow lines 184-252, expanded MatchedLineRow lines 166-182) is local useState with no dirty-tracking. 'Skip to next' (SessionCounter, line 269) and MobileTopBar's backHref='/review' are plain links with no confirm/beforeunload guard, so a user who expands a matched line to correct a wrong auto-match (S-68's affordance), types a correction, then taps 'Skip to next' loses the edit with zero warning -- real friction on a flow the audit brief itself notes is used on-the-go.",
+  "in_scope": [
+    "Add dirty-state tracking to the per-line edit rows in review-detail.tsx.",
+    "'Skip to next' and back-navigation trigger a confirm-discard prompt when there's an unsaved edit in the currently expanded row, instead of silently discarding it.",
+    "Consider (if low-effort) auto-saving on blur/navigation instead of prompting -- either resolves the underlying data-loss risk; prompting is the minimum bar."
+  ],
+  "out_of_scope": [
+    "Building a full autosave/draft system across the whole review flow -- this story scopes to the specific navigation actions identified (Skip to next, back-nav) that currently have zero guard.",
+    "Changing the edit UI itself (NeedsReviewRow/NewItemRow/MatchedLineRow's fields or layout) -- REQ-29/E-23 scope for any visual change."
+  ],
+  "acceptance": "Attempting to navigate away (Skip to next, back-nav) from a review line with an unsaved edit either triggers a confirm-discard prompt or auto-saves the edit, instead of silently losing it with no warning.",
+  "invariants": [
+    "The guard must only trigger when there's a genuine unsaved edit -- it must not add friction to the common case of simply moving through lines with nothing changed."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

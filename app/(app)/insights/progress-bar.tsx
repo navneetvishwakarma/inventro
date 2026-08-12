@@ -4,7 +4,7 @@
 export function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, Math.round((value / max) * 100))) : 0;
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-surface-sunken">
+    <div className="h-2 overflow-hidden rounded-full bg-surface-sunken" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
       <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
     </div>
   );

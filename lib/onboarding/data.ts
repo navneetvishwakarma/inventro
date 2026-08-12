@@ -93,13 +93,30 @@ export async function completeOnboarding(name: string, monthlyBudget: number | n
       .in('id', tickedItemIds);
     if (itemsError) throw itemsError;
 
-    const movements = (items ?? []).map((item) => ({
-      household_id: householdId,
-      catalog_item_id: item.id,
-      type: 'initial' as const,
-      qty_base: item.default_pack_size ?? 1,
-      occurred_at: now,
-    }));
+    // Retry-safety: a receipt commit RPC can also write type='initial'
+    // movements (past-order override) for an unrelated item, so the guard
+    // must be scoped to this household's ticked items, not "any initial
+    // movement exists for this household" -- a retry after this insert
+    // succeeded but the households update below failed must not re-insert
+    // for items already covered.
+    const { data: existing, error: existingError } = await supabase
+      .from('stock_movements')
+      .select('catalog_item_id')
+      .eq('household_id', householdId)
+      .eq('type', 'initial')
+      .in('catalog_item_id', tickedItemIds);
+    if (existingError) throw existingError;
+    const alreadyHasMovement = new Set((existing ?? []).map((m) => m.catalog_item_id));
+
+    const movements = (items ?? [])
+      .filter((item) => !alreadyHasMovement.has(item.id))
+      .map((item) => ({
+        household_id: householdId,
+        catalog_item_id: item.id,
+        type: 'initial' as const,
+        qty_base: item.default_pack_size ?? 1,
+        occurred_at: now,
+      }));
 
     if (movements.length > 0) {
       const { error: insertError } = await supabase.from('stock_movements').insert(movements);

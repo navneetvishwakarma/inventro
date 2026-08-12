@@ -10,11 +10,13 @@ export type ConsumeAction =
   | { kind: 'used_some_fraction'; fraction: 0.25 | 0.5 | 0.75 }
   | { kind: 'used_some_amount'; amountBase: number };
 
+export type ConsumeResult = { wrote: true } | { wrote: false; reason: 'nothing_to_log' };
+
 // F9.1's explicit consumption loop. Reads current stock through
 // getInventoryItem (the SAME rawStockBase/virtualStockBase S-19 displays --
 // deliberately not a second, parallel stock computation) so what the user
 // taps against is exactly what they were shown.
-export async function recordConsumption(catalogItemId: string, action: ConsumeAction): Promise<void> {
+export async function recordConsumption(catalogItemId: string, action: ConsumeAction): Promise<ConsumeResult> {
   const item = await getInventoryItem(catalogItemId);
   if (!item) throw new Error(`catalog item ${catalogItemId} not found`);
 
@@ -40,7 +42,7 @@ export async function recordConsumption(catalogItemId: string, action: ConsumeAc
   // risk is accepted and documented rather than silently assumed away; see
   // .claude/epic-7/ledger.md.
   const amount = Math.min(Math.max(requestedAmount, 0), item.rawStockBase);
-  if (amount <= 0) return;
+  if (amount <= 0) return { wrote: false, reason: 'nothing_to_log' };
 
   const householdId = await getCurrentHouseholdId();
   const supabase = await createRequestClient();
@@ -58,4 +60,5 @@ export async function recordConsumption(catalogItemId: string, action: ConsumeAc
   // No rateCorrectionOverride -- S-15's reconciliation is purchase-commit-only
   // per its own invariants and must never be reached from a consumption action.
   await recomputeOneItem(catalogItemId, householdId);
+  return { wrote: true };
 }

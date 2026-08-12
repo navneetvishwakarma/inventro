@@ -1,0 +1,19 @@
+{
+  "id": "S-94",
+  "title": "[P1][inventory,data-integrity] \"Used some\" fraction actions: inconsistent confirm step and silent no-op at zero stock",
+  "goal": "Two compounding gaps in the same file cluster: (1) the 25/50/75% quick-fraction buttons in consume-actions.tsx:74-80 write a ledger movement on a single tap with no ConfirmPanel step, inconsistent with 'Used it up'/'Wasted' which require one via S-69's shared pattern; (2) requestedAmount = fraction * item.virtualStockBase in lib/inventory/consume.ts:26-43 resolves to 0 whenever virtualStockBase is already 0, and recordConsumption returns early with no write and no error -- the user taps 25%, the confirm panel closes (once added per this story), and nothing visibly changes with no explanation that there was nothing to log against the displayed stock.",
+  "in_scope": [
+    "Route the 25/50/75% fraction buttons through the same ConfirmPanel step already used for 'Used it up'/'Wasted' in consume-actions.tsx.",
+    "recordConsumption (lib/inventory/consume.ts): when virtualStockBase is already 0, surface an explicit 'nothing to log' message instead of silently returning {ok: true} with no write."
+  ],
+  "out_of_scope": [
+    "Changing the fraction calculation itself or virtualStockBase's underlying formula -- REQ-14 scope, not this story.",
+    "Touch-target sizing on these same buttons -- covered separately by S-95."
+  ],
+  "acceptance": "The 25/50/75% quick-fraction buttons require the same confirm step as 'Used it up'/'Wasted' before writing a ledger movement. Tapping a fraction action when virtualStockBase is already 0 surfaces an explicit 'nothing to log' message instead of silently no-op'ing with {ok: true} and no visible change.",
+  "invariants": [
+    "The confirm-step addition must not regress the manual-amount 'Used some' path, which the code comment says already requires typing an amount plus a separate Log click -- that path's existing friction level should stay as-is; this story fixes the fraction shortcuts specifically."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

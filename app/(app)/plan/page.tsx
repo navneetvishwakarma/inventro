@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MobileTopBar } from '@/components/ui/mobile-top-bar';
+import { EmptyState } from '@/components/ui/empty-state';
+import { buttonVariants } from '@/components/ui/button';
 import { getHousehold } from '@/lib/onboarding/data';
 import { getPlanItems, type PlanItem } from '@/lib/plan/data';
 import { formatBaseQty, formatDueDate, formatCadenceBucket, CADENCE_BUCKET_ORDER } from '@/lib/inventory/format';
@@ -108,7 +111,24 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
           )}
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          {bucketItems.length === 0 && <p className="text-sm text-muted-foreground">No items in this bucket yet.</p>}
+          {bucketItems.length === 0 && items.length === 0 && (
+            // S-97: items.length === 0 here means zero prediction data
+            // exists anywhere in the household (getPlanItems() is already
+            // filtered to cadenceBucket !== null) -- distinct from the
+            // plain "nothing in this specific bucket" case just below,
+            // which is a real, established household genuinely having
+            // nothing due in the bucket currently selected.
+            <EmptyState
+              title="No predictions yet"
+              description="Add a receipt so Inventro can start predicting what you'll need to restock."
+              action={
+                <Link href="/add" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                  Add a receipt
+                </Link>
+              }
+            />
+          )}
+          {bucketItems.length === 0 && items.length > 0 && <p className="text-sm text-muted-foreground">No items in this bucket yet.</p>}
           {bucketItems.map((item) => (
             <div key={item.id} className="flex flex-col gap-2 rounded-md border border-border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">

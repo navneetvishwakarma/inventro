@@ -1,0 +1,18 @@
+{
+  "id": "S-101",
+  "title": "[P2][a11y,polish] ARIA semantics on progress bars",
+  "goal": "Progress bar components in app/(app)/insights/progress-bar.tsx and app/(app)/settings/progress-bar.tsx are plain divs with a width percentage; no role='progressbar', no aria-valuenow/min/max. The numeric values are available as adjacent text so this isn't a hard WCAG blocker, but a screen-reader user gets no signal from the bar itself.",
+  "in_scope": [
+    "Add role='progressbar' with aria-valuenow/aria-valuemin/aria-valuemax to both progress-bar components."
+  ],
+  "out_of_scope": [
+    "Any visual restyling of the progress bars -- ARIA attributes only.",
+    "Consolidating the two separate progress-bar components into one shared component -- not requested by this finding; each gets the same fix independently unless a shared-component refactor is separately decided."
+  ],
+  "acceptance": "Both progress-bar components carry role='progressbar' with correct aria-valuenow/min/max, giving screen-reader users a signal from the bar itself in addition to the existing adjacent numeric text.",
+  "invariants": [
+    "aria-valuenow must stay in sync with the bar's actual rendered percentage -- verify both are driven from the same underlying value, not two independently-computed numbers that could drift."
+  ],
+  "prd_ref": "REQ-35",
+  "adr_ref": null
+}

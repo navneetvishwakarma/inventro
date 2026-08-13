@@ -56,6 +56,30 @@ function coverageSection() {
     + '<span class="covmin">min ' + (threshold * 100).toFixed(0) + '%</span>'
     + reports + '</div>';
 }
+// ---- gate pipeline (reads scripts/gate.mjs's output; never throws if absent) ----
+const GATE_ORDER = ['G1', 'G1.5', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+const gatesData = (() => {
+  try { return JSON.parse(readFileSync(join(root, '.throughline/gates.json'), 'utf8')); }
+  catch { return null; }
+})();
+function gateSection() {
+  if (!gatesData) {
+    return '<div class="gaterow"><span class="gatelabel">Gates</span><span class="gatemuted">not tracked yet</span></div>';
+  }
+  let markedCurrent = false;
+  const pills = GATE_ORDER.map((g) => {
+    const status = gatesData.gates?.[g]?.status || 'pending';
+    const isCurrent = !markedCurrent && status !== 'approved';
+    if (isCurrent) markedCurrent = true;
+    const cls = 'gate ' + status + (isCurrent ? ' current' : '');
+    return '<span class="' + cls + '" title="' + esc(g) + ': ' + esc(status) + '">' + esc(g) + '</span>';
+  }).join('');
+  return '<div class="gaterow"><span class="gatelabel">Gates</span><div class="gatestrip">' + pills + '</div></div>';
+}
+function releaseWarningSection() {
+  if (!releaseConfigWarning) return '';
+  return '<div class="covrow" style="background:#fdecec"><span class="covlabel" style="color:#e5484d">Config warning</span><span>' + esc(releaseConfigWarning) + '</span></div>';
+}
 const epics = (data.epics || []).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 const repo = (data.repo || '').replace(/\/$/, '');
 const prdPath = data.prd || 'docs/product/06-prd.md';
@@ -88,12 +112,26 @@ for (const s of stories) { if (!byEpic.has(s.epic)) byEpic.set(s.epic, []); byEp
 // convention — v1 epics are typically untagged; only v2+ epics get an explicit tag).
 // release_in_flight is the one field naming which release is currently being worked
 // (advanced by define-backlog, never define-product — see its own reconcile rules).
-const currentRelease = data.release_in_flight || 'v1';
 const epicRelease = (e) => e.release || 'v1';
+const hasExplicitEpicRelease = epics.some((e) => e.release != null);
 const releaseOrder = [];
 for (const e of epics) { const r = epicRelease(e); if (!releaseOrder.includes(r)) releaseOrder.push(r); }
 function releaseEpics(rel) { return epics.filter((e) => epicRelease(e) === rel); }
 function releaseStoryList(rel) { const ids = new Set(releaseEpics(rel).map((e) => e.id)); return stories.filter((s) => ids.has(s.epic)); }
+// validate.mjs requires release_in_flight once any epic declares an explicit release, so this
+// fallback only fires against a backlog.json that was never validated, or predates this check.
+// It must pick a real declared release and say so -- never invent a lowercase 'v1' that could
+// report a false 0/0 "on track" for a release that has no epics at all.
+let currentRelease = data.release_in_flight;
+let releaseConfigWarning = null;
+if (!currentRelease) {
+  if (hasExplicitEpicRelease) {
+    currentRelease = releaseOrder.find((r) => rollup(releaseStoryList(r)).status !== 'done') || releaseOrder[0];
+    releaseConfigWarning = 'release_in_flight is not set, but epics declare explicit release(s) (' + releaseOrder.join(', ') + '). Showing "' + currentRelease + '" — set release_in_flight in backlog.json to make this authoritative.';
+  } else {
+    currentRelease = 'v1';
+  }
+}
 const currentEpics = releaseEpics(currentRelease);
 const currentEpicIds = new Set(currentEpics.map((e) => e.id));
 const currentStories = stories.filter((s) => currentEpicIds.has(s.epic));
@@ -209,6 +247,27 @@ function currentReleaseSection() {
     + '<div class="relgroup-body">' + (currentEpics.length ? epicTable(currentEpics) : '<div class="empty">No epics yet for this release.</div>') + '</div></div>';
 }
 
+// ---- roadmap: all releases in order, phase-grouped when backlog.json declares phases[] ----
+const phases = (data.phases || []).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+const phaseById = new Map(phases.map((p) => [p.id, p]));
+function roadmapReleaseBlock(rel) {
+  const relEpics = releaseEpics(rel).slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  let body;
+  if (phases.length) {
+    const groups = phases.map((p) => ({ phase: p, epics: relEpics.filter((e) => e.phase === p.id) }));
+    groups.push({ phase: { id: 'unphased', name: 'Unphased' }, epics: relEpics.filter((e) => !e.phase || !phaseById.has(e.phase)) });
+    body = groups.filter((g) => g.epics.length)
+      .map((g) => '<div class="phasegroup"><h3 class="phaseh">' + esc(g.phase.name) + '</h3>' + epicTable(g.epics) + '</div>')
+      .join('');
+  } else {
+    body = epicTable(relEpics);
+  }
+  return '<div class="roadmap-release"><h3 class="relhead">' + esc(rel) + '</h3>' + body + '</div>';
+}
+function roadmapSection() {
+  return '<div class="roadmap">' + releaseOrder.map((r) => roadmapReleaseBlock(r)).join('') + '</div>';
+}
+
 // ---- HTML ----
 const css = `*{box-sizing:border-box;margin:0;padding:0}body{font:14px/1.5 system-ui,sans-serif;background:#f8f8f8;color:#1a1a1a}
 .wrap{max-width:1100px;margin:0 auto;padding:24px 16px}
@@ -271,7 +330,20 @@ td{padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:.85rem;vertical-al
 .covpct{font-weight:700;font-size:1rem}
 .covmin{color:#888}
 .covmuted{color:#aaa}
-.covlink{margin-left:auto;font-size:.78rem;color:#2c7be5;text-decoration:none}`;
+.covlink{margin-left:auto;font-size:.78rem;color:#2c7be5;text-decoration:none}
+.gaterow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:24px;font-size:.85rem}
+.gatelabel{font-weight:600;color:#555}
+.gatemuted{color:#aaa}
+.gatestrip{display:flex;gap:6px;flex-wrap:wrap}
+.gate{font-size:.72rem;font-weight:700;border-radius:6px;padding:3px 7px;background:#f0f0f0;color:#888}
+.gate.approved{background:#e7f6ee;color:#1a9b59}
+.gate.rejected{background:#fdecec;color:#e5484d}
+.gate.pending{background:#fcf0e3;color:#d9730d}
+.gate.current{outline:2px solid #2c7be5;outline-offset:1px}
+.roadmap-release{margin-bottom:20px}
+.relhead{font-size:.9rem;font-weight:700;margin-bottom:8px}
+.phasegroup{margin-bottom:14px}
+.phaseh{font-size:.8rem;font-weight:600;color:#666;margin-bottom:6px}`;
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -287,6 +359,7 @@ const html = `<!DOCTYPE html>
   <div class="hl">${esc(headline)}</div>
   <div class="act">${esc(action)}</div>
 </div>
+${releaseWarningSection()}
 ${coverageSection()}
 <h2>Work board &middot; ${esc(currentRelease)}</h2>
 <div class="board">
@@ -298,6 +371,9 @@ ${column('done', buckets.done, true)}
 <h2>Epics &middot; ${esc(currentRelease)}</h2>
 ${currentReleaseSection()}
 ${otherReleases.length ? '<h2>Other releases</h2><div class="releases">' + otherReleases.map((r) => otherReleaseGroup(r)).join('') + '</div>' : ''}
+<h2>Planning</h2>
+${gateSection()}
+${roadmapSection()}
 <div class="ts">${stories.length !== currentStories.length ? 'All releases: ' + allDone + ' of ' + stories.length + ' stories done &middot; ' : ''}Source: docs/engineering/backlog.json</div>
 </div></body></html>`;
 

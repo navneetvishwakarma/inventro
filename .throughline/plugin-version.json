@@ -1,6 +1,11 @@
 {
-  "version": "0.3.1",
-  "syncedAt": "2026-08-05T14:09:57.307Z",
-  "pendingReview": [],
+  "version": "0.3.2",
+  "syncedAt": "2026-08-13T07:51:18.796Z",
+  "pendingReview": [
+    "scripts/check-docs.mjs",
+    "docs/_templates/adr.template.md",
+    "docs/_templates/tech-plan.template.md",
+    "docs/_templates/_doc.template.md"
+  ],
   "legacyContractGrace": true
 }
